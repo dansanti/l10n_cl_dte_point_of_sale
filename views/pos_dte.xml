@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+
+	     <template id="pos_dte_extend" name="pos_dte" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/util.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/cipher.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/cipherModes.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/jsbn.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/oids.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/asn1.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/sha1.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/sha256.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/md5.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/md.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/aes.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/prng.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/random.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/pkcs1.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/rsa.js"></script>
+
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/des.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/rc2.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/pbe.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/pem.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/hmac.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/pbkdf2.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/pkcs7asn1.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/pkcs12.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/pss.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/mgf1.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/mgf.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/x509.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/pki.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/bcmath-min.js"></script>
+              <script src="/l10n_cl_dte_point_of_sale/static/src/lib/pdf417-min.js"></script>
+              <script type="text/javascript" src="/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js"></script>
+            </xpath>
+        </template>
+
+    </data>
+</openerp>
