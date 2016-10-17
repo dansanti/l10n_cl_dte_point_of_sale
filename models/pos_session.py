@@ -52,9 +52,9 @@ class PosSession(models.Model):
                 '<?xml version="1.0"?>','',1))
             folio_inicial = post['AUTORIZACION']['CAF']['DA']['RNG']['D']
             folio_final = post['AUTORIZACION']['CAF']['DA']['RNG']['H']
-            #if folio in range(int(folio_inicial), (int(folio_final)+1)):
-            post = json.dumps(post, ensure_ascii=False)
-            self.caf_file = post
+            if folio in range(int(folio_inicial), (int(folio_final)+1)):
+                post = json.dumps(post, ensure_ascii=False)
+                self.caf_file = post
         if folio > int(folio_final):
             msg = '''El folio de este documento: {} está fuera de rango \
 del CAF vigente (desde {} hasta {}). Solicite un nuevo CAF en el sitio \
