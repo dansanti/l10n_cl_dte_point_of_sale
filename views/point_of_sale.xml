@@ -37,4 +37,18 @@
               </notebook>
           </field>
       </record>
+      <menuitem
+              icon="STOCK_JUSTIFY_FILL"
+              action="l10n_cl_libro_compra_venta.action_move_consumo_folios"
+              id="menu_action_move_consumo_folios_form"
+              parent="point_of_sale.menu_point_rep"
+              groups="point_of_sale.group_pos_manager"
+              sequence="3"/>
+      <menuitem
+              icon="STOCK_JUSTIFY_FILL"
+              action="l10n_cl_libro_compra_venta.action_move_books"
+              id="menu_action_move_books_form"
+              parent="point_of_sale.menu_point_rep"
+              groups="point_of_sale.group_pos_manager"
+              sequence="3"/>
 </openerp>
