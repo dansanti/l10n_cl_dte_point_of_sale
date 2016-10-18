@@ -100,7 +100,7 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
           this.orderlines.each(function(orderline){
                orderlines.push(orderline.export_for_printing());
          });
-         var d = order.creation_date;
+         var d = order.validation_date;
           var date = d.toISOString();
           var curr_date = d.getDate();
           var curr_month = d.getMonth() + 1; //Months are zero based
