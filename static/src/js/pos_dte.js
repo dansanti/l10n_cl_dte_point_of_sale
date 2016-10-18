@@ -43,8 +43,7 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
   var PosModelSuper = models.PosModel.prototype.push_order;
   models.PosModel.prototype.push_order = function(order, opts) {
         if(order){
-          console.log("push_order");
-          var sii_document_number = (parseInt(order.sequence_number) - 1) + parseInt(this.pos.pos_session.start_number);
+          var sii_document_number = (parseInt(order.sequence_number) - 1) + parseInt(this.pos_session.start_number);
           order.sii_document_number = sii_document_number;
           order.signature = order.timbrar(order);
         }
@@ -130,7 +129,6 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
           md.update(string);
           var signature = forge.util.encode64(privateKey.sign(md));
           string = '<TED version="1.0">' + string + '<FRMT algoritmo="SHA1withRSA">' + signature + '</FRMT></TED>';
-          console.log(string);
           return string;
       },
       barcode_pdf417: function(){
@@ -138,7 +136,6 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
           return "";
         }
         var order = this.pos.get_order();
-        console.log(this);
           PDF417.init(order.signature);
           var barcode = PDF417.getBarcodeArray();
           var bw = 2;
