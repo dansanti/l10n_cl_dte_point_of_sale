@@ -32,7 +32,7 @@ class PosSession(models.Model):
         if pos_config.journal_document_class_id:
             sequence = pos_config.journal_document_class_id.sequence_id
             values.update({
-                'start_number': sequence.next_by_id(),
+                'start_number': sequence.number_next_actual,
                 'journal_document_class_id': pos_config.journal_document_class_id.id
             })
 
