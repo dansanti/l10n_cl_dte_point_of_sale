@@ -853,6 +853,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
     def _process_order(self, order):
         order_id = super(POS,self)._process_order(order)
         order_id = self.browse(order_id)
+        order_id.sequence_number = order['sequence_number'] #FIX odoo bug
         session = self.env['pos.session'].browse(order['pos_session_id'])
         order_id.journal_document_class_id = session.journal_document_class_id
         order_id.sii_document_number = order_id.sequence_number + session.start_number - 1
