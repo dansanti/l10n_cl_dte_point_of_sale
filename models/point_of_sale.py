@@ -647,7 +647,6 @@ version="1.0">
     '''
     def get_folio(self):
         # saca el folio directamente de la secuencia
-        return 1
         return int(self.sii_document_number)
 
     '''
@@ -668,8 +667,8 @@ for this Document. Please enable one.'''))
                 '<?xml version="1.0"?>','',1))
             folio_inicial = post['AUTORIZACION']['CAF']['DA']['RNG']['D']
             folio_final = post['AUTORIZACION']['CAF']['DA']['RNG']['H']
-            if folio in range(int(folio_inicial), (int(folio_final)+1)):
-                return post
+            #if folio in range(int(folio_inicial), (int(folio_final)+1)):
+            return post
         if folio > int(folio_final):
             msg = '''El folio de este documento: {} está fuera de rango \
 del CAF vigente (desde {} hasta {}). Solicite un nuevo CAF en el sitio \
@@ -856,7 +855,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         order_id = self.browse(order_id)
         session = self.env['pos.session'].browse(order['pos_session_id'])
         order_id.journal_document_class_id = session.journal_document_class_id
-        order_id.sii_document_number = order_id.sequence_number + session.start_number
+        order_id.sii_document_number = order_id.sequence_number + session.start_number - 1
         order_id.signature = order['signature']
         return order_id.id
 
@@ -1061,6 +1060,8 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
 </FRMT></TED>''').format(ddxml, frmt)
         root = etree.XML(ted)
         if ted != self.signature:
+            _logger.info(ted)
+            _logger.info(self.signature)
             raise UserError("¡La firma del pos es distinta a la del Backend!")
         self.sii_barcode = ted
         image = False
