@@ -20,7 +20,7 @@ class PosSession(models.Model):
     start_number = fields.Integer(
         string='Folio comienzo',
     )
-    caf_file = fields.Char(compute='get_caf_string', invisible=True)
+    caf_file = fields.Char( invisible=True)
 
     def create(self, cr, uid, values, context=None):
         context = dict(context or {})
@@ -33,19 +33,22 @@ class PosSession(models.Model):
             sequence = pos_config.journal_document_class_id.sequence_id
             values.update({
                 'start_number': sequence.number_next_actual,
-                'journal_document_class_id': pos_config.journal_document_class_id.id
+                'journal_document_class_id': pos_config.journal_document_class_id.id,
+                'caf_file': self.get_caf_string(cr, uid, sequence, context=context),
             })
 
         return super(PosSession, self).create(cr, is_pos_user and SUPERUSER_ID or uid, values, context=context)
 
     @api.model
-    def get_caf_string(self, caffiles=None):
-
-        if not caffiles:
-            caffiles = self.journal_document_class_id.sequence_id.dte_caf_ids
-            if not caffiles:
+    def get_caf_string(self, sequence=None):
+        if not sequence:
+            sequence = self.journal_document_class_id.sequence_id
+            if not sequence:
                 return
-        folio = self.journal_document_class_id.sequence_id.number_next_actual
+        folio = sequence.number_next_actual
+        caffiles = sequence.dte_caf_ids
+        if not caffiles:
+            return
         for caffile in caffiles:
             post = base64.b64decode(caffile.caf_file)
             post = xmltodict.parse(post.replace(
@@ -54,7 +57,7 @@ class PosSession(models.Model):
             folio_final = post['AUTORIZACION']['CAF']['DA']['RNG']['H']
             if folio in range(int(folio_inicial), (int(folio_final)+1)):
                 post = json.dumps(post, ensure_ascii=False)
-                self.caf_file = post
+                return post
         if folio > int(folio_final):
             msg = '''El folio de este documento: {} está fuera de rango \
 del CAF vigente (desde {} hasta {}). Solicite un nuevo CAF en el sitio \
