@@ -110,9 +110,10 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
            for(var i in ols2){
              if(ols[p].id !== ols2[i].id && ols[p].id > ols2[i].id){
                es_menor = false;
-           }
-           if(es_menor === true){
-             product_name = ols[p].product.name;
+             }
+             if(es_menor === true){
+               product_name = ols[p].product.name;
+             }
            }
          }
          var d = order.validation_date;
