@@ -19,11 +19,12 @@
           Fecha: <t t-esc="order.creation_date"/><br />
           <br />
           <div class="row">
-            <div class="col-xs-12 text-left">
-                Cliente: <span t-field="client.name"/><br/>
-                Rut: <span t-field="client.document_number"/><br/>
-                Dirección: <span t-field="client.street"/><br/>
-                Número de identificación: <span t-field="client.id"/><br/>
+            <t t-set="client" t-value="order.get_client()" />
+            <div class="col-xs-12 text-left" t-if="client">
+                Cliente: <span t-esc="client.name"/><br/>
+                Rut: <span t-esc="client.document_number"/><br/>
+                Dirección: <span t-esc="client.street"/><br/>
+                Número de identificación: <span t-esc="client.id"/><br/>
             </div>
           </div>
           <br />
