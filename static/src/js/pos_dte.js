@@ -80,6 +80,11 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
           json.sii_document_number = this.sii_document_number;
           json.client = this.get_client();
           return json;
+      },completa_cero(val){
+        if (parseInt(val) < 10){
+            return '0' + val;
+        }
+          return val;
       },
       timbrar: function(order){
           if (order.signature){ //no firmar otra vez
@@ -96,16 +101,22 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
             partner_id.document_number = "66666666-6";
             partner_id.name = "Usuario Anonimo";
           }
-          var orderlines = [];
-          this.orderlines.each(function(orderline){
-               orderlines.push(orderline.export_for_printing());
+          console.log(order);
+         var product_name = false;
+         order.orderlines.each(function(ol){
+           if(ol.id === 1){
+             product_name = ol.product.name;
+           }
          });
          var d = order.validation_date;
-          var date = d.toISOString();
-          var curr_date = d.getDate();
-          var curr_month = d.getMonth() + 1; //Months are zero based
+          var curr_date = this.completa_cero(d.getDate());
+          var curr_month = this.completa_cero(d.getMonth() + 1); //Months are zero based
           var curr_year = d.getFullYear();
-          date = date.split('.')[0];
+          var hours = d.getHours();
+          var minutes = d.getMinutes();
+          var seconds = d.getSeconds();
+          var date = curr_year + '-' + curr_month + '-' + curr_date + 'T' +
+                    this.completa_cero(hours) + ':' + this.completa_cero(minutes) + ':' + this.completa_cero(seconds);
           var string='<DD>' +
                 '<RE>' + this.pos.company.document_number.replace('.','').replace('.','') + '</RE>' +
                 '<TD>' + this.pos.config.sii_document_class_id.sii_code + '</TD>' +
@@ -114,7 +125,7 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
                 '<RR>' + partner_id.document_number.replace('.','').replace('.','') +'</RR>' +
                 '<RSR>' + partner_id.name + '</RSR>' +
                 '<MNT>' + this.get_total_with_tax() + '</MNT>' +
-                '<IT1>' + orderlines[0].product_name + '</IT1>' +
+                '<IT1>' + product_name + '</IT1>' +
                 '<CAF version="1.0"><DA><RE>' + caf_file.AUTORIZACION.CAF.DA.RE + '</RE>' +
                       '<RS>' + caf_file.AUTORIZACION.CAF.DA.RS + '</RS>' +
                       '<TD>' + caf_file.AUTORIZACION.CAF.DA.TD + '</TD>' +

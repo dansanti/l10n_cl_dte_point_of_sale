@@ -138,8 +138,12 @@ Extensión del modelo de datos para contener parámetros globales necesarios
  @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
  @version: 2016-06-11
 '''
+class POSL(models.Model):
+    _inherit = 'pos.order.line'
+    pos_order_line_id = fields.Integer(string="POS Line ID", readonly=True)
+
 class POS(models.Model):
-    _inherit = "pos.order"
+    _inherit = 'pos.order'
 
     signature = fields.Char(string="Signature")
     available_journal_document_class_ids = fields.Many2many(
@@ -851,6 +855,16 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
 
     @api.model
     def _process_order(self, order):
+        from datetime import timedelta, datetime
+        from dateutil import parser
+        offset = timedelta(hours=3)
+        lines = []
+        for l in order['lines']:
+            l[2]['pos_order_line_id'] = int(l[2]['id'])
+            lines.append(l)
+        order['lines'] = lines
+        dt = parser.parse(order['creation_date'])
+        order['creation_date'] = (dt - offset).strftime('%Y-%m-%dT%H:%M:%S')
         order_id = super(POS,self)._process_order(order)
         order_id = self.browse(order_id)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
@@ -1025,10 +1039,17 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         if no_product:
             result['TED']['DD']['MNT'] = 0
         for line in self.lines:
-            result['TED']['DD']['IT1'] = self._acortar_str(line.product_id.name,40)
-            if line.product_id.default_code:
-                result['TED']['DD']['IT1'] = self._acortar_str(line.product_id.name.replace('['+line.product_id.default_code+'] ',''),40)
-            break
+            es_menor = False
+            for others in self.lines:
+                if line.pos_order_line_id != others.pos_order_line_id and line.pos_order_line_id < others.pos_order_line_id:
+                    es_menor = True
+                elif line.pos_order_line_id != others.pos_order_line_id:
+                    es_menor = False
+            if es_menor:
+                result['TED']['DD']['IT1'] = self._acortar_str(line.product_id.name,40)
+                if line.product_id.default_code:
+                    result['TED']['DD']['IT1'] = self._acortar_str(line.product_id.name.replace('['+line.product_id.default_code+'] ',''),40)
+                break
 
         resultcaf = self.get_caf_file()
         result['TED']['DD']['CAF'] = resultcaf['AUTORIZACION']['CAF']
