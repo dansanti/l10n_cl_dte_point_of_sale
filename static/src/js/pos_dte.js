@@ -4,6 +4,7 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
 // implementaciónen el lado del cliente de firma
 
   var models = require('point_of_sale.models');
+  var PosBaseWidget = require('point_of_sale.BaseWidget');
 
   var modules = models.PosModel.prototype.models;
 
@@ -15,7 +16,7 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
            model.fields.push('activity_description','street','city');
       }
       if(model.model === 'res.partner'){
-           model.fields.push('document_number');
+           model.fields.push('document_number','activity_description','city');
       }
       if(model.model === 'pos.session'){
            model.fields.push('caf_file', 'start_number');
@@ -49,23 +50,29 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
         }
         return PosModelSuper.call(this, order, opts);
   };
+
+  var orden_numero = 0;
+
   var _super_order = models.Order.prototype;
   models.Order = models.Order.extend({
     initialize: function(attr, options) {
           _super_order.initialize.call(this,attr,options);
           this.signature = this.signature || false;
           this.sii_document_number = this.sii_document_number || false;
+          this.orden_numero = this.orden_numero || 0;
     },
     export_as_JSON: function() {
          var json = _super_order.export_as_JSON.apply(this,arguments);
          json.sii_document_number = this.sii_document_number;
          json.signature = this.signature;
+         json.orden_numero = this.orden_numero;
          return json;
      },
      init_from_JSON: function(json) {//carga pedido individual
           _super_order.init_from_JSON.apply(this,arguments);
           this.sii_document_number = json.sii_document_number;
           this.signature = json.signature;
+          this.orden_numero = json.orden_numero;
       },
       export_for_printing: function() {
           var json = _super_order.export_for_printing.apply(this,arguments);
@@ -78,9 +85,18 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
           }
           json.company.activity_description = this.pos.company.activity_description[1]
           json.sii_document_number = this.sii_document_number;
-          json.client = this.get_client();
+          json.orden_numero = this.orden_numero;
           return json;
-      },completa_cero(val){
+      },
+      initialize_validation_date: function(){
+        _super_order.initialize_validation_date.apply(this,arguments);
+        if (!this.is_to_invoice())
+        {
+          orden_numero ++;
+          this.orden_numero = orden_numero;
+        }
+      },
+      completa_cero(val){
         if (parseInt(val) < 10){
             return '0' + val;
         }
@@ -101,7 +117,6 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
             partner_id.document_number = "66666666-6";
             partner_id.name = "Usuario Anonimo";
           }
-
          var product_name = false;
          var ols = order.orderlines.models;
          var ols2 = ols;
@@ -177,4 +192,22 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
           return canvas.toDataURL("image/png");
     },
   });
+
+var _super_screen = PosBaseWidget.prototype;
+PosBaseWidget.render_receipt = function() {
+        var order = this.pos.get_order();
+        if (order.to_invoice)
+        {
+          this.$('.pos-receipt-container').html(QWeb.render('PosInvoice',{
+                  widget:this,
+                  order: order,
+                  receipt: order.export_for_printing(),
+                  orderlines: order.get_orderlines(),
+                  paymentlines: order.get_paymentlines(),
+              }));
+
+        }else{
+          _super_screen.render_receipt();
+        }
+    };
 })

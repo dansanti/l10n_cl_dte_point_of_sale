@@ -120,4 +120,131 @@
       </div>
     </t>
   </t>
+
+  <t t-extend="PosInvoice">
+    <t t-jquery="div" t-operation="replace">
+      <div class="pos-sale-ticket">
+        <div style="text-align:center; color:red; border-color:1px solid red;padding:5px;">
+          <h2>R.U.T.:<t t-esc="widget.pos.company.document_number"/></h2>
+          <div class="pos-center-align"><t t-esc="widget.pos.config.journal_document_class_id[1]"/> N°:<t t-esc="order.sii_document_number"/></div>
+        </div>
+        <br/>
+        <div stle="text-align:center;">
+          <img t-att-src='widget.company.logo' />
+        </div>
+        <br/>
+        <div style="text-align:right;">
+          <h2><t t-esc="widget.pos.company.name"/></h2>
+          <t t-esc="widget.pos.company.activity_description[1]"/><br />
+          <t t-esc="widget.pos.company.street"/> <t t-esc="widget.pos.company.city"/><br />
+          Tienda: <t t-esc="widget.pos.shop.name"/><br /> Vendedor: <t t-esc="widget.pos.cashier ? widget.pos.cashier.name : widget.pos.user.name"/><br />
+          Teléfono: <t t-esc="widget.pos.company.phone || ''"/><br />
+        </div>
+          <br />
+          <div class="row">
+            <h3>Razón Social del Receptor</h3>
+            <t t-set="client" t-value="order.get_client()" />
+            <div class="col-xs-12 text-left" t-if="client">
+                Cliente: <span t-esc="client.name"/><br/>
+                Rut: <span t-esc="client.document_number"/><br/>
+                Giro: <span t-esc="client.activity_description"/><br/>
+                Dirección: <span t-esc="client.street"/><br/>
+                Número de identificación: <span t-esc="client.id"/><br/>
+            </div>
+          </div>
+          <br />
+          Fecha de Emisión: <t t-esc="order.creation_date"/><br />
+          <br />
+          <t t-if="receipt.header">
+              <div style='text-align:center'>
+                  <t t-esc="receipt.header" />
+              </div>
+              <br />
+          </t>
+          <table class='receipt-orderlines'>
+              <colgroup>
+                  <col width='50%' />
+                  <col width='25%' />
+                  <col width='25%' />
+              </colgroup>
+              <tr t-foreach="orderlines" t-as="orderline">
+                  <td>
+                      <t t-esc="orderline.get_product().display_name"/>
+                       <t t-if="orderline.get_discount() > 0">
+                          <div class="pos-disc-font">
+                              With a <t t-esc="orderline.get_discount()"/>% discount
+                          </div>
+                      </t>
+                  </td>
+                  <td class="pos-right-align">
+                      <t t-esc="orderline.get_quantity_str_with_unit()"/>
+                  </td>
+                  <td class="pos-right-align">
+                      <t t-esc="widget.format_currency(orderline.get_display_price())"/>
+                  </td>
+              </tr>
+          </table>
+          <br />
+          <table class='receipt-total'>
+              <tr>
+                  <td>Subtotal:</td>
+                  <td class="pos-right-align">
+                      <t t-esc="widget.format_currency(order.get_total_without_tax())"/>
+                  </td>
+              </tr>
+              <tr>
+                  <td>Descuento:</td>
+                  <td class="pos-right-align">
+                      <t t-esc="widget.format_currency(order.get_total_discount())"/>
+                  </td>
+              </tr>
+              <tr class="emph">
+                  <td>Total:</td>
+                  <td class="pos-right-align">
+                      <t t-esc="widget.format_currency(order.get_total_with_tax())"/>
+                  </td>
+              </tr>
+          </table>
+          <br />
+          <table class='receipt-paymentlines'>
+              <t t-foreach="paymentlines" t-as="line">
+                <tr>
+                    <td>
+                        <t t-esc="line.name"/>
+                    </td>
+                    <td class="pos-right-align">
+                        <t t-esc="widget.format_currency(line.get_amount())"/>
+                    </td>
+                </tr>
+              </t>
+          </table>
+          <br />
+          <table class='receipt-change'>
+              <tr><td>Vuelto:</td><td class="pos-right-align">
+                  <t t-esc="widget.format_currency(order.get_change())"/>
+                  </td></tr>
+          </table>
+          <br/>
+          <div class="row">
+            <div class="col-xs-12">
+              <img t-att-src="order.barcode_pdf417()" style="width:100%"/>
+
+            </div>
+            <div class="col-xs-12">
+                <p style="text-align:center;color:red; font-size:8px;">
+                  Timbre Electrónico SII
+                  <br/>
+                  Resolución 393/2016 Verifique documento: www.sii.cl
+                </p>
+            </div>
+          </div>
+          <t t-if="receipt.footer">
+              <br />
+              <div style='text-align:center'>
+                  <t t-esc="receipt.footer" />
+              </div>
+          </t>
+      </div>
+    </t>
+  </t>
 </templates>

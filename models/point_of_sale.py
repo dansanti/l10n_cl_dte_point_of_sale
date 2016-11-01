@@ -868,49 +868,123 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         order_id = super(POS,self)._process_order(order)
         order_id = self.browse(order_id)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
-        session = self.env['pos.session'].browse(order['pos_session_id'])
-        order_id.journal_document_class_id = session.journal_document_class_id
-        order_id.sii_document_number = order_id.sequence_number + session.start_number - 1
-        order_id.signature = order['signature']
+        if order['orden_numero']:
+            order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
+            order_id.sii_document_number = order_id.sequence_number + order_id.session_id.start_number - 1
+            order_id.signature = order['signature']
+            order_id._timbrar()
+            consumo_folio = order_id.journal_document_class_id.sequence_id.next_by_id()
         return order_id.id
 
-    @api.model
-    def create_from_ui(self, orders):
-        ids = super(POS,self).create_from_ui(orders)
-        orders = self.env['pos.order'].browse(ids)
-        orders.do_validate()
-        return orders.ids
+    def action_invoice(self, cr, uid, ids, context=None):
+        inv_ref = self.pool.get('account.invoice')
+        inv_line_ref = self.pool.get('account.invoice.line')
+        product_obj = self.pool.get('product.product')
+        inv_ids = []
+
+        for order in self.pool.get('pos.order').browse(cr, uid, ids, context=context):
+            # Force company for all SUPERUSER_ID action
+            company_id = order.company_id.id
+            local_context = dict(context or {}, force_company=company_id, company_id=company_id)
+            if order.invoice_id:
+                inv_ids.append(order.invoice_id.id)
+                continue
+
+            if not order.partner_id:
+                raise UserError(_('Please provide a partner for the sale.'))
+
+            acc = order.partner_id.property_account_receivable_id.id
+            inv = {
+                'name': order.name,
+                'origin': order.name,
+                'account_id': acc,
+                'journal_id': order.sale_journal.id or None,
+                'type': 'out_invoice',
+                'reference': order.name,
+                'partner_id': order.partner_id.id,
+                'activity_description': order.partner_id.activity_description.id,
+                'comment': order.note or '',
+                'currency_id': order.pricelist_id.currency_id.id, # considering partner's sale pricelist's currency
+                'company_id': company_id,
+                'user_id': uid,
+                'ticket':  True,
+                'available_journal_document_class_ids': order.pos_session.config.available_journal_document_class_ids.ids,
+                'sii_document_class_id': order.journal_document_class_id.sii_document_class_id.id,
+                'journal_document_class_id': order.journal_document_class_id.id,
+                'responsable_envio': uid,
+            }
+            invoice = inv_ref.new(cr, uid, inv)
+            invoice._onchange_partner_id()
+            invoice.fiscal_position_id = order.fiscal_position_id
+
+            inv = invoice._convert_to_write(invoice._cache)
+            if not inv.get('account_id', None):
+                inv['account_id'] = acc
+            inv_id = inv_ref.create(cr, SUPERUSER_ID, inv, context=local_context)
+
+            self.write(cr, uid, [order.id], {'invoice_id': inv_id, 'state': 'invoiced'}, context=local_context)
+            inv_ids.append(inv_id)
+            for line in order.lines:
+                inv_name = product_obj.name_get(cr, uid, [line.product_id.id], context=local_context)[0][1]
+                inv_line = {
+                    'invoice_id': inv_id,
+                    'product_id': line.product_id.id,
+                    'quantity': line.qty,
+                    'account_analytic_id': self._prepare_analytic_account(cr, uid, line, context=local_context),
+                    'name': inv_name,
+                }
+
+                #Oldlin trick
+                invoice_line = inv_line_ref.new(cr, SUPERUSER_ID, inv_line, context=local_context)
+                invoice_line._onchange_product_id()
+                invoice_line.invoice_line_tax_ids = [tax.id for tax in invoice_line.invoice_line_tax_ids if tax.company_id.id == company_id]
+                fiscal_position_id = line.order_id.fiscal_position_id
+                if fiscal_position_id:
+                    invoice_line.invoice_line_tax_ids = fiscal_position_id.map_tax(invoice_line.invoice_line_tax_ids)
+                invoice_line.invoice_line_tax_ids = [tax.id for tax in invoice_line.invoice_line_tax_ids]
+                # We convert a new id object back to a dictionary to write to bridge between old and new api
+                inv_line = invoice_line._convert_to_write(invoice_line._cache)
+                inv_line.update(price_unit=line.price_unit, discount=line.discount)
+                inv_line_ref.create(cr, SUPERUSER_ID, inv_line, context=local_context)
+            inv_ref.compute_taxes(cr, SUPERUSER_ID, [inv_id], context=local_context)
+            self.signal_workflow(cr, uid, [order.id], 'invoice')
+            inv_ref.signal_workflow(cr, SUPERUSER_ID, [inv_id], 'validate')
+
+        if not inv_ids: return {}
+
+        mod_obj = self.pool.get('ir.model.data')
+        res = mod_obj.get_object_reference(cr, uid, 'account', 'invoice_form')
+        res_id = res and res[1] or False
+        return {
+            'name': _('Customer Invoice'),
+            'view_type': 'form',
+            'view_mode': 'form',
+            'view_id': [res_id],
+            'res_model': 'account.invoice',
+            'context': "{'type':'out_invoice'}",
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+            'res_id': inv_ids and inv_ids[0] or False,
+        }
 
     @api.multi
     def do_validate(self):
         for order in self:
             order.sii_result = 'NoEnviado'
             order.responsable_envio = self.env.user.id
-            if order.invoice_id:
-                order.invoice_id.ticket = True
-                order.invoice_id.journal_document_class_id = order.journal_document_class_id
-                order.invoice_id.sii_result = 'NoEnviado'
-                order.invoice_id.responsable_envio = self.env.user.id
-                order.invoice_id._timbrar()
-            else:
-                consumo_folio = order.journal_document_class_id.sequence_id.next_by_id()
+            if not order.invoice_id:
                 order._timbrar()
 
     @api.multi
     def do_dte_send_order(self, n_atencion=None):
         invs = ids = []
         for order in self:
-            if order.to_invoice:
-                invs.append(order.invoice_id.id)
-            else:
+            if not order.to_invoice:
                 if order.sii_result not in ['','NoEnviado']:
                     raise UserError("El documento %s ya ha sido enviado o está en cola de envío" % inv.sii_document_number)
-                inv.responsable_envio = self.env.user.id
-                inv.sii_result = 'EnCola'
-        if len(invs) > 0:
-            inv_obj = self.env['account.invoice'].browse(invs)
-            inv.ticket = True
-            inv_obj.do_dte_send_invoice(n_atencion)
+                order.responsable_envio = self.env.user.id
+                order.sii_result = 'EnCola'
+                ids.append(order.id)
         if len(ids) > 0:
             if not isinstance(n_atencion, unicode):
                 n_atencion = ''
@@ -1041,7 +1115,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         lines = self.lines
         sorted(lines, key=lambda e: e.pos_order_line_id)
         result['TED']['DD']['IT1'] = self._acortar_str(lines[0].product_id.name,40)
-        _logger.info('['+ lines[0].product_id.default_code +'] ')
         if lines[0].product_id.default_code:
             result['TED']['DD']['IT1'] = self._acortar_str(lines[0].product_id.name.replace('['+ lines[0].product_id.default_code +'] ',''),40)
 
