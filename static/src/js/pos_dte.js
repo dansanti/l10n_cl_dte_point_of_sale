@@ -127,7 +127,7 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
                es_menor = false;
              }
              if(es_menor === true){
-               product_name = ols[p].product.name;
+               product_name = ols[p].product.display_name;
              }
            }
          }
