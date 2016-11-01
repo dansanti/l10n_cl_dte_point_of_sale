@@ -101,13 +101,20 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
             partner_id.document_number = "66666666-6";
             partner_id.name = "Usuario Anonimo";
           }
-          console.log(order);
+
          var product_name = false;
-         order.orderlines.each(function(ol){
-           if(ol.id === 1){
-             product_name = ol.product.name;
+         var ols = order.orderlines.models;
+         var ols2 = ols;
+         for (var p in ols){
+           var es_menor = true;
+           for(var i in ols2){
+             if(ols[p].id !== ols2[i].id && ols[p].id > ols2[i].id){
+               es_menor = false;
            }
-         });
+           if(es_menor === true){
+             product_name = ols[p].product.name;
+           }
+         }
          var d = order.validation_date;
           var curr_date = this.completa_cero(d.getDate());
           var curr_month = this.completa_cero(d.getMonth() + 1); //Months are zero based
