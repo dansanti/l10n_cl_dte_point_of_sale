@@ -1038,18 +1038,12 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         result['TED']['DD']['MNT'] = int(round(self.amount_total))
         if no_product:
             result['TED']['DD']['MNT'] = 0
-        for line in self.lines:
-            es_menor = False
-            for others in self.lines:
-                if line.pos_order_line_id != others.pos_order_line_id and line.pos_order_line_id < others.pos_order_line_id:
-                    es_menor = True
-                elif line.pos_order_line_id != others.pos_order_line_id:
-                    es_menor = False
-            if es_menor:
-                result['TED']['DD']['IT1'] = self._acortar_str(line.product_id.name,40)
-                if line.product_id.default_code:
-                    result['TED']['DD']['IT1'] = self._acortar_str(line.product_id.name.replace('['+line.product_id.default_code+'] ',''),40)
-                break
+        lines = self.lines
+        sorted(lines, key=lambda e: e.pos_order_line_id)
+        result['TED']['DD']['IT1'] = self._acortar_str(lines[0].product_id.name,40)
+        _logger.info('['+ lines[0].product_id.default_code +'] ')
+        if lines[0].product_id.default_code:
+            result['TED']['DD']['IT1'] = self._acortar_str(lines[0].product_id.name.replace('['+ lines[0].product_id.default_code +'] ',''),40)
 
         resultcaf = self.get_caf_file()
         result['TED']['DD']['CAF'] = resultcaf['AUTORIZACION']['CAF']
