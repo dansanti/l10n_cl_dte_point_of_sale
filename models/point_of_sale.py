@@ -1024,10 +1024,9 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         Emisor['RUTEmisor'] = self.format_vat(self.company_id.vat)
         Emisor['RznSocEmisor'] = self.company_id.partner_id.name
         Emisor['GiroEmisor'] = self._acortar_str(self.company_id.activity_description.name, 80)
-        #@TODO: <CdgSIISucur>077063816</CdgSIISucur> codigo de sucursal
-        # no obligatorio si no hay sucursal, pero es un numero entregado
-        # por el SII para cada sucursal.
-        # este deberia agregarse al "punto de venta" el cual ya esta
+        if self.sale_journal.sii_code:
+            Emisor['Sucursal'] = self.sale_journal.sucursal.name
+            Emisor['CdgSIISucur'] = self.sale_journal.sii_code
         Emisor['DirOrigen'] = self.company_id.street + ' ' +(self.company_id.street2 or '')
         Emisor['CmnaOrigen'] = self.company_id.city_id.name or ''
         Emisor['CiudadOrigen'] = self.company_id.city or ''
