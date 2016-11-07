@@ -7,6 +7,7 @@ import logging
 from lxml import etree
 from lxml.etree import Element, SubElement
 from openerp import SUPERUSER_ID
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 
 import xml.dom.minidom
 import pytz
@@ -864,7 +865,8 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             lines.append(l)
         order['lines'] = lines
         dt = parser.parse(order['creation_date'])
-        order['creation_date'] = (dt - offset).strftime('%Y-%m-%dT%H:%M:%S')
+        #FIX: no restar horas, debe guardarse en UTC
+#         order['creation_date'] = (dt - offset).strftime('%Y-%m-%dT%H:%M:%S')
         order_id = super(POS,self)._process_order(order)
         order_id = self.browse(order_id)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
@@ -1100,12 +1102,20 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
 
     @api.multi
     def get_barcode(self, no_product=False):
+        util_model = self.env['cl.utils']
+        fields_model = self.env['ir.fields.converter']
+        from_zone = pytz.UTC
+        if 'tz' in self.env.context:
+            to_zone = pytz.timezone(self.env.context['tz'])
+        else:
+            to_zone = fields_model._input_tz()
+        date_order = util_model._change_time_zone(datetime.strptime(self.date_order, DTF), from_zone, to_zone).strftime(DTF)
         ted = False
         folio = self.get_folio()
         result['TED']['DD']['RE'] = self.format_vat(self.company_id.vat)
         result['TED']['DD']['TD'] = self.sii_document_class_id.sii_code
         result['TED']['DD']['F']  = folio
-        result['TED']['DD']['FE'] = self.date_order[:10]
+        result['TED']['DD']['FE'] = date_order[:10]
         result['TED']['DD']['RR'] = self.format_vat(self.partner_id.vat)
         result['TED']['DD']['RSR'] = self._acortar_str(self.partner_id.name or 'Usuario Anonimo',40)
         result['TED']['DD']['MNT'] = int(round(self.amount_total))
@@ -1141,7 +1151,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         # formateo sin remover indents
         ddxml = etree.tostring(root)
         timestamp = self.time_stamp()
-        ddxml = ddxml.replace('2014-04-24T12:02:20', self.date_order.replace(' ','T'))
+        ddxml = ddxml.replace('2014-04-24T12:02:20', date_order.replace(' ','T'))
         frmt = self.signmessage(ddxml, keypriv, keypub)['firma']
         ted = (
             '''<TED version="1.0">{}<FRMT algoritmo="SHA1withRSA">{}\
@@ -1159,7 +1169,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             image.save(barcodefile,'PNG')
             data = barcodefile.getvalue()
             self.sii_barcode_img = base64.b64encode(data)
-        ted  += '<TmstFirma>{}</TmstFirma>'.format(self.date_order.replace(' ','T'))
+        ted  += '<TmstFirma>{}</TmstFirma>'.format(date_order.replace(' ','T'))
         return ted
 
     def _invoice_lines(self):
