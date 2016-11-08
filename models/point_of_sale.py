@@ -1005,10 +1005,18 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         return giros_emisor
 
     def _id_doc(self, taxInclude=False, MntExe=0):
+        util_model = self.env['cl.utils']
+        fields_model = self.env['ir.fields.converter']
+        from_zone = pytz.UTC
+        if 'tz' in self.env.context:
+            to_zone = pytz.timezone(self.env.context['tz'])
+        else:
+            to_zone = fields_model._input_tz()
+        date_order = util_model._change_time_zone(datetime.strptime(self.date_order, DTF), from_zone, to_zone).strftime(DTF)
         IdDoc= collections.OrderedDict()
         IdDoc['TipoDTE'] = self.sii_document_class_id.sii_code
         IdDoc['Folio'] = self.get_folio()
-        IdDoc['FchEmis'] = self.date_order[:10]
+        IdDoc['FchEmis'] = date_order[:10]
         IdDoc['IndServicio'] = 3 #@TODO agregar las otras opciones a la fichade producto servicio
         #if self.tipo_servicio:
         #    Encabezado['IdDoc']['IndServicio'] = 1,2,3,4
