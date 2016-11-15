@@ -530,6 +530,7 @@ version="1.0">
         fulldoc = fulldoc if self.xml_validator(fulldoc, type) else ''
         return fulldoc
 
+    @api.multi
     def get_digital_signature_pem(self, comp_id):
         obj = user = self[0].responsable_envio
         if not obj:
@@ -549,6 +550,7 @@ version="1.0">
             }
         return signature_data
 
+    @api.multi
     def get_digital_signature(self, comp_id):
         obj = user = self[0].responsable_envio
         if not obj:
@@ -884,7 +886,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.sii_document_number = order_id.sequence_number + order_id.session_id.start_number - 1
             order_id.signature = order['signature']
-            self._timbrar()
+            order_id._timbrar()
         return order_id.id
 
     def action_invoice(self, cr, uid, ids, context=None):
@@ -1290,6 +1292,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             .replace('</Documento_ID>','\n'+ted+'\n</Documento_ID>')
         return xml
 
+    @api.multi
     def _timbrar(self, n_atencion=None):
         try:
             signature_d = self.get_digital_signature(self.company_id)
