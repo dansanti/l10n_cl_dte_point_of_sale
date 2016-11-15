@@ -147,7 +147,7 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
                 '<FE>' + curr_year + '-' + curr_month + '-' + curr_date + '</FE>' +
                 '<RR>' + partner_id.document_number.replace('.','').replace('.','') +'</RR>' +
                 '<RSR>' + partner_id.name + '</RSR>' +
-                '<MNT>' + this.get_total_with_tax() + '</MNT>' +
+                '<MNT>' + Math.round(this.get_total_with_tax()) + '</MNT>' +
                 '<IT1>' + product_name + '</IT1>' +
                 '<CAF version="1.0"><DA><RE>' + caf_file.AUTORIZACION.CAF.DA.RE + '</RE>' +
                       '<RS>' + caf_file.AUTORIZACION.CAF.DA.RS + '</RS>' +
