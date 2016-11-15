@@ -884,7 +884,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.sii_document_number = order_id.sequence_number + order_id.session_id.start_number - 1
             order_id.signature = order['signature']
-            self._timbrar()
+            order_id._timbrar()
         return order_id.id
 
     def action_invoice(self, cr, uid, ids, context=None):
