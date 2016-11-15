@@ -854,6 +854,16 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             c += 1
         return cadena
 
+    @api.multi
+    def action_paid(self):
+        for o in self:
+            if not o.invoice_id:
+                consumo_folio = o.journal_document_class_id.sequence_id.next_by_id()
+                if not o.sii_document_number:
+                    o.sii_document_number = consumo_folio
+                    o._timbrar()
+        super(POS,self).action_paid()
+
     @api.model
     def _process_order(self, order):
         from datetime import timedelta, datetime
@@ -874,8 +884,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.sii_document_number = order_id.sequence_number + order_id.session_id.start_number - 1
             order_id.signature = order['signature']
-            order_id._timbrar()
-            consumo_folio = order_id.journal_document_class_id.sequence_id.next_by_id()
+            self._timbrar()
         return order_id.id
 
     def action_invoice(self, cr, uid, ids, context=None):
