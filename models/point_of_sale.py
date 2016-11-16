@@ -1028,10 +1028,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         util_model = self.env['cl.utils']
         fields_model = self.env['ir.fields.converter']
         from_zone = pytz.UTC
-        if 'tz' in self.env.context:
-            to_zone = pytz.timezone(self.env.context['tz'])
-        else:
-            to_zone = fields_model._input_tz()
+        to_zone = pytz.timezone('America/Santiago')
         date_order = util_model._change_time_zone(datetime.strptime(self.date_order, DTF), from_zone, to_zone).strftime(DTF)
         IdDoc= collections.OrderedDict()
         IdDoc['TipoDTE'] = self.sii_document_class_id.sii_code
@@ -1133,10 +1130,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         util_model = self.env['cl.utils']
         fields_model = self.env['ir.fields.converter']
         from_zone = pytz.UTC
-        if 'tz' in self.env.context:
-            to_zone = pytz.timezone(self.env.context['tz'])
-        else:
-            to_zone = fields_model._input_tz()
+        to_zone = pytz.timezone('America/Santiago')
         date_order = util_model._change_time_zone(datetime.strptime(self.date_order, DTF), from_zone, to_zone).strftime(DTF)
         ted = False
         folio = self.get_folio()
