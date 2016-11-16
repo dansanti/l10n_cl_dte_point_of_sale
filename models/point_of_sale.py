@@ -1132,6 +1132,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         from_zone = pytz.UTC
         to_zone = pytz.timezone('America/Santiago')
         date_order = util_model._change_time_zone(datetime.strptime(self.date_order, DTF), from_zone, to_zone).strftime(DTF)
+        _logger.info(date_order)
         ted = False
         folio = self.get_folio()
         result['TED']['DD']['RE'] = self.format_vat(self.company_id.vat)
@@ -1145,7 +1146,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             result['TED']['DD']['MNT'] = 0
         lines = self.lines
         sorted(lines, key=lambda e: e.pos_order_line_id)
-        result['TED']['DD']['IT1'] = self._acortar_str(lines[0].product_id.with_context(display_default_code=False).name,40)
+        result['TED']['DD']['IT1'] = self._acortar_str(lines[0].product_id.with_context(display_default_code=False, lang='es_CL').name,40)
         resultcaf = self.get_caf_file()
         result['TED']['DD']['CAF'] = resultcaf['AUTORIZACION']['CAF']
         dte = result['TED']['DD']
