@@ -1132,7 +1132,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         from_zone = pytz.UTC
         to_zone = pytz.timezone('America/Santiago')
         date_order = util_model._change_time_zone(datetime.strptime(self.date_order, DTF), from_zone, to_zone).strftime(DTF)
-        _logger.info(date_order)
         ted = False
         folio = self.get_folio()
         result['TED']['DD']['RE'] = self.format_vat(self.company_id.vat)
@@ -1234,9 +1233,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             if line.discount > 0:
                 lines['DescuentoPct'] = line.discount
                 lines['DescuentoMonto'] = int(round((((line.discount / 100) * lines['PrcItem'])* qty)))
-            if not no_product and MntExe > 0:
-                lines['MontoItem'] = int(round(MntExe))
-            elif not no_product and not taxInclude:
+            if not no_product and not taxInclude:
                 lines['MontoItem'] = int(round(line.price_subtotal, 0))
             elif not no_product :
                 lines['MontoItem'] = int(round(line.price_subtotal_incl,0))
