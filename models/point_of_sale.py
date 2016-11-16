@@ -216,6 +216,17 @@ class POS(models.Model):
     responsable_envio = fields.Many2one('res.users')
     sii_document_number = fields.Integer(string="Folio de documento")
 
+    def _amount_line_tax(self, cr, uid, line, fiscal_position_id, context=None):
+        taxes = line.tax_ids.filtered(lambda t: t.company_id.id == line.order_id.company_id.id)
+        if fiscal_position_id:
+            taxes = fiscal_position_id.map_tax(taxes)
+        cur = line.order_id.pricelist_id.currency_id
+        taxes = taxes.compute_all(line.price_unit, cur, line.qty, product=line.product_id, partner=line.order_id.partner_id or False, discount=line.discount)['taxes']
+        val = 0.0
+        for c in taxes:
+            val += c.get('amount', 0.0)
+        return val
+
     def split_cert(self, cert):
         certf, j = '', 0
         for i in range(0, 29):
