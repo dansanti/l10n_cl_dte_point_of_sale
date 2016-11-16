@@ -3,15 +3,14 @@
     <data>
         <record id="sii_dte_masive_send_wizard_form" model="ir.ui.view">
             <field name="name">SII WS Consult Wizard form</field>
-            <field name="model">sii.dte.masive_send.wizard</field>
+            <field name="model">sii.dte.pos.masive_send.wizard</field>
             <field name="arch" type="xml">
                 <form string="SII DTE masive send Wizard">
                     <group>
                         <field name="documentos" widget="one2many">
                           <tree string="DTes a enviar" editable="top/bottom">
                             <field name="state" invisible="True"/>
-                            <field name="document_number" />
-                            <field name="origin" />
+                            <field name="sii_document_number" />
                             <field name="amount_total" />
                             <field name="sii_batch_number" readonly="False" />
                           </tree>
@@ -30,7 +29,7 @@
         <act_window id="action_account_invoice_send"
             multi="True"
             key2="client_action_multi" name="Enviar Documentos al SII"
-            res_model="sii.dte.masive_send.wizard" src_model="account.invoice"
+            res_model="sii.dte.pos.masive_send.wizard" src_model="pos.order"
 view_mode="form" target="new" view_type="form" />
     </data>
 </openerp>
