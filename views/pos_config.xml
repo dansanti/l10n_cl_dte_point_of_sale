@@ -8,7 +8,8 @@
             <field name="journal_id" position="after">
               <field name="available_journal_document_class_ids" invisible="1"/>
               <field name="journal_document_class_id"
-                     options="{'no_create': True}"/>
+                     options="{'no_create': True}"
+                     domain="[('journal_id','=', journal_id)]"/>
              </field>
           </field>
       </record>
