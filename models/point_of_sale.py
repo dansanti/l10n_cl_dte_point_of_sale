@@ -868,7 +868,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
     def create_from_ui(self, cr, uid, orders, context=None):
         order_ids = super(POS,self).create_from_ui(cr, uid, orders, context=context)
         for o in self.browse(cr, uid, order_ids, context=context):
-            if not o.invoice_id:
+            if not o.invoice_id and o.journal_document_class_id:
                 consumo_folio = o.journal_document_class_id.sequence_id.next_by_id()
                 if not o.sii_document_number:
                     o.sii_document_number = consumo_folio
@@ -885,11 +885,12 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         order_id = super(POS,self)._process_order(order)
         order_id = self.browse(order_id)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
-        if order['orden_numero'] and order_id.session_id.caf_file and self.get_digital_signature(self.company_id):
+        if order['orden_numero']:
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
-            order_id.sii_document_number = order['orden_numero'] + order_id.session_id.start_number
-            order_id.signature = order['signature']
-            order_id._timbrar()
+            order_id.sii_document_number = order['orden_numero'] + order_id.session_id.start_number - 1
+            if order_id.session_id.caf_file and self.get_digital_signature(self.company_id):
+                order_id.signature = order['signature']
+                order_id._timbrar()
         return order_id.id
 
     def action_invoice(self, cr, uid, ids, context=None):

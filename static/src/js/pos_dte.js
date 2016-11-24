@@ -48,7 +48,7 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
         if(order){
           if (this.pos_session.caf_file)
           {
-            var sii_document_number = parseInt(order.orden_numero) + parseInt(this.pos_session.start_number);
+            var sii_document_number = (parseInt(order.orden_numero) -1) + parseInt(this.pos_session.start_number);
             order.sii_document_number = sii_document_number;
             order.signature = order.timbrar(order);
           }
@@ -95,8 +95,8 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
         _super_order.initialize_validation_date.apply(this,arguments);
         if (!this.is_to_invoice())
         {
-          this.orden_numero = orden_numero;
           orden_numero ++;
+          this.orden_numero = orden_numero;
         }
       },
       completa_cero(val){
