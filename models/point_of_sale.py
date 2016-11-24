@@ -542,7 +542,7 @@ version="1.0">
         return fulldoc
 
     def get_digital_signature_pem(self, comp_id):
-        obj = user = self[0].responsable_envio
+        obj = user = self[0].responsable_envio if self else False
         if not obj:
             obj = user = self.env.user
         if not obj.cert:
@@ -561,7 +561,7 @@ version="1.0">
         return signature_data
 
     def get_digital_signature(self, comp_id):
-        obj = user = self[0].responsable_envio
+        obj = user = self[0].responsable_envio if self else False
         if not obj:
             obj = user = self.env.user
         if not obj.cert:
@@ -886,12 +886,10 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             lines.append(l)
         order['lines'] = lines
         dt = parser.parse(order['creation_date'])
-        #FIX: no restar horas, debe guardarse en UTC
-#         order['creation_date'] = (dt - offset).strftime('%Y-%m-%dT%H:%M:%S')
         order_id = super(POS,self)._process_order(order)
         order_id = self.browse(order_id)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
-        if order['orden_numero']:
+        if order['orden_numero'] and order_id.session_id.caf_file and self.get_digital_signature(self.company_id):
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.sii_document_number = order_id.sequence_number + order_id.session_id.start_number - 1
             order_id.signature = order['signature']
