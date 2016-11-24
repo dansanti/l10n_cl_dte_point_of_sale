@@ -2,7 +2,7 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
 "use strict";
 
 // implementaciónen el lado del cliente de firma
-  var orden_numero = 0;
+
   var models = require('point_of_sale.models');
   var PosBaseWidget = require('point_of_sale.BaseWidget');
 
@@ -41,15 +41,17 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
       },
   });
 
+  var orden_numero = 0;
+
   var PosModelSuper = models.PosModel.prototype.push_order;
   models.PosModel.prototype.push_order = function(order, opts) {
         if(order){
-            if (this.pos_session.caf_file)
-            {
-              var sii_document_number = (parseInt(order.sequence_number) - 1) + parseInt(this.pos_session.start_number);
-              order.sii_document_number = sii_document_number;
-              order.signature = order.timbrar(order);
-            }
+          if (this.pos_session.caf_file)
+          {
+            var sii_document_number = parseInt(order.orden_numero) + parseInt(this.pos_session.start_number);
+            order.sii_document_number = sii_document_number;
+            order.signature = order.timbrar(order);
+          }
         }
         return PosModelSuper.call(this, order, opts);
   };
@@ -93,8 +95,8 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
         _super_order.initialize_validation_date.apply(this,arguments);
         if (!this.is_to_invoice())
         {
-          orden_numero ++;
           this.orden_numero = orden_numero;
+          orden_numero ++;
         }
       },
       completa_cero(val){

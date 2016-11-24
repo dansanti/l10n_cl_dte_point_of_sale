@@ -865,15 +865,15 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             c += 1
         return cadena
 
-    @api.multi
-    def action_paid(self):
-        for o in self:
+    def create_from_ui(self, cr, uid, orders, context=None):
+        order_ids = super(POS,self).create_from_ui(cr, uid, orders, context=context)
+        for o in self.browse(cr, uid, order_ids, context=context):
             if not o.invoice_id:
                 consumo_folio = o.journal_document_class_id.sequence_id.next_by_id()
                 if not o.sii_document_number:
                     o.sii_document_number = consumo_folio
                     o._timbrar()
-        super(POS,self).action_paid()
+        return order_ids
 
     @api.model
     def _process_order(self, order):
@@ -887,7 +887,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
         if order['orden_numero'] and order_id.session_id.caf_file and self.get_digital_signature(self.company_id):
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
-            order_id.sii_document_number = order_id.sequence_number + order_id.session_id.start_number - 1
+            order_id.sii_document_number = order['orden_numero'] + order_id.session_id.start_number
             order_id.signature = order['signature']
             order_id._timbrar()
         return order_id.id
@@ -908,12 +908,24 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
 
             if not order.partner_id:
                 raise UserError(_('Please provide a partner for the sale.'))
-
-            acc = order.partner_id.property_account_receivable_id.id
+            jdc_ob = self.pool.get('account.journal.sii_document_class')
+            journal_document_class_id = jdc_ob.browse(cr, uid, jdc_ob.search(cr, uid,
+                    [
+                        ('journal_id','=', order.sale_journal.id),
+                        ('sii_document_class_id.sii_code', 'in', ['33', '34']),
+                    ], context=context), context=context)
+            if not journal_document_class_id:
+                raise UserError("Por favor defina Secuencia de Facturas para el Journal del POS")
+            acc = order.partner_id.property_account_receivable_id
+            available_turn_ids = order.company_id.company_activities_ids
+            turn_issuer = False
+            for turn in available_turn_ids:
+                turn_issuer = turn
             inv = {
                 'name': order.name,
                 'origin': order.name,
-                'account_id': acc,
+                'turn_issuer' : turn_issuer.id,
+                'account_id': acc.id,
                 'journal_id': order.sale_journal.id or None,
                 'type': 'out_invoice',
                 'reference': order.name,
@@ -924,9 +936,9 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 'company_id': company_id,
                 'user_id': uid,
                 'ticket':  True,
-                'available_journal_document_class_ids': order.pos_session.config.available_journal_document_class_ids.ids,
-                'sii_document_class_id': order.journal_document_class_id.sii_document_class_id.id,
-                'journal_document_class_id': order.journal_document_class_id.id,
+                'available_journal_document_class_ids': order.session_id.config_id.available_journal_document_class_ids.ids,
+                'sii_document_class_id': journal_document_class_id.sii_document_class_id.id,
+                'journal_document_class_id': journal_document_class_id.id,
                 'responsable_envio': uid,
             }
             invoice = inv_ref.new(cr, uid, inv)
@@ -1139,7 +1151,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             result['TED']['DD']['MNT'] = 0
         lines = self.lines
         sorted(lines, key=lambda e: e.pos_order_line_id)
-        result['TED']['DD']['IT1'] = self._acortar_str(lines[0].product_id.with_context(display_default_code=False, lang='es_CL').name,40)
+        result['TED']['DD']['IT1'] = self._acortar_str(lines[0].product_id.with_context(display_default_code=False, lang='es_CL').display_name,40)
         resultcaf = self.get_caf_file()
         result['TED']['DD']['CAF'] = resultcaf['AUTORIZACION']['CAF']
         dte = result['TED']['DD']
