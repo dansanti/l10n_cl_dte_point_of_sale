@@ -877,15 +877,11 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
 
     @api.model
     def _process_order(self, order):
-        from datetime import timedelta, datetime
-        from dateutil import parser
-        offset = timedelta(hours=3)
         lines = []
         for l in order['lines']:
             l[2]['pos_order_line_id'] = int(l[2]['id'])
             lines.append(l)
         order['lines'] = lines
-        dt = parser.parse(order['creation_date'])
         order_id = super(POS,self)._process_order(order)
         order_id = self.browse(order_id)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
