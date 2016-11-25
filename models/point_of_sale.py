@@ -655,22 +655,10 @@ version="1.0">
             'target': 'self',
         }
 
-    '''
-    Funcion para descargar el folio tomando el valor desde la secuencia
-    correspondiente al tipo de documento.
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-05-01
-    '''
     def get_folio(self):
         # saca el folio directamente de la secuencia
         return int(self.sii_document_number)
 
-    '''
-         Se Retorna el CAF que corresponda a la secuencia, independiente del estado
-         ya que si se suben 2 CAF y uno está por terminar y se hace un evío masivo
-         Deja fuera Los del antiguo CAF, que son válidos aún, porque no se han enviado; y arroja Error
-         de que la secuencia no está en el rango del CAF
-    '''
     def get_caf_file(self):
         caffiles = self.journal_document_class_id.sequence_id.dte_caf_ids
         if not caffiles:
@@ -683,8 +671,8 @@ for this Document. Please enable one.'''))
                 '<?xml version="1.0"?>','',1))
             folio_inicial = post['AUTORIZACION']['CAF']['DA']['RNG']['D']
             folio_final = post['AUTORIZACION']['CAF']['DA']['RNG']['H']
-            #if folio in range(int(folio_inicial), (int(folio_final)+1)):
-            return post
+            if folio in range(int(folio_inicial), (int(folio_final)+1)):
+                return post
         if folio > int(folio_final):
             msg = '''El folio de este documento: {} está fuera de rango \
 del CAF vigente (desde {} hasta {}). Solicite un nuevo CAF en el sitio \
@@ -759,12 +747,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 'exponent': base64.b64encode(rsa_m.e),
                 'digest': base64.b64encode(self.digest(MESSAGE))}
 
-    '''
-    Funcion usada en SII
-    para firma del timbre (dio errores de firma para el resto de los doc)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2015-03-01
-    '''
     def signmessage(self, MESSAGE, KEY, pubk='', digst=''):
         rsa = M2Crypto.EVP.load_key_string(KEY)
         rsa.reset_context(md='sha1')
@@ -898,7 +880,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         inv_line_ref = self.pool.get('account.invoice.line')
         product_obj = self.pool.get('product.product')
         inv_ids = []
-
         for order in self.pool.get('pos.order').browse(cr, uid, ids, context=context):
             # Force company for all SUPERUSER_ID action
             company_id = order.company_id.id
@@ -906,7 +887,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             if order.invoice_id:
                 inv_ids.append(order.invoice_id.id)
                 continue
-
             if not order.partner_id:
                 raise UserError(_('Please provide a partner for the sale.'))
             jdc_ob = self.pool.get('account.journal.sii_document_class')
