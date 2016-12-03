@@ -98,16 +98,17 @@
                   </td></tr>
           </table>
           <br/>
-          <div class="row">
+          <div class="row" t-if="receipt.barcode">
             <div class="col-xs-12">
-              <img t-att-src="order.barcode_pdf417()" style="width:100%"/>
-
+              <img t-att-src="receipt.barcode" style="width:100%"/>
             </div>
             <div class="col-xs-12">
                 <p style="text-align:center;color:red; font-size:8px;">
                   Timbre Electrónico SII
                   <br/>
-                  Resolución 393/2016 Verifique documento: www.sii.cl
+                  Resolución 393/2016 Verifique documento en:
+                  <br />
+                  <t t-esc="widget.pos.company.website + '/boleta/' + order.sii_document_number"/>
                 </p>
             </div>
           </div>
