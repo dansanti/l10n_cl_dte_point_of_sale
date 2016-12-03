@@ -115,7 +115,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           {
             l = "&#"+ l.charCodeAt()+';';
           }
-          string += l;
+          if(i < 40)
+          {
+            string += l;
+          }
         }
         return string;
       },
