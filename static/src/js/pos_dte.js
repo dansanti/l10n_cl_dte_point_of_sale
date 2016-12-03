@@ -105,69 +105,81 @@ odoo.define('l10n_cl_dte_post_of_sale.pos_dte', function (require) {
         }
           return val;
       },
+      encode: function(caracter){
+          var string = ""
+          for (var i=0; i< caracter.length; i++){
+            var l = caracter[i];
+            if(l.charCodeAt() >= 160)
+            {
+              l = "&#"+ l.charCodeAt()+';';
+            }
+            string += l;
+          }
+          return string;
+        },
       timbrar: function(order){
-          if (order.signature){ //no firmar otra vez
-            return order.signature;
-          }
-          var caf_file = JSON.parse(this.pos.pos_session.caf_file);
-          var priv_key = caf_file.AUTORIZACION.RSASK;
-          var pki = forge.pki;
-          var privateKey = pki.privateKeyFromPem(priv_key);
-          var md = forge.md.sha1.create();
-          var partner_id = this.get_client();
-          if(!partner_id){
-            partner_id = {};
-            partner_id.document_number = "66666666-6";
-            partner_id.name = "Usuario Anonimo";
-          }
-         var product_name = false;
-         var ols = order.orderlines.models;
-         var ols2 = ols;
-         for (var p in ols){
-           var es_menor = true;
-           for(var i in ols2){
-             if(ols[p].id !== ols2[i].id && ols[p].id > ols2[i].id){
-               es_menor = false;
-             }
-             if(es_menor === true){
-               product_name = ols[p].product.display_name;
+            if (order.signature){ //no firmar otra vez
+              return order.signature;
+            }
+            var caf_file = JSON.parse(this.pos.pos_session.caf_file);
+            var priv_key = caf_file.AUTORIZACION.RSASK;
+            var pki = forge.pki;
+            var privateKey = pki.privateKeyFromPem(priv_key);
+            var md = forge.md.sha1.create();
+            var partner_id = this.get_client();
+            if(!partner_id){
+              partner_id = {};
+              partner_id.document_number = "66666666-6";
+              partner_id.name = "Usuario Anonimo";
+            }
+           var product_name = false;
+           var ols = order.orderlines.models;
+           var ols2 = ols;
+           for (var p in ols){
+             var es_menor = true;
+             for(var i in ols2){
+               if(ols[p].id !== ols2[i].id && ols[p].id > ols2[i].id){
+                 es_menor = false;
+               }
+               if(es_menor === true){
+                 product_name = this.encode(ols[p].product.display_name);
+               }
              }
            }
-         }
-         var d = order.validation_date;
-          var curr_date = this.completa_cero(d.getDate());
-          var curr_month = this.completa_cero(d.getMonth() + 1); //Months are zero based
-          var curr_year = d.getFullYear();
-          var hours = d.getHours();
-          var minutes = d.getMinutes();
-          var seconds = d.getSeconds();
-          var date = curr_year + '-' + curr_month + '-' + curr_date + 'T' +
-                    this.completa_cero(hours) + ':' + this.completa_cero(minutes) + ':' + this.completa_cero(seconds);
-          var string='<DD>' +
-                '<RE>' + this.pos.company.document_number.replace('.','').replace('.','') + '</RE>' +
-                '<TD>' + this.pos.config.sii_document_class_id.sii_code + '</TD>' +
-                '<F>' + order.sii_document_number + '</F>' +
-                '<FE>' + curr_year + '-' + curr_month + '-' + curr_date + '</FE>' +
-                '<RR>' + partner_id.document_number.replace('.','').replace('.','') +'</RR>' +
-                '<RSR>' + partner_id.name + '</RSR>' +
-                '<MNT>' + Math.round(this.get_total_with_tax()) + '</MNT>' +
-                '<IT1>' + product_name + '</IT1>' +
-                '<CAF version="1.0"><DA><RE>' + caf_file.AUTORIZACION.CAF.DA.RE + '</RE>' +
-                      '<RS>' + caf_file.AUTORIZACION.CAF.DA.RS + '</RS>' +
-                      '<TD>' + caf_file.AUTORIZACION.CAF.DA.TD + '</TD>' +
-                      '<RNG><D>' + caf_file.AUTORIZACION.CAF.DA.RNG.D + '</D><H>' + caf_file.AUTORIZACION.CAF.DA.RNG.H + '</H></RNG>' +
-                      '<FA>' + caf_file.AUTORIZACION.CAF.DA.FA + '</FA>' +
-                      '<RSAPK><M>' + caf_file.AUTORIZACION.CAF.DA.RSAPK.M + '</M><E>' + caf_file.AUTORIZACION.CAF.DA.RSAPK.E + '</E></RSAPK>' +
-                      '<IDK>' + caf_file.AUTORIZACION.CAF.DA.IDK + '</IDK>' +
-                    '</DA>' +
-                    '<FRMA algoritmo="SHA1withRSA">' + caf_file.AUTORIZACION.CAF.FRMA["#text"] + '</FRMA>' +
-                '</CAF>'+
-                '<TSTED>' + date + '</TSTED></DD>';
-          md.update(string);
-          var signature = forge.util.encode64(privateKey.sign(md));
-          string = '<TED version="1.0">' + string + '<FRMT algoritmo="SHA1withRSA">' + signature + '</FRMT></TED>';
-          return string;
-      },
+           var d = order.validation_date;
+            var curr_date = this.completa_cero(d.getDate());
+            var curr_month = this.completa_cero(d.getMonth() + 1); //Months are zero based
+            var curr_year = d.getFullYear();
+            var hours = d.getHours();
+            var minutes = d.getMinutes();
+            var seconds = d.getSeconds();
+            var date = curr_year + '-' + curr_month + '-' + curr_date + 'T' +
+                      this.completa_cero(hours) + ':' + this.completa_cero(minutes) + ':' + this.completa_cero(seconds);
+            var string='<DD>' +
+                  '<RE>' + this.pos.company.document_number.replace('.','').replace('.','') + '</RE>' +
+                  '<TD>' + this.pos.config.sii_document_class_id.sii_code + '</TD>' +
+                  '<F>' + order.sii_document_number + '</F>' +
+                  '<FE>' + curr_year + '-' + curr_month + '-' + curr_date + '</FE>' +
+                  '<RR>' + partner_id.document_number.replace('.','').replace('.','') +'</RR>' +
+                  '<RSR>' + this.encode(partner_id.name) + '</RSR>' +
+                  '<MNT>' + Math.round(this.get_total_with_tax()) + '</MNT>' +
+                  '<IT1>' + product_name + '</IT1>' +
+                  '<CAF version="1.0"><DA><RE>' + caf_file.AUTORIZACION.CAF.DA.RE + '</RE>' +
+                        '<RS>' + caf_file.AUTORIZACION.CAF.DA.RS + '</RS>' +
+                        '<TD>' + caf_file.AUTORIZACION.CAF.DA.TD + '</TD>' +
+                        '<RNG><D>' + caf_file.AUTORIZACION.CAF.DA.RNG.D + '</D><H>' + caf_file.AUTORIZACION.CAF.DA.RNG.H + '</H></RNG>' +
+                        '<FA>' + caf_file.AUTORIZACION.CAF.DA.FA + '</FA>' +
+                        '<RSAPK><M>' + caf_file.AUTORIZACION.CAF.DA.RSAPK.M + '</M><E>' + caf_file.AUTORIZACION.CAF.DA.RSAPK.E + '</E></RSAPK>' +
+                        '<IDK>' + caf_file.AUTORIZACION.CAF.DA.IDK + '</IDK>' +
+                      '</DA>' +
+                      '<FRMA algoritmo="SHA1withRSA">' + caf_file.AUTORIZACION.CAF.FRMA["#text"] + '</FRMA>' +
+                  '</CAF>'+
+                  '<TSTED>' + date + '</TSTED></DD>';
+            md.update(string);
+            var signature = forge.util.encode64(privateKey.sign(md));
+            string = '<TED version="1.0">' + string + '<FRMT algoritmo="SHA1withRSA">' + signature + '</FRMT></TED>';
+            return string;
+        },
       barcode_pdf417: function(){
         if (!this.pos.pos_session.caf_file){
           return "";
