@@ -122,6 +122,131 @@
     </t>
   </t>
 
+
+  <t t-extend="XmlReceipt">
+    <t t-jquery="receipt" t-operation="replace">
+      <receipt align='center' width='40' value-thousands-separator='.' >
+            <t t-if='receipt.company.logo'>
+                <img t-att-src='receipt.company.logo' />
+                <br/>
+            </t>
+            <t t-if='!receipt.company.logo'>
+                <h1><t t-esc='receipt.company.name' /></h1>
+                <br/>
+            </t>
+        <div style="text-align:center;">
+          <h2><t t-esc="receipt.company.name"/></h2>
+          <h4><t t-esc="receipt.company.document_number"/></h4>
+          <t t-esc="receipt.company.activity_description[1]"/><br />
+          <t t-esc="receipt.company.street"/> <t t-esc="receipt.company.city"/><br />
+          <div class="pos-center-align"><t t-esc="receipt.config.journal_document_class_id[1]"/> N°:<t t-esc="receipt.sii_document_number or receipt.name"/></div>
+        </div>
+          <br />
+
+          Teléfono: <t t-esc="receipt.company.phone || ''"/><br />
+          Vendedor: <t t-esc="receipt.cashier ? receipt.cashier.name : receipt.user.name"/><br />
+          Tienda: <t t-esc="receipt.shop.name"/><br />
+          Fecha: <t t-esc="receipt.creation_date"/><br />
+          <br />
+          <div class="row">
+            <div class="col-xs-12 text-left" t-if="receipt.client">
+                Cliente: <span t-esc="receipt.client.name"/><br/>
+                Rut: <span t-esc="receipt.client.document_number"/><br/>
+                Dirección: <span t-esc="receipt.client.street"/><br/>
+                Número de identificación: <span t-esc="receipt.client.id"/><br/>
+            </div>
+          </div>
+          <br />
+          <t t-if="receipt.header">
+              <div style='text-align:center'>
+                  <t t-esc="receipt.header" />
+              </div>
+              <br />
+          </t>
+          <table class='receipt-orderlines'>
+              <colgroup>
+                  <col width='50%' />
+                  <col width='25%' />
+                  <col width='25%' />
+              </colgroup>
+              <tr t-foreach="receipt.orderlines" t-as="orderline">
+                  <td>
+                      <t t-esc="orderline.product_name"/>
+                       <t t-if="orderline.discount > 0">
+                          <div class="pos-disc-font">
+                              Con un <t t-esc="orderline.discount"/>% descuento
+                          </div>
+                      </t>
+                  </td>
+                  <td class="pos-right-align">
+                      <t t-esc="orderline.quantity"/>
+                      <t t-if='orderline.unit_name !== "Unit(s)"'>
+                          <t t-esc='orederline.unit_name' />
+                      </t>
+                      x
+                      <value value-decimals='0'>
+                          <t t-esc='orderline.price' />
+                      </value>
+                  </td>
+                  <td class="pos-right-align">
+                      <t t-esc="orderline.price_display"/>
+                  </td>
+              </tr>
+          </table>
+          <br />
+          <table class='receipt-total'>
+              <tr t-if='receipt.total_discount'>
+                  <td>Descuento:</td>
+                  <td class="pos-right-align">
+                      <t t-esc="receipt.total_discount"/>
+                  </td>
+              </tr>
+              <tr class="emph">
+                  <td>Total:</td>
+                  <td class="pos-right-align">
+                      <t t-esc="receipt.total_with_tax"/>
+                  </td>
+              </tr>
+          </table>
+          <br />
+          <t t-foreach='paymentlines' t-as='line'>
+                <line>
+                    <left><t t-esc='line.name' /></left>
+                    <right><value><t t-esc='line.get_amount()'/></value></right>
+                </line>
+            </t>
+            <br/>
+          <br />
+          <line size='double-height'>
+              <left><pre>        Vuelto:</pre></left>
+              <right><value><t t-esc='receipt.change' /></value></right>
+          </line>
+          <br/>
+          <div class="row" t-if="receipt.barcode">
+            <div class="col-xs-12">
+              <img t-att-src="receipt.barcode" style="width:100%"/>
+
+            </div>
+            <div class="col-xs-12">
+                <p style="text-align:center;color:red; font-size:8px;">
+                  Timbre Electrónico SII
+                  <br/>
+                  Verifique documento en:
+                  <br />
+                  <t t-esc="receipt.company.website +'/boleta/' + receipt.sii_document_number " />
+                </p>
+            </div>
+          </div>
+          <t t-if="receipt.footer">
+              <br />
+              <div style='text-align:center'>
+                  <t t-esc="receipt.footer" />
+              </div>
+          </t>
+      </receipt>
+    </t>
+  </t>
+
   <t t-extend="PosInvoice">
     <t t-jquery="div" t-operation="replace">
       <div class="pos-sale-ticket">
