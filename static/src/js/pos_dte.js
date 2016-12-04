@@ -21,6 +21,9 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       if(model.model === 'pos.session'){
            model.fields.push('caf_file', 'start_number');
       }
+      if (model.model == 'product.product') {
+          model.fields.push('name');
+      }
   }
 
   models.load_models({
@@ -147,7 +150,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
                es_menor = false;
              }
              if(es_menor === true){
-               product_name = this.encode(ols[p].product.display_name);
+               product_name = this.encode(ols[p].product.name);
              }
            }
          }
