@@ -45,6 +45,7 @@ Chile: API and GUI to access Electronic Invoicing webservices for Point of Sale.
         'views/pos_config.xml',
         'views/pos_session.xml',
         'views/point_of_sale.xml',
+        'views/bo_receipt.xml',
         'wizard/masive_send_dte.xml',
 #        'data/sequence.xml',
 #        'data/cron.xml',
