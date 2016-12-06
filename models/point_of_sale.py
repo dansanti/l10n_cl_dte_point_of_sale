@@ -1163,7 +1163,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             '''<TED version="1.0">{}<FRMT algoritmo="SHA1withRSA">{}\
 </FRMT></TED>''').format(ddxml, frmt)
         root = etree.XML(ted)
-        if ted != self.signature:
+        if self.signature and ted != self.signature:
             _logger.info(ted)
             _logger.info(self.signature)
             raise UserError("¡La firma del pos es distinta a la del Backend!")
