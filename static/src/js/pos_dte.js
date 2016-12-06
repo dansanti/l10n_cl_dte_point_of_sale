@@ -82,20 +82,15 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     },
     export_for_printing: function() {
           var json = _super_order.export_for_printing.apply(this,arguments);
-          for (var i=0;  i < this.pos.partners.length; i++)
-          {
-            if (this.pos.partners[i].id === this.pos.company.partner_id[0]){
-              json.company.document_number = this.pos.partners[i].document_number;
-              break;
-            }
-          }
+          json.company.document_number = this.pos.company.document_number;
           json.company.activity_description = this.pos.company.activity_description[1]
           json.sii_document_number = this.sii_document_number;
           json.orden_numero = this.orden_numero;
+          json.journal_document_class_id = this.pos.config.journal_document_class_id[1];
           json.creation_date = this.creation_date;
           json.barcode = this.barcode_pdf417();
           return json;
-    },
+      },
     initialize_validation_date: function(){
         _super_order.initialize_validation_date.apply(this,arguments);
         if (!this.is_to_invoice())
@@ -195,11 +190,12 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         var order = this.pos.get_order();
         PDF417.init(order.signature);
         var barcode = PDF417.getBarcodeArray();
-        var bw = 2;
+        var bw = 1.2;
         var bh = 2;
         var canvas = document.createElement('canvas');
         canvas.width = bw * barcode['num_cols'];
-        canvas.height = bh * barcode['num_rows'];
+        canvas.height = "150"; //bh * barcode['num_rows'];
+        console.log(canvas.width);
         var ctx = canvas.getContext('2d');
         var y = 0;
         for (var r = 0; r < barcode['num_rows']; ++r) {

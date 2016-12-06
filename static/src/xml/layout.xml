@@ -137,14 +137,14 @@
         <div style="text-align:center;">
           <h2><t t-esc="receipt.company.name"/></h2>
           <h4><t t-esc="receipt.company.document_number"/></h4>
-          <t t-esc="receipt.company.activity_description[1]"/><br />
+          <t t-esc="receipt.company.activity_description"/><br />
           <t t-esc="receipt.company.street"/> <t t-esc="receipt.company.city"/><br />
-          <div class="pos-center-align"><t t-esc="receipt.config.journal_document_class_id[1]"/> N°:<t t-esc="receipt.sii_document_number or receipt.name"/></div>
+          <div class="pos-center-align"><t t-esc="receipt.journal_document_class_id"/> N°:<t t-esc="receipt.sii_document_number or receipt.name"/></div>
         </div>
           <br />
 
           Teléfono: <t t-esc="receipt.company.phone || ''"/><br />
-          Vendedor: <t t-esc="receipt.cashier ? receipt.cashier.name : receipt.user.name"/><br />
+          Vendedor: <t t-esc="receipt.cashier"/><br />
           Tienda: <t t-esc="receipt.shop.name"/><br />
           Fecha: <t t-esc="receipt.creation_date"/><br />
           <br />
@@ -163,56 +163,51 @@
               </div>
               <br />
           </t>
-          <table class='receipt-orderlines'>
-              <colgroup>
-                  <col width='50%' />
-                  <col width='25%' />
-                  <col width='25%' />
-              </colgroup>
-              <tr t-foreach="receipt.orderlines" t-as="orderline">
-                  <td>
-                      <t t-esc="orderline.product_name"/>
-                       <t t-if="orderline.discount > 0">
-                          <div class="pos-disc-font">
-                              Con un <t t-esc="orderline.discount"/>% descuento
-                          </div>
-                      </t>
-                  </td>
-                  <td class="pos-right-align">
-                      <t t-esc="orderline.quantity"/>
-                      <t t-if='orderline.unit_name !== "Unit(s)"'>
-                          <t t-esc='orederline.unit_name' />
-                      </t>
-                      x
-                      <value value-decimals='0'>
-                          <t t-esc='orderline.price' />
-                      </value>
-                  </td>
-                  <td class="pos-right-align">
-                      <t t-esc="orderline.price_display"/>
-                  </td>
-              </tr>
-          </table>
+          <div class='orderlines' line-ratio='0.6'>
+                <t t-foreach='receipt.orderlines' t-as='line'>
+                    <t t-set='simple' t-value='line.discount === 0 and line.unit_name === "Unit(s)" and line.quantity === 1' />
+                    <t t-if='simple'>
+                        <line>
+                            <left><t t-esc='line.product_name' /></left>
+                            <right><value><t t-esc='line.price_display' /></value></right>
+                        </line>
+                    </t>
+                    <t t-if='!simple'>
+                        <line><left><t t-esc='line.product_name' /></left></line>
+                        <t t-if='line.discount !== 0'>
+                            <line indent='1'><left>Descuento: <t t-esc='line.discount' />%</left></line>
+                        </t>
+                        <line indent='1'>
+                            <left>
+                                <value value-decimals='3' value-autoint='on'>
+                                    <t t-esc='line.quantity' />
+                                </value>
+                                <t t-if='line.unit_name !== "Unit(s)"'>
+                                    <t t-esc='line.unit_name' /> 
+                                </t>
+                                x 
+                                $ <value value-decimals='0'>
+                                    <t t-esc='line.price' />
+                                </value>
+                            </left>
+                            <right>
+                                $ <value value-decimals='0'><t t-esc='line.price_display' /></value>
+                            </right>
+                        </line>
+                    </t>
+                </t>
+            </div>
           <br />
-          <table class='receipt-total'>
-              <tr t-if='receipt.total_discount'>
-                  <td>Descuento:</td>
-                  <td class="pos-right-align">
-                      <t t-esc="receipt.total_discount"/>
-                  </td>
-              </tr>
-              <tr class="emph">
-                  <td>Total:</td>
-                  <td class="pos-right-align">
-                      <t t-esc="receipt.total_with_tax"/>
-                  </td>
-              </tr>
-          </table>
-          <br />
+          <line><right>--------</right></line>
+            <line class='total' size='double-height'>
+                <left><pre>        TOTAL</pre></left>
+                <right>$ <value value-decimals='0'><t t-esc='receipt.total_with_tax' /></value></right>
+            </line>
+          <br/><br/>
           <t t-foreach='paymentlines' t-as='line'>
                 <line>
                     <left><t t-esc='line.name' /></left>
-                    <right><value><t t-esc='line.get_amount()'/></value></right>
+                    <right>$ <value value-decimals='0'><t t-esc='line.get_amount()'/></value></right>
                 </line>
             </t>
             <br/>
@@ -222,19 +217,17 @@
               <right><value><t t-esc='receipt.change' /></value></right>
           </line>
           <br/>
-          <div class="row" t-if="receipt.barcode">
-            <div class="col-xs-12">
-              <img t-att-src="receipt.barcode" style="width:100%"/>
-
-            </div>
-            <div class="col-xs-12">
-                <p style="text-align:center;color:red; font-size:8px;">
-                  Timbre Electrónico SII
-                  <br/>
-                  Verifique documento en:
-                  <br />
-                  <t t-esc="receipt.company.website +'/boleta/' + receipt.sii_document_number " />
-                </p>
+          <div t-if="receipt.barcode">
+            <img t-att-src="receipt.barcode" style="width:100%"/>
+            <br />
+            <div>
+              <p style="text-align:center;color:red; font-size:8px;">
+                Timbre Electrónico SII
+                <br/>
+                Verifique documento en:
+                <br />
+                <t t-esc="receipt.company.website +'/boleta/' + receipt.sii_document_number " />
+              </p>
             </div>
           </div>
           <t t-if="receipt.footer">
