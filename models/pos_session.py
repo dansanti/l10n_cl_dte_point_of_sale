@@ -32,7 +32,7 @@ class PosSession(models.Model):
         if pos_config.journal_document_class_id:
             sequence = pos_config.journal_document_class_id.sequence_id
             values.update({
-                'start_number': sequence.number_next_actual,
+                'start_number': sequence.number_next,
                 'journal_document_class_id': pos_config.journal_document_class_id.id,
                 'caf_file': self.get_caf_string(cr, uid, sequence, context=context),
             })
