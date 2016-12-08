@@ -99,6 +99,12 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           this.orden_numero = orden_numero;
         }
     },
+    get_total_with_tax: function() {
+      _super_order.get_total_with_tax.apply(this,arguments);
+      return round_pr(this.orderlines.reduce((function(sum, orderLine) {
+          return sum + orderLine.get_price_with_tax();
+      }), 0), this.pos.currency.rounding);
+    },
     completa_cero(val){
         if (parseInt(val) < 10){
             return '0' + val;
