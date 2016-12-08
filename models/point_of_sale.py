@@ -8,6 +8,7 @@ from lxml import etree
 from lxml.etree import Element, SubElement
 from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+import time
 
 import xml.dom.minidom
 import pytz
@@ -981,16 +982,17 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         for order in self:
             order.sii_result = 'NoEnviado'
             order.responsable_envio = self.env.user.id
-            if not order.invoice_id:
-                order._timbrar()
+            _logger.info("timbrar")
+            #if not order.invoice_id:
+            order._timbrar()
 
     @api.multi
     def do_dte_send_order(self, n_atencion=None):
         invs = ids = []
         for order in self:
-            if not order.to_invoice:
+            if not order.invoice_id:
                 if order.sii_result not in ['','NoEnviado']:
-                    raise UserError("El documento %s ya ha sido enviado o está en cola de envío" % inv.sii_document_number)
+                    raise UserError("El documento %s ya ha sido enviado o está en cola de envío" % order.sii_document_number)
                 order.responsable_envio = self.env.user.id
                 order.sii_result = 'EnCola'
                 ids.append(order.id)
@@ -1633,3 +1635,62 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             self.pool.get("account.move").post(cr, SUPERUSER_ID, [move_id], context=context)
 
         return True
+
+    def action_paid(self, cr, uid, ids, context=None):
+        order = self.browse(cr, uid, ids,context=context)
+        if order.journal_document_class_id and not order.signature:
+            order.sii_document_number = order.journal_document_class_id.sequence_id.next_by_id()
+            order.do_validate(cr, uid, ids, context=context)
+        self.write(cr, uid, ids, {'state': 'paid'}, context=context)
+        self.create_picking(cr, uid, ids, context=context)
+        return True
+
+    def refund(self, cr, uid, ids, context=None):
+        """Create a copy of order  for refund order"""
+        clone_list = []
+        line_obj = self.pool.get('pos.order.line')
+
+        for order in self.browse(cr, uid, ids, context=context):
+            current_session_ids = self.pool.get('pos.session').search(cr, uid, [
+                ('state', '!=', 'closed'),
+                ('user_id', '=', uid)], context=context)
+            if not current_session_ids:
+                raise UserError(_('To return product(s), you need to open a session that will be used to register the refund.'))
+
+            jdc_ob = self.pool.get('account.journal.sii_document_class')
+            journal_document_class_id = jdc_ob.browse(cr, uid, jdc_ob.search(cr, uid,
+                    [
+                        ('journal_id','=', order.sale_journal.id),
+                        ('sii_document_class_id.sii_code', 'in', ['61']),
+                    ], context=context), context=context)
+            if not journal_document_class_id:
+                raise UserError("Por favor defina Secuencia de Notas de Crédito para el Journal del POS")
+            clone_id = self.copy(cr, uid, order.id, {
+                'name': order.name + ' REFUND', # not used, name forced by create
+                'session_id': current_session_ids[0],
+                'date_order': time.strftime('%Y-%m-%d %H:%M:%S'),
+                'journal_document_class_id': journal_document_class_id.id,
+                'sii_document_class_id':journal_document_class_id.sii_document_class_id.id,
+                'sii_document_number': 0,
+                'signature': False
+            }, context=context)
+            clone_list.append(clone_id)
+
+        for clone in self.browse(cr, uid, clone_list, context=context):
+            for order_line in clone.lines:
+                line_obj.write(cr, uid, [order_line.id], {
+                    'qty': -order_line.qty
+                }, context=context)
+
+        abs = {
+            'name': _('Return Products'),
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'pos.order',
+            'res_id':clone_list[0],
+            'view_id': False,
+            'context':context,
+            'type': 'ir.actions.act_window',
+            'target': 'current',
+        }
+        return abs
