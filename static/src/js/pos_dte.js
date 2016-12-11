@@ -5,8 +5,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
 
   var models = require('point_of_sale.models');
   var PosBaseWidget = require('point_of_sale.BaseWidget');
+  var utils = require('web.utils');
 
   var modules = models.PosModel.prototype.models;
+  var round_pr = utils.round_precision;
 
   for(var i=0; i<modules.length; i++){
 

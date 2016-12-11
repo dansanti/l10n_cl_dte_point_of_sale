@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="view_pos_order_refund" model="ir.ui.view">
+            <field name="name">pos.order.refun.form</field>
+            <field name="model">pos.order.refund</field>
+            <field name="arch" type="xml">
+                <form string="Nota de Crédito / Débito">
+                  <group>
+                    <field name="tipo_nota" widget="radio"/>
+                  </group>
+                  <group>
+                     <group>
+                         <field name="filter_refund"  widget="radio"/>
+                     </group>
+                     <group>
+                         <div attrs="{'invisible':[('filter_refund','&lt;&gt;','refund')]}" class="oe_grey" colspan="4">
+                            You will be able to edit and validate this
+                            credit note directly or keep it draft,
+                            waiting for the document to be issued by
+                            your supplier/customer.
+                         </div>
+                         <div attrs="{'invisible':[('filter_refund','&lt;&gt;','cancel')]}" class="oe_grey" colspan="4">
+                            Use this option if you want to cancel an invoice you should not
+                            have issued. The credit note will be created, validated and reconciled
+                            with the invoice. You will not be able to modify the credit note.
+                         </div>
+                         <div attrs="{'invisible':[('filter_refund','&lt;&gt;','modify')]}" class="oe_grey" colspan="4">
+                            Use this option if you want to cancel an invoice and create a new
+                            one. The credit note will be created, validated and reconciled
+                            with the current invoice. A new, draft, invoice will be created
+                            so that you can edit it.
+                         </div>
+                     </group>
+                     <group>
+                         <field name="motivo"/>
+                     </group>
+                     <group>
+                         <field name="date_order"/>
+                     </group>
+                  </group>
+                  <footer>
+                      <button string='Crear Nota' name="confirm" type="object" class="btn-primary"/>
+                      <button string="Cancelar" class="btn-default" special="cancel"/>
+                  </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_pos_order_refund" model="ir.actions.act_window">
+            <field name="name">Refund order</field>
+            <field name="res_model">pos.order.refund</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+           <field name="view_id" ref="view_pos_order_refund"/>
+           <field name="target">new</field>
+        </record>
+    </data>
+</openerp>

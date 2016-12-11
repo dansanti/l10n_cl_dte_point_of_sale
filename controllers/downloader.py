@@ -17,7 +17,6 @@ class Binary(http.Controller):
         res = Model.read(cr, uid, [int(id)], fields, context)[0]
         # filecontent = base64.b64decode(res.get(field) or '')
         filecontent = res.get(field)
-        print(filecontent)
         if not filecontent:
             return request.not_found()
         else:

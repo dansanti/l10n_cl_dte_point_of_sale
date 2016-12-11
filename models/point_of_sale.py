@@ -9,6 +9,7 @@ from lxml.etree import Element, SubElement
 from openerp import SUPERUSER_ID
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 import time
+import math
 
 import xml.dom.minidom
 import pytz
@@ -216,6 +217,9 @@ class POS(models.Model):
     sii_send_file_name = fields.Char(string="Send File Name")
     responsable_envio = fields.Many2one('res.users')
     sii_document_number = fields.Integer(string="Folio de documento")
+    referencias = fields.One2many('pos.order.referencias','order_id',
+        readonly=True,
+        states={'draft': [('readonly', False)]})
 
     def _amount_line_tax(self, cr, uid, line, fiscal_position_id, context=None):
         taxes = line.tax_ids.filtered(lambda t: t.company_id.id == line.order_id.company_id.id)
@@ -648,11 +652,11 @@ version="1.0">
     '''
     @api.multi
     def get_xml_file(self):
-        filename = (self.document_number+'.xml').replace(' ','')
+        filename = 'BE' + str(self.sii_document_number)+'.xml'.replace(' ','')
         return {
             'type' : 'ir.actions.act_url',
-            'url': '/web/binary/download_document?model=account.invoice\
-&field=sii_xml_request&id=%s&filename=%s' % (self.id,filename),
+            'url': '/web/binary/download_document?model=pos.order\
+&field=sii_xml_request&id=%s&filename=%s' % (self.id,filename ),
             'target': 'self',
         }
 
@@ -982,7 +986,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         for order in self:
             order.sii_result = 'NoEnviado'
             order.responsable_envio = self.env.user.id
-            _logger.info("timbrar")
             #if not order.invoice_id:
             order._timbrar()
 
@@ -1007,6 +1010,11 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                                         'n_atencion': n_atencion
                                         })
 
+    def _es_boleta(self):
+        if self.sii_document_class_id.sii_code in [35, 38, 39, 41, 70, 71]:
+            return True
+        return False
+
     def _giros_emisor(self):
         giros_emisor = []
         for turn in self.company_id.company_activities_ids:
@@ -1023,7 +1031,12 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         IdDoc['TipoDTE'] = self.sii_document_class_id.sii_code
         IdDoc['Folio'] = self.get_folio()
         IdDoc['FchEmis'] = date_order[:10]
-        IdDoc['IndServicio'] = 3 #@TODO agregar las otras opciones a la fichade producto servicio
+        if self._es_boleta():
+            IdDoc['IndServicio'] = 3 #@TODO agregar las otras opciones a la fichade producto servicio
+        else:
+            IdDoc['TpoImpresion'] = "T"
+            IdDoc['MntBruto'] = 1
+            IdDoc['FmaPago'] = 1
         #if self.tipo_servicio:
         #    Encabezado['IdDoc']['IndServicio'] = 1,2,3,4
         # todo: forma de pago y fecha de vencimiento - opcional
@@ -1038,8 +1051,15 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
     def _emisor(self):
         Emisor= collections.OrderedDict()
         Emisor['RUTEmisor'] = self.format_vat(self.company_id.vat)
-        Emisor['RznSocEmisor'] = self.company_id.partner_id.name
-        Emisor['GiroEmisor'] = self._acortar_str(self.company_id.activity_description.name, 80)
+        if self._es_boleta():
+            Emisor['RznSocEmisor'] = self.company_id.partner_id.name
+            Emisor['GiroEmisor'] = self._acortar_str(self.company_id.activity_description.name, 80)
+        else:
+            Emisor['RznSoc'] = self.company_id.partner_id.name
+            Emisor['GiroEmis'] = self._acortar_str(self.company_id.activity_description.name, 80)
+            Emisor['Telefono'] = self.company_id.phone or ''
+            Emisor['CorreoEmisor'] = self.company_id.dte_email
+            Emisor['item'] = self._giros_emisor()
         if self.sale_journal.sii_code:
             Emisor['Sucursal'] = self.sale_journal.sucursal.name
             Emisor['CdgSIISucur'] = self.sale_journal.sii_code
@@ -1067,12 +1087,19 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
 
     def _totales(self, MntExe=0, no_product=False, taxInclude=False):
         Totales = collections.OrderedDict()
+        amount_total = amount_total = int(round(self.amount_total, 0))
+        if amount_total < 0:
+            amount_total *= -1
         if self.sii_document_class_id.sii_code == 34 :#@TODO Boletas exentas
-            Totales['MntExe'] = int(round(self.amount_total, 0))
+            Totales['MntExe'] = amount_total
             if  no_product:
                 Totales['MntExe'] = 0
         else :
             amount_untaxed =  self.amount_total - self.amount_tax
+            if amount_untaxed < 0:
+                amount_untaxed *= -1
+            if MntExe < 0:
+                MntExe *=-1
             Neto = amount_untaxed - MntExe
             if not taxInclude:
                 IVA = False
@@ -1080,13 +1107,19 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                     for t in l.tax_ids:
                         if t.sii_code in [14, 15]:
                             IVA = True
-                if IVA and IVA > 0 :
+                            IVAAmount = round(t.amount,2)
+                if IVA :
                     Totales['MntNeto'] = int(round((Neto), 0))
             if MntExe > 0:
                 Totales['MntExe'] = int(round( MntExe))
             if not taxInclude:
                 if IVA:
-                    Totales['IVA'] = int(round(self.amount_tax, 0))
+                    if not self._es_boleta():
+                        Totales['TasaIVA'] = IVAAmount
+                    iva = int(round(self.amount_tax, 0))
+                    if iva < 0:
+                        iva *= -1
+                    Totales['IVA'] = iva
                 if no_product:
                     Totales['MntNeto'] = 0
                     Totales['IVA'] = 0
@@ -1095,10 +1128,9 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             #    Totales['ImptoReten']['TpoImp'] = IVA.tax_id.sii_code
             #    Totales['ImptoReten']['TasaImp'] = round(IVA.tax_id.amount,2)
             #    Totales['ImptoReten']['MontoImp'] = int(round(IVA.amount))
-        monto_total = int(round(self.amount_total, 0))
         if no_product:
-            monto_total = 0
-        Totales['MntTotal'] = monto_total
+            amount_total = 0
+        Totales['MntTotal'] = amount_total
 
         #Totales['MontoNF']
         #Totales['TotalPeriodo']
@@ -1129,7 +1161,10 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         result['TED']['DD']['FE'] = date_order[:10]
         result['TED']['DD']['RR'] = self.format_vat(self.partner_id.vat)
         result['TED']['DD']['RSR'] = self._acortar_str(self.partner_id.name or 'Usuario Anonimo',40)
-        result['TED']['DD']['MNT'] = int(round(self.amount_total))
+        amount_total = int(round(self.amount_total))
+        if amount_total < 0:
+            amount_total *= -1
+        result['TED']['DD']['MNT'] = amount_total
         if no_product:
             result['TED']['DD']['MNT'] = 0
         lines = self.lines
@@ -1210,12 +1245,13 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 lines['NmbItem'] = self._acortar_str(line.product_id.name.replace('['+line.product_id.default_code+'] ',''),80)
             #lines['InfoTicket']
             qty = round(line.qty, 4)
+            if qty < 0:
+                qty *= -1
             if not no_product:
                 lines['QtyItem'] = qty
             if qty == 0 and not no_product:
                 lines['QtyItem'] = 1
-            elif qty < 0:
-                raise UserError("NO puede ser menor que 0")
+                #raise UserError("NO puede ser menor que 0")
             if not no_product:
                 lines['UnmdItem'] = line.product_id.uom_id.name[:4]
                 lines['PrcItem'] = round(line.price_unit, 4)
@@ -1223,9 +1259,12 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 lines['DescuentoPct'] = line.discount
                 lines['DescuentoMonto'] = int(round((((line.discount / 100) * lines['PrcItem'])* qty)))
             if not no_product and not taxInclude:
-                lines['MontoItem'] = int(round(line.price_subtotal, 0))
+                price = int(round(line.price_subtotal, 0))
             elif not no_product :
-                lines['MontoItem'] = int(round(line.price_subtotal_incl,0))
+                price = int(round(line.price_subtotal_incl,0))
+            if price < 0:
+                price *= -1
+            lines['MontoItem'] = price
             if no_product:
                 lines['MontoItem'] = 0
             line_number += 1
@@ -1260,12 +1299,19 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 ref_line = {}
                 ref_line = collections.OrderedDict()
                 ref_line['NroLinRef'] = lin_ref
+                if not self._es_boleta():
+                    if  ref.sii_referencia_TpoDocRef:
+                        ref_line['TpoDocRef'] = ref.sii_referencia_TpoDocRef.sii_code
+                        ref_line['FolioRef'] = ref.origen
+                    ref_line['FchRef'] = ref.fecha_documento or datetime.strftime(datetime.now(), '%Y-%m-%d')
                 if ref.sii_referencia_CodRef not in ['','none', False]:
                     ref_line['CodRef'] = ref.sii_referencia_CodRef
                 ref_line['RazonRef'] = ref.motivo
-                ref_line['CodVndor'] = self.seler_id.id
-                ref_lines['CodCaja'] = self.journal_id.point_of_sale_id.name
+                if self._es_boleta():
+                    ref_line['CodVndor'] = self.user_id.id
+                    ref_lines['CodCaja'] = self.location_id.nam
                 ref_lines.extend([{'Referencia':ref_line}])
+                lin_ref += 1
         dte['item'] = invoice_lines['invoice_lines']
         dte['reflines'] = ref_lines
         dte['TEDd'] = self.get_barcode(invoice_lines['no_product'])
@@ -1329,8 +1375,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             signature.'''))
             certp = signature_d['cert'].replace(
                 BC, '').replace(EC, '').replace('\n', '')
-            if inv.company_id.dte_service_provider == 'SIIHOMO': #Retimbrar con número de atención y envío
-                inv._timbrar(n_atencion)
             #@TODO Mejarorar esto en lo posible
             if not inv.sii_document_class_id.sii_code in clases:
                 clases[inv.sii_document_class_id.sii_code] = []
@@ -1650,60 +1694,10 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         order = self.browse(cr, uid, ids,context=context)
         if order.journal_document_class_id and not order.signature:
             order.sii_document_number = order.journal_document_class_id.sequence_id.next_by_id()
-            order.do_validate(cr, uid, ids, context=context)
+            order.do_validate()
         self.write(cr, uid, ids, {'state': 'paid'}, context=context)
         self.create_picking(cr, uid, ids, context=context)
         return True
-
-    def refund(self, cr, uid, ids, context=None):
-        """Create a copy of order  for refund order"""
-        clone_list = []
-        line_obj = self.pool.get('pos.order.line')
-
-        for order in self.browse(cr, uid, ids, context=context):
-            current_session_ids = self.pool.get('pos.session').search(cr, uid, [
-                ('state', '!=', 'closed'),
-                ('user_id', '=', uid)], context=context)
-            if not current_session_ids:
-                raise UserError(_('To return product(s), you need to open a session that will be used to register the refund.'))
-
-            jdc_ob = self.pool.get('account.journal.sii_document_class')
-            journal_document_class_id = jdc_ob.browse(cr, uid, jdc_ob.search(cr, uid,
-                    [
-                        ('journal_id','=', order.sale_journal.id),
-                        ('sii_document_class_id.sii_code', 'in', ['61']),
-                    ], context=context), context=context)
-            if not journal_document_class_id:
-                raise UserError("Por favor defina Secuencia de Notas de Crédito para el Journal del POS")
-            clone_id = self.copy(cr, uid, order.id, {
-                'name': order.name + ' REFUND', # not used, name forced by create
-                'session_id': current_session_ids[0],
-                'date_order': time.strftime('%Y-%m-%d %H:%M:%S'),
-                'journal_document_class_id': journal_document_class_id.id,
-                'sii_document_class_id':journal_document_class_id.sii_document_class_id.id,
-                'sii_document_number': 0,
-                'signature': False
-            }, context=context)
-            clone_list.append(clone_id)
-
-        for clone in self.browse(cr, uid, clone_list, context=context):
-            for order_line in clone.lines:
-                line_obj.write(cr, uid, [order_line.id], {
-                    'qty': -order_line.qty
-                }, context=context)
-
-        abs = {
-            'name': _('Return Products'),
-            'view_type': 'form',
-            'view_mode': 'form',
-            'res_model': 'pos.order',
-            'res_id':clone_list[0],
-            'view_id': False,
-            'context':context,
-            'type': 'ir.actions.act_window',
-            'target': 'current',
-        }
-        return abs
 
     @api.depends('statement_ids', 'lines.price_subtotal_incl', 'lines.discount')
     def _compute_amount_all(self):
@@ -1715,3 +1709,18 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             order.amount_tax = currency.round(sum(self._amount_line_tax(line, order.fiscal_position_id) for line in order.lines))
             amount_total = currency.round(sum(line.price_subtotal_incl for line in order.lines))
             order.amount_total = amount_total
+
+
+
+class Referencias(models.Model):
+    _name = 'pos.order.referencias'
+
+    origen = fields.Char(string="Origin")
+    sii_referencia_TpoDocRef =  fields.Many2one('sii.document_class',
+        string="SII Reference Document Type")
+    sii_referencia_CodRef = fields.Selection(
+        [('1','Anula Documento de Referencia'),('2','Corrige texto Documento Referencia'),('3','Corrige montos')],
+        string="SII Reference Code")
+    motivo = fields.Char(string="Motivo")
+    order_id = fields.Many2one('pos.order', ondelete='cascade',index=True,copy=False,string="Documento")
+    fecha_documento = fields.Date(string="Fecha Documento", required=True)
