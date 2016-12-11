@@ -1496,6 +1496,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 # FORWARD-PORT UP TO SAAS-12
                 journal_id = self.pool['ir.config_parameter'].get_param(cr, SUPERUSER_ID, 'pos.closing.journal_id_%s' % (current_company.id), default=order.sale_journal.id, context=context)
                 move_id = self._create_account_move(cr, uid, order.session_id.start_at, order.name, int(journal_id), order.company_id.id, context=context)
+
             move = account_move_obj.browse(cr, SUPERUSER_ID, move_id, context=context)
 
             def insert_data(data_type, values):
@@ -1511,8 +1512,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 if data_type == 'product':
                     key = ('product', values['partner_id'], (values['product_id'], tuple(values['tax_ids'][0][2]), values['name']), values['analytic_account_id'], values['debit'] > 0)
                 elif data_type == 'tax':
-                    key = ('tax', values['partner_id'], values['tax_line_id'], values['debit'] > 0, values['order_id'])
-                    del(values['order_id'])
+                    key = ('tax', values['partner_id'], values['tax_line_id'], values['debit'] > 0)
                 elif data_type == 'counter_part':
                     key = ('counter_part', values['partner_id'], values['account_id'], values['debit'] > 0)
                 else:
@@ -1547,10 +1547,13 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             #TOFIX: a deep refactoring of this method (and class!) is needed in order to get rid of this stupid hack
             assert order.lines, _('The POS order must have lines when calling this method')
             # Create an move for each order line
-
+            taxes = {}
             cur = order.pricelist_id.currency_id
+            lines = len(order.lines)
+            line = pending_round = 0
             for line in order.lines:
                 amount = line.price_subtotal
+                lines += amount
 
                 # Search for the income account
                 if  line.product_id.property_account_income_id.id:
@@ -1581,24 +1584,46 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 })
 
                 # Create the tax lines
-                taxes = []
+                line_amount = line.price_unit * (100.0-line.discount) / 100.0
+                line_amount *= line.qty
                 for t in line.tax_ids_after_fiscal_position:
                     if t.company_id.id == current_company.id:
-                        taxes.append(t.id)
+                        taxes.setdefault(t.id, 0)
+                        taxes[t.id] += line_amount
                 if not taxes:
                     continue
-                for tax in account_tax_obj.browse(cr,uid, taxes, context=context).compute_all(line.price_unit * (100.0-line.discount) / 100.0, cur, line.qty)['taxes']:
-                    insert_data('tax', {
-                        'order_id': line.order_id,
-                        'name': _('Tax') + ' ' + tax['name'],
+                dif = 0
+                real = math.modf(line_amount)[0]
+                pending_round += real
+                line += 1
+                if line == lines and math.modf(pending_round)[0] > 0 and math.modf(pending_round)[0] >= 0.5:
+                    dif = 1
+                elif line == lines and math.modf(pending_round)[0] < 0 and math.modf(pending_round)[0] <= -0.5:
+                    dif = -1
+                if dif != 0:
+                    insert_data('product', {
+                        'name': name,
+                        'quantity': (1 * dif),
                         'product_id': line.product_id.id,
-                        'quantity': line.qty,
-                        'account_id': tax['account_id'] or income_account,
-                        'credit': ((tax['amount']>0) and tax['amount']) or 0.0,
-                        'debit': ((tax['amount']<0) and -tax['amount']) or 0.0,
-                        'tax_line_id': tax['id'],
+                        'account_id': income_account,
+                        'analytic_account_id': self._prepare_analytic_account(cr, uid, line, context=context),
+                        'credit': ((dif>0) and dif) or 0.0,
+                        'debit': ((dif<0) and -dif) or 0.0,
+                        'tax_ids': [(6, 0, line.tax_ids_after_fiscal_position.ids)],
                         'partner_id': order.partner_id and self.pool.get("res.partner")._find_accounting_partner(order.partner_id).id or False
                     })
+            for t, value in taxes.iteritems():
+                tax = account_tax_obj.browse(cr, uid, t, context=context).compute_all(value , cur, 1)['taxes'][0]
+                insert_data('tax', {
+                    'name': _('Tax') + ' ' + tax['name'],
+                    'product_id': line.product_id.id,
+                    'quantity': line.qty,
+                    'account_id': tax['account_id'] or income_account,
+                    'credit': int(round(((tax['amount']>0) and tax['amount']) or 0.0)),
+                    'debit': int(round(((tax['amount']<0) and -tax['amount']) or 0.0)),
+                    'tax_line_id': tax['id'],
+                    'partner_id': order.partner_id and self.pool.get("res.partner")._find_accounting_partner(order.partner_id).id or False
+                })
 
             # counterpart
             insert_data('counter_part', {
@@ -1608,25 +1633,10 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 'debit': ((order.amount_total > 0) and order.amount_total) or 0.0,
                 'partner_id': order.partner_id and self.pool.get("res.partner")._find_accounting_partner(order.partner_id).id or False
             })
+
             order.write({'state':'done', 'account_move': move_id})
+
         all_lines = []
-        temp_groups = grouped_data
-        grouped_data = {}
-        for group_key, group_data in temp_groups.iteritems():
-            if 'tax' in group_key:
-                for key, values in temp_groups.iteritems():
-                    if 'tax' in key and key[2] == group_key[2] and key != group_key:
-                        group_data[0]['quantity'] +=  values[0]['quantity']
-                        group_data[0]['credit'] += values[0]['credit']
-                        group_data[0]['debit'] += values[0]['debit']
-                    if group_data[0]['credit'] >0:
-                        group_data[0]['credit'] = int(round(group_data[0]['credit']))
-                    else:
-                        group_data[0]['debit'] = int(round(group_data[0]['debit']))
-                group_key = (group_key[0], group_key[1], group_key[2], group_key[3])
-            grouped_data.setdefault(group_key, [])
-            if not grouped_data[group_key]:
-                grouped_data[group_key].append(group_data[0])
         for group_key, group_data in grouped_data.iteritems():
             for value in group_data:
                 all_lines.append((0, 0, value),)
