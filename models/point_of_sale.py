@@ -1595,12 +1595,9 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             # Create an move for each order line
             taxes = {}
             cur = order.pricelist_id.currency_id
-            lines = len(order.lines)
-            line = pending_round = 0
+            Afecto = Exento = Taxes = 0
             for line in order.lines:
                 amount = line.price_subtotal
-                lines += amount
-
                 # Search for the income account
                 if  line.product_id.property_account_income_id.id:
                     income_account = line.product_id.property_account_income_id.id
@@ -1632,32 +1629,21 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 # Create the tax lines
                 line_amount = line.price_unit * (100.0-line.discount) / 100.0
                 line_amount *= line.qty
+                line_amount = int(round(line_amount))
                 for t in line.tax_ids_after_fiscal_position:
                     if t.company_id.id == current_company.id:
                         taxes.setdefault(t.id, 0)
                         taxes[t.id] += line_amount
-                if not taxes:
+                if not taxes :
+                    Exento += line_amount
                     continue
-                dif = 0
-                real = math.modf(line_amount)[0]
-                pending_round += real
-                line += 1
-                if line == lines and math.modf(pending_round)[0] > 0 and math.modf(pending_round)[0] >= 0.5:
-                    dif = 1
-                elif line == lines and math.modf(pending_round)[0] < 0 and math.modf(pending_round)[0] <= -0.5:
-                    dif = -1
-                if dif != 0:
-                    insert_data('product', {
-                        'name': name,
-                        'quantity': (1 * dif),
-                        'product_id': line.product_id.id,
-                        'account_id': income_account,
-                        'analytic_account_id': self._prepare_analytic_account(cr, uid, line, context=context),
-                        'credit': ((dif>0) and dif) or 0.0,
-                        'debit': ((dif<0) and -dif) or 0.0,
-                        'tax_ids': [(6, 0, line.tax_ids_after_fiscal_position.ids)],
-                        'partner_id': order.partner_id and self.pool.get("res.partner")._find_accounting_partner(order.partner_id).id or False
-                    })
+                for t in line.tax_ids_after_fiscal_position:
+                    if t.amount > 0:
+                        Afecto += line_amount
+                    else:
+                        Exento += line_amount
+                pending_line = line
+
             for t, value in taxes.iteritems():
                 tax = account_tax_obj.browse(cr, uid, t, context=context).compute_all(value , cur, 1)['taxes'][0]
                 insert_data('tax', {
@@ -1668,6 +1654,25 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                     'credit': int(round(((tax['amount']>0) and tax['amount']) or 0.0)),
                     'debit': int(round(((tax['amount']<0) and -tax['amount']) or 0.0)),
                     'tax_line_id': tax['id'],
+                    'partner_id': order.partner_id and self.pool.get("res.partner")._find_accounting_partner(order.partner_id).id or False
+                })
+                if account_tax_obj.browse(cr, uid, t, context=context).amount > 0:
+                    t_amount = int(round(tax['amount']))
+                    if t_amount < 0:
+                        t_amount *= -1
+                    Taxes += t_amount
+
+            dif = ((Exento + Afecto) - order.amount_total)
+            if dif != 0:
+                insert_data('product', {
+                    'name': name,
+                    'quantity': (1 * dif),
+                    'product_id': pending_line.product_id.id,
+                    'account_id': income_account,
+                    'analytic_account_id': self._prepare_analytic_account(cr, uid, pending_line, context=context),
+                    'credit': ((dif>0) and dif) or 0.0,
+                    'debit': ((dif<0) and -dif) or 0.0,
+                    'tax_ids': [(6, 0, pending_line.tax_ids_after_fiscal_position.ids)],
                     'partner_id': order.partner_id and self.pool.get("res.partner")._find_accounting_partner(order.partner_id).id or False
                 })
 
