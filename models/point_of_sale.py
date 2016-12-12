@@ -1692,7 +1692,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             for value in group_data:
                 all_lines.append((0, 0, value),)
         if move_id: #In case no order was changed
-            self.pool.get("account.move").write(cr, SUPERUSER_ID, [move_id], {'line_ids':all_lines, 'document_class_id':  document_class_id.id}, context=dict(context or {}, dont_create_taxes=True))
+            self.pool.get("account.move").write(cr, SUPERUSER_ID, [move_id], {'line_ids':all_lines, 'document_class_id':  (document_class_id.id if document_class_id else False )}, context=dict(context or {}, dont_create_taxes=True))
             self.pool.get("account.move").post(cr, SUPERUSER_ID, [move_id], context=context)
 
         return True
