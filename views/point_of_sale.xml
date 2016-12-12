@@ -16,6 +16,7 @@
               <field name="journal_document_class_id"
                      options="{'no_create': True}"
                      domain="[('id','in',available_journal_document_class_ids[0][2])]"/>
+              <field name="document_class_id" />
               <field name="referencias" />
              </field>
 

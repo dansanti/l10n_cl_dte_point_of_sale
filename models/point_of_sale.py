@@ -154,7 +154,7 @@ class POS(models.Model):
         #compute='_get_available_journal_document_class',
         string='Available Journal Document Classes')
 
-    sii_document_class_id = fields.Many2one(
+    document_class_id = fields.Many2one(
         'sii.document_class',
         related='journal_document_class_id.sii_document_class_id',
         string='Document Type',
@@ -1518,8 +1518,10 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
 
         grouped_data = {}
         have_to_group_by = session and session.config_id.group_by or False
-
+        document_class_id = False
         for order in self.browse(cr, uid, ids, context=context):
+            if order.document_class_id:
+                document_class_id = order.document_class_id
             if order.account_move:
                 continue
             if order.state != 'paid':
@@ -1685,7 +1687,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             for value in group_data:
                 all_lines.append((0, 0, value),)
         if move_id: #In case no order was changed
-            self.pool.get("account.move").write(cr, SUPERUSER_ID, [move_id], {'line_ids':all_lines}, context=dict(context or {}, dont_create_taxes=True))
+            self.pool.get("account.move").write(cr, SUPERUSER_ID, [move_id], {'line_ids':all_lines, 'document_class_id':  document_class_id.id}, context=dict(context or {}, dont_create_taxes=True))
             self.pool.get("account.move").post(cr, SUPERUSER_ID, [move_id], context=context)
 
         return True
