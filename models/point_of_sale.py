@@ -801,7 +801,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                     #if document_type:
                     #    document_classes = self.env[
                     #        'account.journal.sii_document_class'].search(
-                    #        domain + [('sii_document_class_id.document_type', '=', document_type)])
+                    #        domain + [('document_class_id.document_type', '=', document_type)])
                     #    if document_classes.ids:
                     #        # revisar si hay condicion de exento, para poner como primera alternativa estos
                     #        document_class_id = self.get_document_class_default(document_classes)
@@ -1011,7 +1011,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                                         })
 
     def _es_boleta(self):
-        if self.sii_document_class_id.sii_code in [35, 38, 39, 41, 70, 71]:
+        if self.document_class_id.sii_code in [35, 38, 39, 41, 70, 71]:
             return True
         return False
 
@@ -1028,7 +1028,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         to_zone = pytz.timezone('America/Santiago')
         date_order = util_model._change_time_zone(datetime.strptime(self.date_order, DTF), from_zone, to_zone).strftime(DTF)
         IdDoc= collections.OrderedDict()
-        IdDoc['TipoDTE'] = self.sii_document_class_id.sii_code
+        IdDoc['TipoDTE'] = self.document_class_id.sii_code
         IdDoc['Folio'] = self.get_folio()
         IdDoc['FchEmis'] = date_order[:10]
         if self._es_boleta():
@@ -1090,7 +1090,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         amount_total = amount_total = int(round(self.amount_total, 0))
         if amount_total < 0:
             amount_total *= -1
-        if self.sii_document_class_id.sii_code == 34 :#@TODO Boletas exentas
+        if self.document_class_id.sii_code == 34 :#@TODO Boletas exentas
             Totales['MntExe'] = amount_total
             if  no_product:
                 Totales['MntExe'] = 0
@@ -1156,7 +1156,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         ted = False
         folio = self.get_folio()
         result['TED']['DD']['RE'] = self.format_vat(self.company_id.vat)
-        result['TED']['DD']['TD'] = self.sii_document_class_id.sii_code
+        result['TED']['DD']['TD'] = self.document_class_id.sii_code
         result['TED']['DD']['F']  = folio
         result['TED']['DD']['FE'] = date_order[:10]
         result['TED']['DD']['RR'] = self.format_vat(self.partner_id.vat)
@@ -1341,7 +1341,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             BC, '').replace(EC, '').replace('\n', '')
         folio = self.get_folio()
         dte = collections.OrderedDict()
-        doc_id_number = "F{}T{}".format(folio, self.sii_document_class_id.sii_code)
+        doc_id_number = "F{}T{}".format(folio, self.document_class_id.sii_code)
         doc_id = '<Documento ID="{}">'.format(doc_id_number)
         dte['Documento ID'] = self._dte(n_atencion)
         xml = self._dte_to_xml(dte)
@@ -1376,9 +1376,9 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             certp = signature_d['cert'].replace(
                 BC, '').replace(EC, '').replace('\n', '')
             #@TODO Mejarorar esto en lo posible
-            if not inv.sii_document_class_id.sii_code in clases:
-                clases[inv.sii_document_class_id.sii_code] = []
-            clases[inv.sii_document_class_id.sii_code].extend([{
+            if not inv.document_class_id.sii_code in clases:
+                clases[inv.document_class_id.sii_code] = []
+            clases[inv.document_class_id.sii_code].extend([{
                                                 'id':inv.id,
                                                 'envio': inv.sii_xml_request,
                                                 'sii_batch_number': inv.sii_batch_number,
@@ -1465,7 +1465,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         date_invoice = datetime.strptime(self.date_invoice, "%Y-%m-%d").strftime("%d-%m-%Y")
         rut = signature_d['subject_serial_number']
         respuesta = _server.getEstDte(rut[:8], str(rut[-1]),
-                self.company_id.vat[2:-1],self.company_id.vat[-1], receptor[:8],receptor[2:-1],str(self.sii_document_class_id.sii_code), str(self.sii_document_number),
+                self.company_id.vat[2:-1],self.company_id.vat[-1], receptor[:8],receptor[2:-1],str(self.document_class_id.sii_code), str(self.sii_document_number),
                 date_invoice, str(self.amount_total),token)
         self.sii_message = respuesta
         resp = xmltodict.parse(respuesta)
