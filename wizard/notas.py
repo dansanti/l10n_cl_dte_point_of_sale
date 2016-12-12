@@ -58,7 +58,7 @@ class AccountInvoiceRefund(models.TransientModel):
                 'signature': False,
                 'referencias':[[5,],[0,0, {
                     'origen': int(order.sii_document_number),
-                    'sii_referencia_TpoDocRef': order.sii_document_class_id.id,
+                    'sii_referencia_TpoDocRef': order.document_class_id.id,
                     'sii_referencia_CodRef': self.filter_refund,
                     'motivo': self.motivo,
                     'fecha_documento': self.date_order
