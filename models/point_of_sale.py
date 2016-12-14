@@ -873,6 +873,8 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         order_id = self.browse(order_id)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
         if order['orden_numero']:
+            if order['orden_numero'] > order_id.session_id.numero_ordenes:
+                order_id.session_id.numero_ordenes = order['orden_numero'] 
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.sii_document_number = order['orden_numero'] + order_id.session_id.start_number - 1
             if order_id.session_id.caf_file and self.get_digital_signature(self.company_id):

@@ -10,6 +10,7 @@
                      options="{'no_create': True}"/>
               <field name="start_number" />
               <field name="caf_file" invisible="True" readonly="True" />
+              <field name="numero_ordenes" readonly="True"/>
              </field>
           </field>
       </record>

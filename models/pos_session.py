@@ -21,6 +21,7 @@ class PosSession(models.Model):
         string='Folio comienzo',
     )
     caf_file = fields.Char( invisible=True)
+    numero_ordenes = fields.Integer(string="Número de ordenes", default=0)
 
     def create(self, cr, uid, values, context=None):
         context = dict(context or {})

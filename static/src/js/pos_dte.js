@@ -21,7 +21,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
            model.fields.push('document_number','activity_description','city');
       }
       if(model.model === 'pos.session'){
-           model.fields.push('caf_file', 'start_number');
+           model.fields.push('caf_file', 'start_number','numero_ordenes');
       }
       if (model.model == 'product.product') {
           model.fields.push('name');
@@ -45,8 +45,6 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           self.config.sii_document_class_id = dc[0];
       },
   });
-
-  var orden_numero = 0;
 
   var PosModelSuper = models.PosModel.prototype.push_order;
   models.PosModel.prototype.push_order = function(order, opts) {
@@ -95,10 +93,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       },
     initialize_validation_date: function(){
         _super_order.initialize_validation_date.apply(this,arguments);
-        if (!this.is_to_invoice())
+        if (!this.is_to_invoice() && this.pos.pos_session.caf_file)
         {
-          orden_numero ++;
-          this.orden_numero = orden_numero;
+          this.pos.pos_session.numero_ordenes ++;
+          this.orden_numero = this.pos.pos_session.numero_ordenes;
         }
     },
     get_total_with_tax: function() {
@@ -203,7 +201,6 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         var canvas = document.createElement('canvas');
         canvas.width = bw * barcode['num_cols'];
         canvas.height = "150"; //bh * barcode['num_rows'];
-        console.log(canvas.width);
         var ctx = canvas.getContext('2d');
         var y = 0;
         for (var r = 0; r < barcode['num_rows']; ++r) {
