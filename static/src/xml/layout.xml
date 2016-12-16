@@ -16,7 +16,7 @@
           Teléfono: <t t-esc="widget.pos.company.phone || ''"/><br />
           Vendedor: <t t-esc="widget.pos.cashier ? widget.pos.cashier.name : widget.pos.user.name"/><br />
           Tienda: <t t-esc="widget.pos.shop.name"/><br />
-          Fecha: <t t-esc="order.creation_date"/><br />
+          Fecha: <t t-esc="receipt.creation_date"/><br />
           <br />
           <div class="row">
             <t t-set="client" t-value="order.get_client()" />
@@ -183,9 +183,9 @@
                                     <t t-esc='line.quantity' />
                                 </value>
                                 <t t-if='line.unit_name !== "Unit(s)"'>
-                                    <t t-esc='line.unit_name' /> 
+                                    <t t-esc='line.unit_name' />
                                 </t>
-                                x 
+                                x
                                 $ <value value-decimals='0'>
                                     <t t-esc='line.price' />
                                 </value>
@@ -272,7 +272,7 @@
             </div>
           </div>
           <br />
-          Fecha de Emisión: <t t-esc="order.creation_date"/><br />
+          Fecha de Emisión: <t t-esc="receipt.creation_date"/><br />
           <br />
           <t t-if="receipt.header">
               <div style='text-align:center'>

@@ -87,7 +87,16 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           json.sii_document_number = this.sii_document_number;
           json.orden_numero = this.orden_numero;
           json.journal_document_class_id = this.pos.config.journal_document_class_id[1];
-          json.creation_date = this.creation_date;
+            var d = this.creation_date;
+           var curr_date = this.completa_cero(d.getDate());
+           var curr_month = this.completa_cero(d.getMonth() + 1); //Months are zero based
+           var curr_year = d.getFullYear();
+           var hours = d.getHours();
+           var minutes = d.getMinutes();
+           var seconds = d.getSeconds();
+           var date = curr_year + '-' + curr_month + '-' + curr_date + ' ' +
+                     this.completa_cero(hours) + ':' + this.completa_cero(minutes) + ':' + this.completa_cero(seconds);
+          json.creation_date = date;
           json.barcode = this.barcode_pdf417();
           return json;
       },
@@ -162,7 +171,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           var hours = d.getHours();
           var minutes = d.getMinutes();
           var seconds = d.getSeconds();
-          var date = curr_year + '-' + curr_month + '-' + curr_date + 'T' +
+          var date = curr_date + '-' + curr_month + '-' + curr_year + 'T' +
                     this.completa_cero(hours) + ':' + this.completa_cero(minutes) + ':' + this.completa_cero(seconds);
           var string='<DD>' +
                 '<RE>' + this.pos.company.document_number.replace('.','').replace('.','') + '</RE>' +
