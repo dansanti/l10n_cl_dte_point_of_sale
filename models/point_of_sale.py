@@ -856,10 +856,10 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         order_ids = super(POS,self).create_from_ui(cr, uid, orders, context=context)
         for o in self.browse(cr, uid, order_ids, context=context):
             if not o.invoice_id and o.journal_document_class_id:
-                consumo_folio = o.journal_document_class_id.sequence_id.next_by_id()
                 if not o.sii_document_number:
                     o.sii_document_number = consumo_folio
                     o._timbrar()
+                    consumo_folio = o.journal_document_class_id.sequence_id.next_by_id()
         return order_ids
 
     @api.model
@@ -874,7 +874,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
         if order['orden_numero']:
             if order['orden_numero'] > order_id.session_id.numero_ordenes:
-                order_id.session_id.numero_ordenes = order['orden_numero'] 
+                order_id.session_id.numero_ordenes = order['orden_numero']
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.sii_document_number = order['orden_numero'] + order_id.session_id.start_number - 1
             if order_id.session_id.caf_file and self.get_digital_signature(self.company_id):
