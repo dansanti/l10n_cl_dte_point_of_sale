@@ -171,7 +171,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           var hours = d.getHours();
           var minutes = d.getMinutes();
           var seconds = d.getSeconds();
-          var date = curr_date + '-' + curr_month + '-' + curr_year + 'T' +
+          var date = curr_year + '-' + curr_month + '-' + curr_date + 'T' +
                     this.completa_cero(hours) + ':' + this.completa_cero(minutes) + ':' + this.completa_cero(seconds);
           var string='<DD>' +
                 '<RE>' + this.pos.company.document_number.replace('.','').replace('.','') + '</RE>' +
