@@ -1311,7 +1311,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 ref_line['RazonRef'] = ref.motivo
                 if self._es_boleta():
                     ref_line['CodVndor'] = self.user_id.id
-                    ref_lines['CodCaja'] = self.location_id.nam
+                    ref_lines['CodCaja'] = self.location_id.name
                 ref_lines.extend([{'Referencia':ref_line}])
                 lin_ref += 1
         dte['item'] = invoice_lines['invoice_lines']
@@ -1719,7 +1719,13 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             amount_total = currency.round(sum(line.price_subtotal_incl for line in order.lines))
             order.amount_total = amount_total
 
-
+    @api.multi
+    def exento(self):
+        exento = 0
+        for l in self.lines:
+            if l.tax_ids.amount == 0:
+                exento += l.price_subtotal
+        return exento if exento > 0 else (exento * -1)
 
 class Referencias(models.Model):
     _name = 'pos.order.referencias'

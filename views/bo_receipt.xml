@@ -5,6 +5,10 @@
   <t position="replace">
       <t t-call="report.html_container">
           <t t-foreach="docs" t-as="o">
+            <t t-if="o.journal_document_class_id.sii_document_class_id.sii_code in [61]">
+              <t t-call="l10n_cl_dte_point_of_sale.bo_invoice" />
+            </t>
+            <t t-if="o.journal_document_class_id.sii_document_class_id.sii_code not in [61]">
               <div class="page">
                   <div class="row">
                       <div class="col-xs-12 text-center">
@@ -74,6 +78,12 @@
                   <div class="row">
                     <div class="col-xs-6 pull-right">
                       <table class="table table-condensed">
+                        <tr t-if="o.exento() !=0">
+                            <td>Exento:</td>
+                            <td class="pos-right-align">
+                                <t t-esc="o.exento()"/>
+                            </td>
+                        </tr>
                         <tr>
                           <td><strong>MONTO TOTAL</strong></td>
                           <td class="text-right">
@@ -119,6 +129,144 @@
           </t>
         </t>
     </t>
+  </t>
 </template>
+
+  <template id="bo_invoice">
+    <div class="page">
+      <div style="text-align:center; color:red; border: 2px solid red;padding:5px;">
+        <h4>R.U.T.:<t t-esc="o.company_id.partner_id.document_number"/></h4>
+        <h4 class="pos-center-align"><t t-esc="o.journal_document_class_id.sii_document_class_id.name"/><br />
+          N°:<t t-esc="o.sii_document_number"/></h4>
+      </div>
+      <br/>
+      <div class="row"  style="font-size: 10px;">
+        Casa Matriz: <t t-esc="o.company_id.street"/><br />
+        Giro: <t t-esc="o.company_id.activity_description.name"/><br />
+        Teléfono: <t t-esc="o.company_id.phone"/><br />
+        Vendedor: <t t-esc="o.user_id.name"/><br />
+        Tienda: <t t-esc="o.location_id.name"/><br />
+        Fecha: <t t-esc="o.date_order"/><br />
+        <div class="row">
+          <div class="col-xs-12 text-left" t-if="o.partner_id">
+              Cliente: <span t-esc="o.partner_id.name"/><br/>
+              Rut: <span t-esc="o.partner_id.document_number"/><br/>
+              Dirección: <span t-esc="o.partner_id.street"/><br/>
+              Número de identificación: <span t-esc="o.partner_id.id"/><br/>
+          </div>
+        </div>
+      </div>
+      <div class="row" t-if="o.referencias">
+        <h4 style="font-size: 10px;">Documentos de Referencia</h4>
+        <table  class="table table-condensed" style="margin-bottom:0; padding-bottom:0;">
+          <colgroup>
+              <col width='7%' />
+              <col width='20%' />
+              <col width='10%' />
+              <col width='10%' />
+              <col width='23%' />
+          </colgroup>
+          <tr>
+            <th style="font-size: 10px;">Folio</th>
+            <th style="font-size: 10px;">Tipo Documento</th>
+            <th style="font-size: 10px;">Fecha Documento</th>
+            <th style="font-size: 10px;">Código</th>
+            <th style="font-size: 10px;">Razón Referencia</th>
+          </tr>
+          <tr t-foreach="o.referencias" t-as="ref">
+            <td  style="font-size: 10px;" t-esc="ref.origen"/>
+            <td  style="font-size: 10px;" t-esc="ref.sii_referencia_TpoDocRef.name"/>
+            <td  style="font-size: 10px;" t-esc="ref.fecha_documento"/>
+            <td  style="font-size: 10px;" t-esc="ref.sii_referencia_CodRef"/>
+            <td  style="font-size: 10px;" t-esc="ref.motivo"/>
+          </tr>
+        </table>
+      </div>
+      <div class="row">
+        <table class="table table-condensed"  style="margin-bottom:0; padding-bottom:0;">
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th class="text-right">Cantidad</th>
+                    <th class="text-right">Precio Unitario</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+              <tr t-foreach="o.lines" t-as="line">
+                  <td><span t-field="line.product_id"/></td>
+                  <td class="text-right">
+                      <t t-if="o.state != 'cancel' and o.statement_ids">
+                          <span t-esc="line.qty if line.qty > 0 else line.qty * -1"/>
+                      </t>
+                  </td>
+                  <td class="text-right">
+                      <t t-if="o.state != 'cancel' and o.statement_ids">
+                          <span t-esc="formatLang(line.price_unit, currency_obj=res_company.currency_id) if line.price_unit > 0 else formatLang((line.price_unit *-1), currency_obj=res_company.currency_id)"/>
+                      </t>
+                      <t t-if="line.discount != 0.0">
+                          <span t-esc="line.discount"/>%
+                      </t>
+                  </td>
+                  <td>
+                    <t t-if="o.state != 'cancel' and o.statement_ids">
+                        <span t-esc="formatLang(line.price_subtotal_incl, currency_obj=res_company.currency_id) if line.price_subtotal_incl > 0 else formatLang((line.price_subtotal_incl *-1), currency_obj=res_company.currency_id)" />
+                    </t>
+                  </td>
+              </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="row">
+        <div class="col-xs-6 pull-right">
+          <table class="table table-condensed" style="margin-bottom:0; padding-bottom:0;">
+            <tr t-if="o.exento() !=0">
+                <td>Exento:</td>
+                <td class="pos-right-align">
+                    <t t-esc="o.exento()"/>
+                </td>
+            </tr>
+            <tr>
+              <td><strong>MONTO TOTAL</strong></td>
+              <td class="text-right">
+                  <strong t-esc="formatLang(o.amount_total, currency_obj=res_company.currency_id) if o.amount_total > 0 else formatLang((o.amount_total * -1), currency_obj=res_company.currency_id)"/>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <table class="table table-condensed">
+          <thead>
+              <tr>
+                  <th>FORMAS DE PAGO</th>
+                  <th>Monto</th>
+              </tr>
+          </thead>
+          <tbody>
+            <tr t-foreach="get_journal_amt(o)" t-as="d">
+                <td>
+                    <span t-esc="d['name']"/>
+                </td>
+                <td>
+                    <span t-esc="formatLang(d['amt'], currency_obj=res_company.currency_id) if d['amt'] > 0 else formatLang((d['amt'] * -1), currency_obj=res_company.currency_id)"/>
+                </td>
+            </tr>
+        </tbody>
+      </table>
+      <div class="row" t-if="o.sii_barcode_img">
+        <div class="col-xs-12" >
+           <span t-field="o.sii_barcode_img" t-field-options='{"widget": "image"}' style="margin-left:25%;"/>
+        </div>
+        <div class="col-xs-12">
+          <p style="text-align:center;color:red; font-size:8px;">
+            Timbre Electrónico SII
+            <br/>
+            Resolución 393/2016 Verifique documento: www.sii.cl
+          </p>
+        </div>
+      </div>
+    </div>
+  </template>
 </data>
 </openerp>

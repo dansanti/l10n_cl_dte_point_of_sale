@@ -98,6 +98,8 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
                      this.completa_cero(hours) + ':' + this.completa_cero(minutes) + ':' + this.completa_cero(seconds);
           json.creation_date = date;
           json.barcode = this.barcode_pdf417();
+          json.exento = this.get_total_exento();
+          json.referencias = [];
           return json;
       },
     initialize_validation_date: function(){
@@ -113,6 +115,23 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       return round_pr(this.orderlines.reduce((function(sum, orderLine) {
           return sum + orderLine.get_price_with_tax();
       }), 0), this.pos.currency.rounding);
+    },
+    get_total_exento:function(){
+      var taxes =  this.pos.taxes;
+      var exento = 0;
+
+      this.orderlines.each(function(line){
+        var product =  line.get_product();
+        var taxes_ids = product.taxes_id;
+        _(taxes_ids).each(function(el){
+              _.detect(taxes,function(t){
+                  if(t.id === el && t.amount === 0){
+                    exento += (line.get_unit_price() * line.get_quantity());
+                  }
+              });
+          });
+      });
+      return exento;
     },
     completa_cero(val){
         if (parseInt(val) < 10){
@@ -199,10 +218,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           return string;
       },
     barcode_pdf417: function(){
-        if (!this.pos.pos_session.caf_file){
+        var order = this.pos.get_order();
+        if (!this.pos.pos_session.caf_file || !order.sii_document_number){
           return false;
         }
-        var order = this.pos.get_order();
         PDF417.init(order.signature);
         var barcode = PDF417.getBarcodeArray();
         var bw = 1.2;
