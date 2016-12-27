@@ -117,7 +117,7 @@
                     </table>
                     <div class="row" t-if="o.sii_barcode_img">
                       <div class="col-xs-12" >
-                         <span t-field="o.sii_barcode_img" t-field-options='{"widget": "image"}' style="margin-left:25%;"/>
+                         <img t-att-src="'data:image/png;base64,%s' % o.sii_barcode_img" style="width: 100%"/>
                       </div>
                       <div class="col-xs-12">
                           <p style="text-align:center;color:red; font-size:8px;">
