@@ -1636,7 +1636,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                     if t.company_id.id == current_company.id:
                         taxes.setdefault(t.id, 0)
                         taxes[t.id] += line_amount
-                if not taxes :
+                if not line.tax_ids_after_fiscal_position :
                     Exento += line_amount
                     continue
                 for t in line.tax_ids_after_fiscal_position:
