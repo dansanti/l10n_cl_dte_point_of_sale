@@ -1145,7 +1145,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         Encabezado['IdDoc'] = self._id_doc(taxInclude, MntExe)
         Encabezado['Emisor'] = self._emisor()
         Encabezado['Receptor'] = self._receptor()
-        Encabezado['Totales'] = self._totales(MntExe, no_product)
+        Encabezado['Totales'] = self._totales(MntExe, no_product, taxInclude)
         return Encabezado
 
     @api.multi
