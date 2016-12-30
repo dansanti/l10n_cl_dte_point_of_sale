@@ -174,11 +174,11 @@
             <th style="font-size: 10px;">Razón Referencia</th>
           </tr>
           <tr t-foreach="o.referencias" t-as="ref">
-            <td  style="font-size: 10px;" t-esc="ref.origen"/>
-            <td  style="font-size: 10px;" t-esc="ref.sii_referencia_TpoDocRef.name"/>
-            <td  style="font-size: 10px;" t-esc="ref.fecha_documento"/>
-            <td  style="font-size: 10px;" t-esc="ref.sii_referencia_CodRef"/>
-            <td  style="font-size: 10px;" t-esc="ref.motivo"/>
+            <td  style="font-size: 10px;"><span t-field="ref.origen"/></td>
+            <td  style="font-size: 10px;"><span t-field="ref.sii_referencia_TpoDocRef.name"/></td>
+            <td  style="font-size: 10px;"><span t-field="ref.fecha_documento"/></td>
+            <td  style="font-size: 10px;"><span t-field="ref.sii_referencia_CodRef"/></td>
+            <td  style="font-size: 10px;"><span t-field="ref.motivo"/></td>
           </tr>
         </table>
       </div>
