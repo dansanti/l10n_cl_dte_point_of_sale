@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
+  <template id="website_layout_input" name="Validación Boleta Electrónica">
+			<t t-call="website.layout">
+        <div class="row text-center">
+          <form>
+            <label>Ingrese Folio de Boleta a consultar</label>
+            <input name="boleta" />
+            <button>Consultar Boleta</button>
+          </form>
+        </div>
+      </t>
+    </template>
   <template id="website_layout" name="Validación Boleta Electrónica">
 			<t t-call="website.layout">
+        <div class="row text-center">
+          <form>
+            <label>Ingrese Folio de Boleta a consultar</label>
+            <input name="otra_boleta" />
+            <button>Consultar Boleta</button>
+          </form>
+        </div>
         <div class="row" style="background-color:gray;">
           <div style="margin: auto;
               width: 320px;
