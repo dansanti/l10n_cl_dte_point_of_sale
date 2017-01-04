@@ -13,7 +13,6 @@
 Chile: API and GUI to access Electronic Invoicing webservices for Point of Sale.
 """,
     'depends': [
-        'webservices_generic',
         'l10n_cl_counties',
         'l10n_cl_invoice',
         'l10n_cl_dte_caf',
