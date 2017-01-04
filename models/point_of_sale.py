@@ -1597,7 +1597,9 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             # Create an move for each order line
             taxes = {}
             cur = order.pricelist_id.currency_id
-            Afecto = Exento = Taxes = 0
+            Afecto = 0
+            Exento = 0
+            Taxes = 0
             for line in order.lines:
                 amount = line.price_subtotal
                 # Search for the income account
@@ -1641,9 +1643,9 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                     continue
                 for t in line.tax_ids_after_fiscal_position:
                     if t.amount > 0:
-                        Afecto += line_amount
+                        Afecto += amount
                     else:
-                        Exento += line_amount
+                        Exento += amount
                 pending_line = line
 
             for t, value in taxes.iteritems():
@@ -1663,8 +1665,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                     if t_amount < 0:
                         t_amount *= -1
                     Taxes += t_amount
-
-            dif = ((Exento + Afecto) - order.amount_total)
+            dif = ( order.amount_total - (Exento + Afecto + Taxes))
             if dif != 0:
                 insert_data('product', {
                     'name': name,
