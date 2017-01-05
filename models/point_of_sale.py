@@ -1662,8 +1662,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 })
                 if account_tax_obj.browse(cr, uid, t, context=context).amount > 0:
                     t_amount = int(round(tax['amount']))
-                    if t_amount < 0:
-                        t_amount *= -1
                     Taxes += t_amount
             dif = ( order.amount_total - (Exento + Afecto + Taxes))
             if dif != 0:
