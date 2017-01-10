@@ -992,24 +992,21 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             order._timbrar()
 
     @api.multi
-    def do_dte_send_order(self, n_atencion=None):
+    def do_dte_send_order(self):
         invs = ids = []
         for order in self:
             if not order.invoice_id:
-                if order.sii_result not in ['','NoEnviado']:
+                if order.sii_result not in [False, '', 'NoEnviado']:
                     raise UserError("El documento %s ya ha sido enviado o está en cola de envío" % order.sii_document_number)
                 order.responsable_envio = self.env.user.id
                 order.sii_result = 'EnCola'
                 ids.append(order.id)
         if len(ids) > 0:
-            if not isinstance(n_atencion, unicode):
-                n_atencion = ''
             self.env['sii.cola_envio'].create({
                                         'doc_ids': ids,
                                         'model':'pos.order',
                                         'user_id':self.env.user.id,
                                         'tipo_trabajo':'envio',
-                                        'n_atencion': n_atencion
                                         })
 
     def _es_boleta(self):
@@ -1280,22 +1277,12 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 'tax_include': taxInclude,
                 }
 
-    def _dte(self, n_atencion=None):
+    def _dte(self):
         dte = collections.OrderedDict()
         invoice_lines = self._invoice_lines()
         dte['Encabezado'] = self._encabezado(invoice_lines['MntExe'], invoice_lines['no_product'], invoice_lines['tax_include'])
         lin_ref = 1
         ref_lines = []
-        if self.company_id.dte_service_provider == 'SIIHOMO' and isinstance(n_atencion, unicode) and not self._es_boleta():
-            ref_line = {}
-            ref_line = collections.OrderedDict()
-            ref_line['NroLinRef'] = lin_ref
-            ref_line['TpoDocRef'] = "SET"
-            ref_line['FolioRef'] = self.get_folio()
-            ref_line['FchRef'] = datetime.strftime(datetime.now(), '%Y-%m-%d')
-            ref_line['RazonRef'] = "CASO "+n_atencion+"-" + str(self.sii_batch_number)
-            lin_ref = 2
-            ref_lines.extend([{'Referencia':ref_line}])
         if 'referencias' in self and  self.referencias :
             for ref in self.referencias:
                 ref_line = {}
@@ -1330,7 +1317,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             .replace('</Documento_ID>','\n'+ted+'\n</Documento_ID>')
         return xml
 
-    def _timbrar(self, n_atencion=None):
+    def _timbrar(self):
         try:
             signature_d = self.get_digital_signature(self.company_id)
         except:
@@ -1345,7 +1332,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         dte = collections.OrderedDict()
         doc_id_number = "F{}T{}".format(folio, self.document_class_id.sii_code)
         doc_id = '<Documento ID="{}">'.format(doc_id_number)
-        dte['Documento ID'] = self._dte(n_atencion)
+        dte['Documento ID'] = self._dte()
         xml = self._dte_to_xml(dte)
         root = etree.XML( xml )
         xml_pret = etree.tostring(root, pretty_print=True).replace(
@@ -1359,14 +1346,12 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         self.sii_xml_request = einvoice
 
     @api.multi
-    def do_dte_send(self, n_atencion="612122"):
+    def do_dte_send(self, n_atencion=None):
         dicttoxml.set_debug(False)
         DTEs = {}
         clases = {}
         company_id = False
-        es_boleta = False
         for inv in self.with_context(lang='es_CL'):
-            es_boleta = inv._es_boleta()
             try:
                 signature_d = self.get_digital_signature(inv.company_id)
             except:
@@ -1383,7 +1368,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             clases[inv.document_class_id.sii_code].extend([{
                                                 'id':inv.id,
                                                 'envio': inv.sii_xml_request,
-                                                'sii_batch_number': inv.sii_batch_number,
                                                 'sii_document_number':inv.sii_document_number
                                             }])
             DTEs.update(clases)
@@ -1392,48 +1376,61 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             elif company_id.id != inv.company_id.id:
                 raise UserError("Está combinando compañías, no está permitido hacer eso en un envío")
             company_id = inv.company_id
-            #@TODO hacer autoreconciliación
 
         file_name = ""
         dtes={}
-        SubTotDTE = ''
+        SubTotDTE = {}
+        documentos = {}
         resol_data = self.get_resolution_data(company_id)
         signature_d = self.get_digital_signature(company_id)
         RUTEmisor = self.format_vat(company_id.vat)
+
         for id_class_doc, classes in clases.iteritems():
             NroDte = 0
+            documentos[id_class_doc] = ''
             for documento in classes:
-                dtes.update({str(documento['sii_batch_number']): documento['envio']})
+                documentos[id_class_doc] += '\n' + documento['envio']
                 NroDte += 1
                 file_name += 'F' + str(int(documento['sii_document_number'])) + 'T' + str(id_class_doc)
-            SubTotDTE += '<SubTotDTE>\n<TpoDTE>' + str(id_class_doc) + '</TpoDTE>\n<NroDTE>'+str(NroDte)+'</NroDTE>\n</SubTotDTE>\n'
+            SubTotDTE[id_class_doc] = '<SubTotDTE>\n<TpoDTE>' + str(id_class_doc) + '</TpoDTE>\n<NroDTE>'+str(NroDte)+'</NroDTE>\n</SubTotDTE>\n'
         file_name += ".xml"
-        documentos =""
-        for key in sorted(dtes.iterkeys()):
-            documentos += '\n'+dtes[key]
         # firma del sobre
         RUTRecep = "60803000-K" # RUT SII
-        dtes = self.create_template_envio( RUTEmisor, RUTRecep,
-            resol_data['dte_resolution_date'],
-            resol_data['dte_resolution_number'],
-            self.time_stamp(), documentos, signature_d,SubTotDTE )
-        env = 'env'
-        if es_boleta:
-            envio_dte  = self.create_template_env_boleta(dtes)
-            env = 'env_boleta'
-        else:
-            envio_dte  = self.create_template_env(dtes)
-        envio_dte = self.sign_full_xml(
-            envio_dte, signature_d['priv_key'], certp,
-            'SetDoc', env)
-        result = self.send_xml_file(envio_dte, file_name, company_id)
-        for inv in self:
-            inv.write({'sii_xml_response':result['sii_xml_response'],
-                'sii_send_ident':result['sii_send_ident'],
-                'sii_result': result['sii_result'],
-                'sii_xml_request':envio_dte,
-                'sii_send_file_name' : file_name,
-                })
+        for id_class_doc, documento in documentos.iteritems():
+            dtes = self.create_template_envio(
+                RUTEmisor,
+                RUTRecep,
+                resol_data['dte_resolution_date'],
+                resol_data['dte_resolution_number'],
+                self.time_stamp(),
+                documento,
+                signature_d,
+                SubTotDTE[id_class_doc] )
+            env = 'env'
+            if id_class_doc in [ 39 ]:
+                envio_dte  = self.create_template_env_boleta(dtes)
+                env = 'env_boleta'
+            else:
+                envio_dte  = self.create_template_env(dtes)
+            envio_dte = self.sign_full_xml(
+                envio_dte,
+                signature_d['priv_key'],
+                certp,
+                'SetDoc',
+                env)
+            result = False
+            if id_class_doc in [ 61 ]:
+                result = self.send_xml_file(envio_dte, file_name, company_id)
+            for inv in self:
+                if inv.document_class_id.sii_code == id_class_doc:
+                    inv.sii_xml_request = envio_dte
+                    if result:
+                        inv.write({'sii_xml_response':result['sii_xml_response'],
+                            'sii_send_ident':result['sii_send_ident'],
+                            'sii_result': result['sii_result'],
+                            'sii_xml_request':envio_dte,
+                            'sii_send_file_name' : file_name,
+                            })
 
     def _get_send_status(self, track_id, signature_d,token):
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws?WSDL'
@@ -1464,7 +1461,11 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         ns = 'urn:'+ server_url[self.company_id.dte_service_provider] + 'QueryEstDte.jws'
         _server = SOAPProxy(url, ns)
         receptor = self.format_vat(self.partner_id.vat)
-        date_invoice = datetime.strptime(self.date_invoice, "%Y-%m-%d").strftime("%d-%m-%Y")
+        util_model = self.env['cl.utils']
+        from_zone = pytz.UTC
+        to_zone = pytz.timezone('America/Santiago')
+        date_order = util_model._change_time_zone(datetime.strptime(self.date_order, DTF), from_zone, to_zone).strftime(DTF)[:10]
+        date_invoice = datetime.strptime(date_order, "%Y-%m-%d").strftime("%d-%m-%Y")
         rut = signature_d['subject_serial_number']
         respuesta = _server.getEstDte(rut[:8], str(rut[-1]),
                 self.company_id.vat[2:-1],self.company_id.vat[-1], receptor[:8],receptor[2:-1],str(self.document_class_id.sii_code), str(self.sii_document_number),

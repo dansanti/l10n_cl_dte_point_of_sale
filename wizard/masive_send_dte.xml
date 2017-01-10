@@ -12,10 +12,8 @@
                             <field name="state" invisible="True"/>
                             <field name="sii_document_number" />
                             <field name="amount_total" />
-                            <field name="sii_batch_number" readonly="False" />
                           </tree>
                         </field>
-                        <field name="numero_atencion" />
                     </group>
                     <footer>
                         <button string="Confirm" name="confirm" type="object" class="oe_highlight" />

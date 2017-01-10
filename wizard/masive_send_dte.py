@@ -17,9 +17,7 @@ class masive_send_dte_wizard(models.TransientModel):
 
     documentos = fields.Many2many('pos.order',string="Movimientos", default=_getIDs)
 
-    numero_atencion = fields.Char(string="Número de atención")
-
     @api.multi
     def confirm(self):
-        self.documentos.do_dte_send_order(self.numero_atencion)
+        self.documentos.do_dte_send_order()
         return UserError("Enviado")

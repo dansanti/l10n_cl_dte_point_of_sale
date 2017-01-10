@@ -139,7 +139,11 @@
         <h4 class="pos-center-align"><t t-esc="o.journal_document_class_id.sii_document_class_id.name"/><br />
           N°:<t t-esc="o.sii_document_number"/></h4>
       </div>
-      <br/>
+      <div class="row" style="text-align: center; margin-top:0px !important; padding-top:0px!important;">
+          <h7 style="color:red;text-align:center;font-size:11px;text-transform:uppercase;">
+              SII - <span t-field="o.company_id.sii_regional_office_id.name"/>
+          </h7>
+      </div>
       <div class="row"  style="font-size: 10px;">
         Casa Matriz: <t t-esc="o.company_id.street"/><br />
         Giro: <t t-esc="o.company_id.activity_description.name"/><br />
