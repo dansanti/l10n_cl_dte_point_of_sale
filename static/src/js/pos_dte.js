@@ -101,32 +101,32 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
            this.gui.show_popup('error',_t('A Customer Name Is Required'));
            return;
        }
-       if (!fields.document_type_id) {
+       if (fields.document_number && !fields.document_type_id) {
            this.gui.show_popup('error',_t('Seleccione el tipo de documento'));
            return;
        }
-       if (!fields.document_number) {
-           this.gui.show_popup('error',_t('Ingrese el RUT'));
-           return;
+       if (fields.document_number ) {
+           if (!this.validar_rut(fields.document_number))
+            {return;}
        }
+
        if (!fields.country_id) {
            this.gui.show_popup('error',_t('Seleccione el Pais'));
            return;
        }
+
        if (!fields.state_id) {
-           this.gui.show_popup('error',_t('Seleccione la Ubicacion'));
+           this.gui.show_popup('error',_t('Seleccione la Provincia'));
            return;
        }
+
        if (!fields.city_id) {
            this.gui.show_popup('error',_t('Seleccione la comuna'));
            return;
        }
+
        if (!fields.street) {
            this.gui.show_popup('error',_t('Ingrese la direccion(calle)'));
-           return;
-       }
-       if (fields.document_type_id === "1" && !fields.dte_email) {
-           this.gui.show_popup('error',_t('Ingrese el mail para DTE'));
            return;
        }
 
@@ -139,7 +139,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
        fields.country_id   = fields.country_id || false;
        fields.barcode      = fields.barcode || '';
        if (country.length > 0){
-        fields.vat = country[0].code + fields.document_number;
+        fields.vat = country[0].code + fields.document_number.replace('-','').replace('.','').replace('.','');
        }
 
        new Model('res.partner').call('create_from_ui',[fields]).then(function(partner_id){
@@ -185,7 +185,123 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         self.$("select[name='state_id']").change();
        }
    },
-});
+   validar_rut: function(texto)
+   {
+     	var tmpstr = "";
+     	for ( i=0; i < texto.length ; i++ )
+     		if ( texto.charAt(i) != ' ' && texto.charAt(i) != '.' && texto.charAt(i) != '-' )
+     			tmpstr = tmpstr + texto.charAt(i);
+     	texto = tmpstr;
+     	var largo = texto.length;
+
+     	if ( largo < 2 )
+     	{
+     		this.gui.show_popup('error',_t('Debe ingresar el rut completo'));
+     		return false;
+     	}
+
+     	for (i=0; i < largo ; i++ )
+     	{
+     		if ( texto.charAt(i) !="0" && texto.charAt(i) != "1" && texto.charAt(i) !="2" && texto.charAt(i) != "3" && texto.charAt(i) != "4" && texto.charAt(i) !="5" && texto.charAt(i) != "6" && texto.charAt(i) != "7" && texto.charAt(i) !="8" && texto.charAt(i) != "9" && texto.charAt(i) !="k" && texto.charAt(i) != "K" )
+      		{
+     			this.gui.show_popup('error',_t('El valor ingresado no corresponde a un R.U.T valido'));
+     			return false;
+     		}
+     	}
+      var j =0;
+     	var invertido = "";
+     	for ( i=(largo-1),j=0; i>=0; i--,j++ )
+     		invertido = invertido + texto.charAt(i);
+     	var dtexto = "";
+     	dtexto = dtexto + invertido.charAt(0);
+     	dtexto = dtexto + '-';
+     	var cnt = 0;
+
+     	for ( i=1, j=2; i<largo; i++,j++ )
+     	{
+     		//alert("i=[" + i + "] j=[" + j +"]" );
+     		if ( cnt == 3 )
+     		{
+     			dtexto = dtexto + '.';
+     			j++;
+     			dtexto = dtexto + invertido.charAt(i);
+     			cnt = 1;
+     		}
+     		else
+     		{
+     			dtexto = dtexto + invertido.charAt(i);
+     			cnt++;
+     		}
+     	}
+
+     	invertido = "";
+     	for ( i=(dtexto.length-1),j=0; i>=0; i--,j++ )
+     		invertido = invertido + dtexto.charAt(i);
+     	if ( this.revisarDigito2(texto) )
+     		return true;
+
+     	return false;
+    },
+     revisarDigito: function( dvr )
+    {
+    	var dv = dvr + ""
+    	if ( dv != '0' && dv != '1' && dv != '2' && dv != '3' && dv != '4' && dv != '5' && dv != '6' && dv != '7' && dv != '8' && dv != '9' && dv != 'k'  && dv != 'K')
+    	{
+    		this.gui.show_popup('error',_t('Debe ingresar un digito verificador valido'));
+    		return false;
+    	}
+    	return true;
+    },
+    revisarDigito2: function( crut )
+    {
+    	var largo = crut.length;
+    	if ( largo < 2 )
+    	{
+    		this.gui.show_popup('error',_t('Debe ingresar el rut completo'));
+    		return false;
+    	}
+    	if ( largo > 2 )
+    		var rut = crut.substring(0, largo - 1);
+    	else
+    		var rut = crut.charAt(0);
+    	var dv = crut.charAt(largo-1);
+    	this.revisarDigito( dv );
+
+    	if ( rut == null || dv == null )
+    		return 0
+
+    	var dvr = '0'
+    	var suma = 0
+    	var mul  = 2
+
+    	for (i= rut.length -1 ; i >= 0; i--)
+    	{
+    		suma = suma + rut.charAt(i) * mul
+    		if (mul == 7)
+    			mul = 2
+    		else
+    			mul++
+    	}
+    	var res = suma % 11
+    	if (res==1)
+    		dvr = 'k'
+    	else if (res==0)
+    		dvr = '0'
+    	else
+    	{
+    		var dvi = 11-res
+    		dvr = dvi + ""
+    	}
+    	if ( dvr != dv.toLowerCase() )
+    	{
+    		this.gui.show_popup('error',_t('EL rut es incorrecto'));
+    		return false
+    	}
+
+    	return true
+    },
+
+  });
 
   var PosModelSuper = models.PosModel.prototype.push_order;
   models.PosModel.prototype.push_order = function(order, opts) {
