@@ -6,6 +6,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   var models = require('point_of_sale.models');
   var PosBaseWidget = require('point_of_sale.BaseWidget');
   var utils = require('web.utils');
+  var screens = require('point_of_sale.screens');
+  var core = require('web.core');
+  var _t = core._t;
+  var Model = require('web.DataModel');
 
   var modules = models.PosModel.prototype.models;
   var round_pr = utils.round_precision;
@@ -26,25 +30,162 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       if (model.model == 'product.product') {
           model.fields.push('name');
       }
+      if (model.model == 'res.country') {
+          model.fields.push('code');
+      }
   }
 
   models.load_models({
       model: 'res.partner',
       fields: ['document_number',],
       domain: function(self){ return [['id','=', self.company.partner_id[0]]]; },
-      loaded: function(self,company){
-          self.company.document_number = company[0].document_number;
+      loaded: function(self, dn){
+          self.company.document_number = dn[0].document_number;
       },
   });
 
   models.load_models({
       model: 'sii.document_class',
-      fields: ['id','name','sii_code'],
+      fields: ['id', 'name', 'sii_code'],
       domain: function(self){ return [['id','=', self.config.sii_document_class_id[0]]]; },
       loaded: function(self,dc){
           self.config.sii_document_class_id = dc[0];
       },
   });
+
+  models.load_models({
+      model: 'sii.document_type',
+      fields: ['id', 'name'],
+      loaded: function(self, dt){
+          self.sii_document_types = dt;
+      },
+  });
+
+  models.load_models({
+      model: 'sii.activity.description',
+      fields: ['id', 'name'],
+      loaded: function(self, ad){
+          self.sii_activities = ad;
+      },
+  });
+
+  models.load_models({
+      model: 'res.country.state',
+      fields: ['id', 'name', 'country_id'],
+      loaded: function(self, st){
+          self.states = st;
+      },
+  });
+
+  models.load_models({
+      model: 'res.country.state.city',
+      fields: ['id', 'name', 'state_id'],
+      loaded: function(self, ct){
+          self.cities = ct;
+      },
+  });
+
+  screens.ClientListScreenWidget.include({
+   // what happens when we save the changes on the client edit form -> we fetch the fields, sanitize them,
+   // send them to the backend for update, and call saved_client_details() when the server tells us the
+   // save was successfull.
+   save_client_details: function(partner) {
+       var self = this;
+
+       var fields = {};
+       this.$('.client-details-contents .detail').each(function(idx,el){
+           fields[el.name] = el.value;
+       });
+
+       if (!fields.name) {
+           this.gui.show_popup('error',_t('A Customer Name Is Required'));
+           return;
+       }
+       if (!fields.document_type_id) {
+           this.gui.show_popup('error',_t('Seleccione el tipo de documento'));
+           return;
+       }
+       if (!fields.document_number) {
+           this.gui.show_popup('error',_t('Ingrese el RUT'));
+           return;
+       }
+       if (!fields.country_id) {
+           this.gui.show_popup('error',_t('Seleccione el Pais'));
+           return;
+       }
+       if (!fields.state_id) {
+           this.gui.show_popup('error',_t('Seleccione la Ubicacion'));
+           return;
+       }
+       if (!fields.city_id) {
+           this.gui.show_popup('error',_t('Seleccione la comuna'));
+           return;
+       }
+       if (!fields.street) {
+           this.gui.show_popup('error',_t('Ingrese la direccion(calle)'));
+           return;
+       }
+       if (fields.document_type_id === "1" && !fields.dte_email) {
+           this.gui.show_popup('error',_t('Ingrese el mail para DTE'));
+           return;
+       }
+
+       if (this.uploaded_picture) {
+           fields.image = this.uploaded_picture;
+       }
+       var country = _.filter(this.pos.countries, function(country){ return country.id == fields.country_id; });
+
+       fields.id           = partner.id || false;
+       fields.country_id   = fields.country_id || false;
+       fields.barcode      = fields.barcode || '';
+       if (country.length > 0){
+        fields.vat = country[0].code + fields.document_number;
+       }
+
+       new Model('res.partner').call('create_from_ui',[fields]).then(function(partner_id){
+           self.saved_client_details(partner_id);
+       },function(err,event){
+           event.preventDefault();
+           if (err.data.message) {
+        self.gui.show_popup('error',{
+                 'title': _t('Error: Could not Save Changes'),
+                 'body': err.data.message,
+             });
+      }else{
+        self.gui.show_popup('error',{
+                 'title': _t('Error: Could not Save Changes'),
+                 'body': _t('Your Internet connection is probably down.'),
+             });
+      }
+       });
+   },
+   display_client_details: function(visibility,partner,clickpos){
+       var self = this;
+       this._super(visibility,partner,clickpos);
+       if (visibility === "edit"){
+        var state_options = self.$("select[name='state_id']:visible option:not(:first)");
+        var comuna_options = self.$("select[name='city_id']:visible option:not(:first)");
+        self.$("select[name='country_id']").on('change', function(){
+        var select = self.$("select[name='state_id']:visible");
+               var selected_state = select.val();
+               state_options.detach();
+               var displayed_state = state_options.filter("[data-country_id="+(self.$(this).val() || 0)+"]");
+               select.val(selected_state);
+               displayed_state.appendTo(select).show();
+        });
+        self.$("select[name='state_id']").on('change', function(){
+        var select = self.$("select[name='city_id']:visible");
+               var selected_comuna = select.val();
+               comuna_options.detach();
+               var displayed_comuna = comuna_options.filter("[data-state_id="+(self.$(this).val() || 0)+"]");
+               select.val(selected_comuna);
+               displayed_comuna.appendTo(select).show();
+        });
+        self.$("select[name='country_id']").change();
+        self.$("select[name='state_id']").change();
+       }
+   },
+});
 
   var PosModelSuper = models.PosModel.prototype.push_order;
   models.PosModel.prototype.push_order = function(order, opts) {
