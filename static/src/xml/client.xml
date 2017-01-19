@@ -8,7 +8,7 @@
 	               <select class='detail client-address-document_type_id' name='document_type_id'>
 	                   <option value=''>None</option>
 	                   <t t-foreach='widget.pos.sii_document_types' t-as='sii_document_type'>
-	                       <option t-att-value='sii_document_type.id' t-att-selected="partner.document_type_id ? ((sii_document_type.id === partner.document_type_id[0]) ? true : undefined) : undefined">
+	                       <option t-att-value='sii_document_type.id' t-att-selected="partner.document_type_id ? ((sii_document_type.id === partner.document_type_id[0]) ? true : undefined) : (sii_document_type.sii_code ===  81 ? true: undefined)">
 	                           <t t-esc='sii_document_type.name'/>
 	                       </option>
 	                   </t>
@@ -18,13 +18,28 @@
 					<span class='label'>RUT</span>
 					<input class='detail client-document_number' name='document_number' t-att-value='partner.document_number' placeholder='RUT'></input>
 				</div>
-	       	<div class='client-detail'>
+       	<div class='client-detail' t-if="partner.activity_description">
 					<span class='label'>Giro</span>
 	               <select class='detail client-address-activity_description' name='activity_description'>
 	                   <option value=''>None</option>
 	                   <t t-foreach='widget.pos.sii_activities' t-as='sii_activity'>
 	                       <option t-att-value='sii_activity.id' t-att-selected="partner.activity_description ? ((sii_activity.id === partner.activity_description[0]) ? true : undefined) : undefined">
 	                           <t t-esc='sii_activity.name'/>
+	                       </option>
+	                   </t>
+	               </select>
+				</div>
+        <div class='client-detail' t-if="!partner.activity_description">
+					<span class='label'>Giro</span>
+	               <input class='detail client-address-activity_description' name='activity_description' placeholder="Crear nueva Descripción del giro" ></input>
+         </div>
+        <div class='client-detail'>
+					<span class='label'>Responsabilidad</span>
+	               <select class='detail client-responsability' name='responsability_id'>
+	                   <option value=''>None</option>
+	                   <t t-foreach='widget.pos.responsabilities' t-as='resp'>
+	                       <option t-att-value='resp.id' t-att-selected="partner.responsability_id ? ((resp.id === partner.responsability_id[0]) ? true : undefined) : (resp.tp_sii_code === 1 ? true: undefined)">
+	                           <t t-esc='resp.name'/>
 	                       </option>
 	                   </t>
 	               </select>
@@ -41,7 +56,7 @@
 	               </select>
 	           </div>
 	           <div class='client-detail'>
-	              <span class='label'>Ubicacion</span>
+	              <span class='label'>Provincia</span>
 	              <select class='detail client-address-state_id' name='state_id'>
 	                  <option value=''>None</option>
 	                  <t t-foreach='widget.pos.states' t-as='state'>

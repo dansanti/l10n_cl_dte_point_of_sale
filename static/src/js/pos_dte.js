@@ -22,7 +22,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
            model.fields.push('activity_description','street','city');
       }
       if(model.model === 'res.partner'){
-           model.fields.push('document_number','activity_description','city');
+           model.fields.push('document_number','activity_description','document_type_id', 'state_id', 'city_id');
       }
       if(model.model === 'pos.session'){
            model.fields.push('caf_file', 'start_number','numero_ordenes');
@@ -55,7 +55,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
 
   models.load_models({
       model: 'sii.document_type',
-      fields: ['id', 'name'],
+      fields: ['id', 'name', 'sii_code'],
       loaded: function(self, dt){
           self.sii_document_types = dt;
       },
@@ -82,6 +82,14 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       fields: ['id', 'name', 'state_id'],
       loaded: function(self, ct){
           self.cities = ct;
+      },
+  });
+
+  models.load_models({
+      model: 'sii.responsability',
+      fields: ['id', 'name', 'tp_sii_code'],
+      loaded: function(self, rs){
+          self.responsabilities = rs;
       },
   });
 
@@ -142,22 +150,57 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         fields.vat = country[0].code + fields.document_number.replace('-','').replace('.','').replace('.','');
        }
 
-       new Model('res.partner').call('create_from_ui',[fields]).then(function(partner_id){
-           self.saved_client_details(partner_id);
-       },function(err,event){
-           event.preventDefault();
-           if (err.data.message) {
-        self.gui.show_popup('error',{
-                 'title': _t('Error: Could not Save Changes'),
-                 'body': err.data.message,
-             });
-      }else{
-        self.gui.show_popup('error',{
-                 'title': _t('Error: Could not Save Changes'),
-                 'body': _t('Your Internet connection is probably down.'),
-             });
-      }
-       });
+       if (fields.activity_description && !Number.isInteger(fields.activity_description)){
+         new Model('sii.activity.description').call('create_from_ui',[fields]).then(function(description){
+           fields.activity_description = description;
+           new Model('res.partner').call('create_from_ui',[fields]).then(function(partner_id){
+               self.saved_client_details(partner_id);
+           },function(err,event){
+               event.preventDefault();
+               if (err.data.message) {
+                self.gui.show_popup('error',{
+                         'title': _t('Error: Could not Save Changes partner'),
+                         'body': err.data.message,
+                     });
+              }else{
+                self.gui.show_popup('error',{
+                         'title': _t('Error: Could not Save Changes'),
+                         'body': _t('Your Internet connection is probably down.'),
+                     });
+              }
+           });
+         },function(err,event){
+             event.preventDefault();
+             if (err.data.message) {
+                self.gui.show_popup('error',{
+                         'title': _t('Error: Could not Save Changes'),
+                         'body': err.data.message,
+                     });
+              }else{
+                self.gui.show_popup('error',{
+                         'title': _t('Error: Could not Save Changes'),
+                         'body': _t('Your Internet connection is probably down.'),
+                     });
+              }
+            });
+       }else{
+         new Model('res.partner').call('create_from_ui',[fields]).then(function(partner_id){
+             self.saved_client_details(partner_id);
+         },function(err,event){
+             event.preventDefault();
+             if (err.data.message) {
+              self.gui.show_popup('error',{
+                       'title': _t('Error: Could not Save Changes'),
+                       'body': err.data.message,
+                   });
+            }else{
+              self.gui.show_popup('error',{
+                       'title': _t('Error: Could not Save Changes'),
+                       'body': _t('Your Internet connection is probably down.'),
+                   });
+            }
+         });
+       }
    },
    display_client_details: function(visibility,partner,clickpos){
        var self = this;
