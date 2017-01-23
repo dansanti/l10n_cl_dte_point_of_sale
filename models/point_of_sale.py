@@ -852,16 +852,6 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             c += 1
         return cadena
 
-    def create_from_ui(self, cr, uid, orders, context=None):
-        order_ids = super(POS,self).create_from_ui(cr, uid, orders, context=context)
-        for o in self.browse(cr, uid, order_ids, context=context):
-            if not o.invoice_id and o.journal_document_class_id:
-                if not o.sii_document_number:
-                    o.sii_document_number = consumo_folio
-                    o._timbrar()
-                    consumo_folio = o.journal_document_class_id.sequence_id.next_by_id()
-        return order_ids
-
     @api.model
     def _process_order(self, order):
         lines = []
@@ -880,6 +870,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             if order_id.session_id.caf_file and self.get_digital_signature(self.company_id):
                 order_id.signature = order['signature']
                 order_id._timbrar()
+                order_id.journal_document_class_id.sequence_id.next_by_id()
         return order_id.id
 
     def action_invoice(self, cr, uid, ids, context=None):
