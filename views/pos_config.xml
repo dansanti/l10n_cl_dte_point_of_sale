@@ -10,6 +10,7 @@
               <field name="journal_document_class_id"
                      options="{'no_create': True}"
                      domain="[('journal_id','=', journal_id)]"/>
+              <field name="ticket" />
              </field>
           </field>
       </record>

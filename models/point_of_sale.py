@@ -914,7 +914,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 'currency_id': order.pricelist_id.currency_id.id, # considering partner's sale pricelist's currency
                 'company_id': company_id,
                 'user_id': uid,
-                'ticket':  True,
+                'ticket':  order.session_id.config_id.ticket,
                 'available_journal_document_class_ids': order.session_id.config_id.available_journal_document_class_ids.ids,
                 'sii_document_class_id': journal_document_class_id.sii_document_class_id.id,
                 'journal_document_class_id': journal_document_class_id.id,

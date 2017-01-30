@@ -36,6 +36,7 @@ class PosConfig(models.Model):
     journal_document_class_id = fields.Many2one(
         'account.journal.sii_document_class',
         'Documents Type',)
+    ticket = fields.Boolean(string="¿Facturas en Formato Ticket?", default=False)
 
     def get_valid_document_letters(
             self, cr, uid, partner_id, operation_type='sale',
