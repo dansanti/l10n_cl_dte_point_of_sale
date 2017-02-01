@@ -148,6 +148,10 @@ class POSL(models.Model):
 class POS(models.Model):
     _inherit = 'pos.order'
 
+    def _get_document_class_id(self):
+        if self.journal_document_class_id:
+            return self.journal_document_class_id.self.journal_document_class_id.id
+
     signature = fields.Char(string="Signature")
     available_journal_document_class_ids = fields.Many2many(
         'account.journal.sii_document_class',
@@ -156,11 +160,12 @@ class POS(models.Model):
 
     document_class_id = fields.Many2one(
         'sii.document_class',
-        related='journal_document_class_id.sii_document_class_id',
         string='Document Type',
         copy=False,
         readonly=True,
-        store=True)
+        states={'draft': [('readonly', False)]},
+        default=_get_document_class_id,
+        )
     journal_document_class_id = fields.Many2one(
         'account.journal.sii_document_class',
         'Documents Type',
@@ -829,8 +834,9 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 if default:
                     for dc in document_classes:
                         if dc.sii_document_class_id.id == default:
-                            document_class_id = dc.id
-                inv.journal_document_class_id = document_class_id
+                            document_class_id = dc
+                inv.journal_document_class_id = document_class_id.id
+                inv.document_class_id = document_class_id.sii_document_class_id
 
     @api.multi
     def get_related_invoices_data(self):
@@ -866,6 +872,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             if order['orden_numero'] > order_id.session_id.numero_ordenes:
                 order_id.session_id.numero_ordenes = order['orden_numero']
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
+            order_id.document_class_id = order_id.session_id.journal_document_class_id.sii_document_class_id
             order_id.sii_document_number = order['orden_numero'] + order_id.session_id.start_number - 1
             if order_id.session_id.caf_file and self.get_digital_signature(self.company_id):
                 order_id.signature = order['signature']
