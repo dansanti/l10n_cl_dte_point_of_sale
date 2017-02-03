@@ -77,6 +77,10 @@
 	                  </t>
 	              </select>
 	          </div>
+            <div class='client-detail'>
+                <span class='label'>City</span>
+                <input class='detail client-address-city'   name='city'         t-att-value='partner.city' placeholder='City'></input>
+            </div>
 	          <div class='client-detail'>
 	               <span class='label'>Street</span>
 	               <input class='detail client-address-street' name='street'       t-att-value='partner.street' placeholder='Street'></input>
