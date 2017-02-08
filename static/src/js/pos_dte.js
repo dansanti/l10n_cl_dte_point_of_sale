@@ -93,6 +93,32 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       },
   });
 
+  screens.PaymentScreenWidget.include({
+    renderElement: function(parent,options) {
+      var self = this;
+      this._super();
+      this.$('.js_boleta').click(function(){
+            self.click_boleta();
+        });
+
+    },
+    click_invoice: function(){
+      this.super();
+      this.click_boleta();
+    },
+    click_boleta: function(){
+          var order = this.pos.get_order();
+          if (order.es_boleta()) {
+            order.set_boleta(false);
+            this.$('.js_boleta').removeClass('highlight');
+          } else {
+            this.click_invoice();
+            order.set_boleta(true);
+            this.$('.js_boleta').addClass('highlight');
+          }
+      }
+    });
+
   screens.ClientListScreenWidget.include({
    // what happens when we save the changes on the client edit form -> we fetch the fields, sanitize them,
    // send them to the backend for update, and call saved_client_details() when the server tells us the
@@ -348,13 +374,13 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
 
   var PosModelSuper = models.PosModel.prototype.push_order;
   models.PosModel.prototype.push_order = function(order, opts) {
-        if(order){
-          if (this.pos_session.caf_file)
-          {
+        if(order && order.es_boleta()){
             var sii_document_number = (parseInt(order.orden_numero) -1) + parseInt(this.pos_session.start_number);
             order.sii_document_number = sii_document_number;
-            order.signature = order.timbrar(order);
-          }
+            var amount = Math.round(order.get_total_with_tax());
+            if (amount > 0){
+              order.signature = order.timbrar(order);
+            }
         }
         return PosModelSuper.call(this, order, opts);
   };
@@ -363,6 +389,11 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   models.Order = models.Order.extend({
     initialize: function(attr, options) {
           _super_order.initialize.call(this,attr,options);
+          if (this.pos.pos_session.caf_file){
+            this.set_boleta(true);
+          }else{
+            this.set_boleta(false);
+          }
           this.signature = this.signature || false;
           this.sii_document_number = this.sii_document_number || false;
           this.orden_numero = this.orden_numero || 0;
@@ -404,7 +435,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       },
     initialize_validation_date: function(){
         _super_order.initialize_validation_date.apply(this,arguments);
-        if (!this.is_to_invoice() && this.pos.pos_session.caf_file)
+        if (!this.is_to_invoice() && this.es_boleta())
         {
           this.pos.pos_session.numero_ordenes ++;
           this.orden_numero = this.pos.pos_session.numero_ordenes;
@@ -415,6 +446,16 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       return round_pr(this.orderlines.reduce((function(sum, orderLine) {
           return sum + orderLine.get_price_with_tax();
       }), 0), this.pos.currency.rounding);
+    },
+    set_to_invoice: function(){
+      _super_order.set_to_invoice.apply(this,arguments);
+      this.set_boleta(!this.is_to_invoice());
+    },
+    set_boleta: function(boleta){
+      this.boleta = boleta;
+    },
+    es_boleta: function(){
+      return this.boleta;
     },
     get_total_exento:function(){
       var taxes =  this.pos.taxes;
@@ -454,7 +495,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         }
         return string;
       },
-    timbrar: function(order){
+      timbrar: function(order){
           if (order.signature){ //no firmar otra vez
             return order.signature;
           }

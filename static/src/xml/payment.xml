@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <templates inherit_id="template" id="switch_boleta">
+    <t t-extend="PaymentScreenWidget">
+      <t t-jquery="div.js_set_customer" t-operation="before">
+        <t t-if='widget.pos.get_order()'>
+          <div t-attf-class='button js_boleta #{ widget.pos.get_order().es_boleta() ? "highlight" : ""} '>
+              <i class='fa fa-file-text-o' /> Boleta
+          </div>
+        </t>
+      </t>
+    </t>
+  </templates>
