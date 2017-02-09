@@ -103,7 +103,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
 
     },
     click_invoice: function(){
-      this.super();
+      this._super();
       this.click_boleta();
     },
     click_boleta: function(){
