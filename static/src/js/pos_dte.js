@@ -179,7 +179,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         fields.vat = country[0].code + fields.document_number.replace('-','').replace('.','').replace('.','');
        }
 
-       if (fields.activity_description && !Number.isInteger(fields.activity_description)){
+       if (fields.activity_description && !parseInt(fields.activity_description)){
          new Model('sii.activity.description').call('create_from_ui',[fields]).then(function(description){
            fields.activity_description = description;
            new Model('res.partner').call('create_from_ui',[fields]).then(function(partner_id){
