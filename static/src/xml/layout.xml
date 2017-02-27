@@ -131,125 +131,113 @@
 
   <t t-extend="XmlReceipt">
     <t t-jquery="receipt" t-operation="replace">
-        <receipt align='center' width='40' value-thousands-separator='.' >
-              <t t-if='receipt.company.logo'>
-                  <img t-att-src='receipt.company.logo' />
-                  <br/>
-              </t>
-              <t t-if='!receipt.company.logo'>
-                  <h1><t t-esc='receipt.company.name' /></h1>
-                  <br/>
-              </t>
-          <div style="text-align:center;">
-            <h2><t t-esc="receipt.company.name"/></h2>
-            <h4><t t-esc="receipt.company.document_number"/></h4>
-            <t t-esc="receipt.company.activity_description"/><br />
+      <receipt align='center' width='40' value-thousands-separator='.' >
+        <t t-if='receipt.company.logo'>
+            <img t-att-src='receipt.company.logo' />
+        </t>
+        <t t-if='!receipt.company.logo'>
+          <h3><t t-esc='receipt.company.name' /></h3>
+        </t>
+        <div>
+          <h3><t t-esc="receipt.company.name"/></h3>
+          <h4><t t-esc="receipt.company.document_number"/></h4>
+          <em>
+            <t t-esc="receipt.company.activity_description"/>
             <t t-esc="receipt.company.street"/> <t t-esc="receipt.company.city"/><br />
-            <div class="pos-center-align"><t t-esc="receipt.journal_document_class_id"/> N°:<t t-esc="receipt.sii_document_number or receipt.name"/></div>
+          </em>
+          <div class="pos-center-align"><t t-esc="receipt.journal_document_class_id"/> N°:<t t-esc="receipt.sii_document_number or receipt.name"/></div>
+        </div>
+        <line><left font='b'>Teléfono: </left><right><t t-esc="receipt.company.phone || ''"/></right></line>
+        <line><left font='b'>Vendedor: </left><right><t t-esc="receipt.cashier"/></right></line>
+        <line><left font='b'>Tienda: </left><right><t t-esc="receipt.shop.name"/></right></line>
+        <line><left font='b'>Fecha: </left><right><t t-esc="receipt.creation_date"/></right></line>
+        <t t-if="receipt.client">
+          <line><left font='b'>Cliente: </left><right><span t-esc="receipt.client.name"/></right></line>
+          <line><left font='b'>Rut: </left><right><span t-esc="receipt.client.document_number"/></right></line>
+          <line><left font='b'>Dirección: </left><right><span t-esc="receipt.client.street"/></right></line>
+          <line><left font='b'>Número de identificación: </left><right><span t-esc="receipt.client.id"/></right></line>
+        </t>
+        <t t-if="receipt.header">
+          <div style='text-align:center'>
+              <t t-esc="receipt.header" />
           </div>
-            <br />
-
-            Teléfono: <t t-esc="receipt.company.phone || ''"/><br />
-            Vendedor: <t t-esc="receipt.cashier"/><br />
-            Tienda: <t t-esc="receipt.shop.name"/><br />
-            Fecha: <t t-esc="receipt.creation_date"/><br />
-            <br />
-            <div class="row">
-              <div class="col-xs-12 text-left" t-if="receipt.client">
-                  Cliente: <span t-esc="receipt.client.name"/><br/>
-                  Rut: <span t-esc="receipt.client.document_number"/><br/>
-                  Dirección: <span t-esc="receipt.client.street"/><br/>
-                  Número de identificación: <span t-esc="receipt.client.id"/><br/>
-              </div>
-            </div>
-            <br />
-            <t t-if="receipt.header">
-                <div style='text-align:center'>
-                    <t t-esc="receipt.header" />
-                </div>
-                <br />
+        </t>
+        <line><right>--------</right></line>
+        <div class='orderlines' line-ratio='0.6'>
+          <t t-foreach='receipt.orderlines' t-as='line'>
+            <t t-set='simple' t-value='line.discount === 0 and line.unit_name === "Unit(s)" and line.quantity === 1' />
+            <t t-if='simple'>
+                <line>
+                    <left><t t-esc='line.product_name' /></left>
+                    <right>$ <value value-decimals='0'><t t-esc='line.price_display' /></value></right>
+                </line>
             </t>
-            <div class='orderlines' line-ratio='0.6'>
-                  <t t-foreach='receipt.orderlines' t-as='line'>
-                      <t t-set='simple' t-value='line.discount === 0 and line.unit_name === "Unit(s)" and line.quantity === 1' />
-                      <t t-if='simple'>
-                          <line>
-                              <left><t t-esc='line.product_name' /></left>
-                              <right><value><t t-esc='line.price_display' /></value></right>
-                          </line>
-                      </t>
-                      <t t-if='!simple'>
-                          <line><left><t t-esc='line.product_name' /></left></line>
-                          <t t-if='line.discount !== 0'>
-                              <line indent='1'><left>Descuento: <t t-esc='line.discount' />%</left></line>
-                          </t>
-                          <line indent='1'>
-                              <left>
-                                  <value value-decimals='3' value-autoint='on'>
-                                      <t t-esc='line.quantity' />
-                                  </value>
-                                  <t t-if='line.unit_name !== "Unit(s)"'>
-                                      <t t-esc='line.unit_name' />
-                                  </t>
-                                  x
-                                  $ <value value-decimals='0'>
-                                      <t t-esc='line.price' />
-                                  </value>
-                              </left>
-                              <right>
-                                  $ <value value-decimals='0'><t t-esc='line.price_display' /></value>
-                              </right>
-                          </line>
-                      </t>
-                  </t>
-              </div>
-            <br />
-            <t t-if="receipt.exento !=0">
-              <line><right>--------</right></line>
-              <line class='total' size='double-height'>
-                  <left><pre>        Exento</pre></left>
-                  <right>$ <value value-decimals='0'><t t-esc='receipt.exento' /></value></right>
-              </line>
-            </t>
-            <line><right>--------</right></line>
-              <line class='total' size='double-height'>
-                  <left><pre>        TOTAL</pre></left>
-                  <right>$ <value value-decimals='0'><t t-esc='receipt.total_with_tax' /></value></right>
-              </line>
-            <br/><br/>
-            <t t-foreach='paymentlines' t-as='line'>
-                  <line>
-                      <left><t t-esc='line.name' /></left>
-                      <right>$ <value value-decimals='0'><t t-esc='line.get_amount()'/></value></right>
-                  </line>
+            <t t-if='!simple'>
+              <line><left><t t-esc='line.product_name' /></left></line>
+              <t t-if='line.discount !== 0'>
+                <line indent='1'><left>Descuento: <t t-esc='line.discount' />%</left></line>
               </t>
-              <br/>
-            <br />
-            <line size='double-height'>
-                <left><pre>        Vuelto:</pre></left>
-                <right><value><t t-esc='receipt.change' /></value></right>
-            </line>
-            <br/>
-            <div t-if="receipt.barcode">
-              <img t-att-src="receipt.barcode" style="width:100%"/>
-              <br />
-              <div>
-                <p style="text-align:center;color:red; font-size:8px;">
-                  Timbre Electrónico SII
-                  <br/>
-                  Verifique documento en:
-                  <br />
-                  <t t-esc="receipt.company.website +'/boleta/' + receipt.sii_document_number " />
-                </p>
-              </div>
-            </div>
-            <t t-if="receipt.footer">
-                <br />
-                <div style='text-align:center'>
-                    <t t-esc="receipt.footer" />
-                </div>
+              <line indent='1'>
+                <left>
+                  <value value-decimals='3' value-autoint='on'>
+                    <t t-esc='line.quantity' />
+                  </value>
+                  <t t-if='line.unit_name !== "Unit(s)"'>
+                    <t t-esc='line.unit_name' />
+                  </t>
+                  x
+                  $ <value value-decimals='0'>
+                    <t t-esc='line.price' />
+                  </value>
+                </left>
+                <right>
+                  $ <value value-decimals='0'><t t-esc='line.price_display' /></value>
+                </right>
+              </line>
             </t>
-        </receipt>
+          </t>
+        </div>
+        <t t-if="receipt.exento !=0">
+          <line><right>--------</right></line>
+          <line class='total'>
+            <left><pre>        Exento</pre></left>
+            <right>$ <value value-decimals='0'><t t-esc='receipt.exento' /></value></right>
+          </line>
+        </t>
+        <line><right>--------</right></line>
+        <line class='total'>
+          <left><pre>        TOTAL</pre></left>
+          <right>$ <value value-decimals='0'><t t-esc='receipt.total_with_tax' /></value></right>
+        </line>
+        <t t-foreach='paymentlines' t-as='line'>
+          <line>
+            <left><t t-esc='line.name' /></left>
+            <right>$ <value value-decimals='0'><t t-esc='line.get_amount()'/></value></right>
+          </line>
+        </t>
+        <line>
+          <left><pre>        Vuelto:</pre></left>
+          <right>$ <value value-decimals='0'><t t-esc='receipt.change' /></value></right>
+        </line>
+        <div t-if="receipt.barcode">
+          <img t-att-src="receipt.barcode" style="width:100%"/>
+          <em>
+            <p >
+              Timbre Electrónico SII
+              <br/>
+              Verifique documento en:
+              <br />
+              <t t-esc="receipt.company.website +'/boleta/' + receipt.sii_document_number " />
+            </p>
+          </em>
+        </div>
+        <t t-if="receipt.footer">
+            <br />
+            <div style='text-align:center'>
+                <t t-esc="receipt.footer" />
+            </div>
+        </t>
+      </receipt>
     </t>
   </t>
 
