@@ -434,6 +434,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           json.barcode = this.barcode_pdf417();
           json.exento = this.get_total_exento();
           json.referencias = [];
+          json.client = this.get('client');
           return json;
       },
     initialize_validation_date: function(){
