@@ -135,12 +135,7 @@ connection_status = {
     '9': 'Sistema Bloqueado',
     'Otro': 'Error Interno.',
 }
-'''
-Extensión del modelo de datos para contener parámetros globales necesarios
- para todas las integraciones de factura electrónica.
- @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
- @version: 2016-06-11
-'''
+
 class POSL(models.Model):
     _inherit = 'pos.order.line'
     pos_order_line_id = fields.Integer(string="POS Line ID", readonly=True)
@@ -666,7 +661,6 @@ version="1.0">
         }
 
     def get_folio(self):
-        # saca el folio directamente de la secuencia
         return int(self.sii_document_number)
 
     def get_caf_file(self):
@@ -877,7 +871,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             if order_id.session_id.caf_file and self.get_digital_signature(self.company_id):
                 order_id.signature = order['signature']
                 order_id._timbrar()
-                order_id.journal_document_class_id.sequence_id.next_by_id()
+                order_id.journal_document_class_id.sequence_id.next_by_id()#consumo Folio
         return order_id.id
 
     def action_invoice(self, cr, uid, ids, context=None):
