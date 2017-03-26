@@ -551,11 +551,11 @@ version="1.0">
         if not obj:
             obj = user = self.env.user
         if not obj.cert:
-            obj = self.env['res.users'].search([("authorized_users_ids","=", user.id)])
-            if not obj or not obj.cert:
-                obj = self.env['res.company'].browse([comp_id.id])
-                if not obj.cert or not user.id in obj.authorized_users_ids.ids:
-                    return False
+            obj = comp_id or self.env.user.company_id
+            if not obj or not obj.cert or not user.id in obj.authorized_users_ids.ids:
+                obj = self.env['res.users'].search([("authorized_users_ids","=", user.id)])
+            if not obj.cert or not user.id in obj.authorized_users_ids.ids:
+                return False
         signature_data = {
             'subject_name': obj.name,
             'subject_serial_number': obj.subject_serial_number,
@@ -570,9 +570,10 @@ version="1.0">
         if not obj:
             obj = user = self.env.user
         if not obj.cert:
-            obj = self.env['res.users'].search([("authorized_users_ids","=", user.id)])
+            obj = comp_id or self.env.user.company_id
+            if not obj.cert or not user.id in obj.authorized_users_ids.ids:
+                obj = self.env['res.users'].search([("authorized_users_ids","=", user.id)])
             if not obj or not obj.cert:
-                obj = self.env['res.company'].browse([comp_id.id])
                 if not obj.cert or not user.id in obj.authorized_users_ids.ids:
                     return False
         signature_data = {
@@ -661,6 +662,7 @@ version="1.0">
         }
 
     def get_folio(self):
+        # saca el folio directamente de la secuencia
         return int(self.sii_document_number)
 
     def get_caf_file(self):
@@ -868,7 +870,8 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.document_class_id = order_id.session_id.journal_document_class_id.sii_document_class_id
             order_id.sii_document_number = order['orden_numero'] + order_id.session_id.start_number - 1
-            if order_id.session_id.caf_file and self.get_digital_signature(self.company_id):
+            sign = self.get_digital_signature(self.env.user.company_id)
+            if order_id.session_id.caf_file and sign:
                 order_id.signature = order['signature']
                 order_id._timbrar()
                 order_id.journal_document_class_id.sequence_id.next_by_id()#consumo Folio
