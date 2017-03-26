@@ -14,4 +14,33 @@
              </field>
           </field>
       </record>
+
+      <!-- Inherit Form view -->
+      <record id="kanban" model="ir.ui.view">
+        <field name="name">kanban.form</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_config_kanban"/>
+        <field name="arch" type="xml">
+          <field name="state" position="after">
+            <field name="next_number" />
+            <field name="left_number" />
+          </field>
+          <xpath expr="//div[@class='col-xs-6 o_kanban_primary_right']/div[1]" position="before">
+            <div t-if="record.next_number.value > 0" class="row">
+                <div class="col-xs-6">
+                    <span>Próximo Folio</span>
+                </div>
+                <div class="col-xs-6">
+                    <span><field name="next_number"/></span>
+                </div>
+                <div class="col-xs-6">
+                    <span>Folios Restantes</span>
+                </div>
+                <div class="col-xs-6">
+                    <span><field name="left_number"/></span>
+                </div>
+              </div>
+          </xpath>
+        </field>
+      </record>
 </openerp>

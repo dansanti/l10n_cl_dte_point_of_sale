@@ -20,6 +20,10 @@ class PosConfig(models.Model):
             inv.available_journal_document_class_ids = self.env[
                 'account.journal.sii_document_class']
 
+    def get_left_numbers(self):
+        for r in self:
+            if r.journal_document_class_id and r.journal_document_class_id.sequence_id and r.journal_document_class_id.sequence_id.dte_caf_ids:
+                r.left_number = r.journal_document_class_id.sequence_id.get_qty_available()
 
     available_journal_document_class_ids = fields.Many2many(
         'account.journal.sii_document_class',
@@ -37,6 +41,12 @@ class PosConfig(models.Model):
         'account.journal.sii_document_class',
         'Documents Type',)
     ticket = fields.Boolean(string="¿Facturas en Formato Ticket?", default=False)
+    next_number = fields.Integer(
+        related="journal_document_class_id.sequence_id.number_next_actual",
+        string="Next Number")
+    left_number = fields.Integer(
+        compute="get_left_numbers",
+        string="Left Available Numbers")
 
     def get_valid_document_letters(
             self, cr, uid, partner_id, operation_type='sale',
