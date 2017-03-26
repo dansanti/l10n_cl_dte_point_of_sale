@@ -1708,7 +1708,8 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
     def action_paid(self, cr, uid, ids, context=None):
         order = self.browse(cr, uid, ids,context=context)
         if order.journal_document_class_id and not order.signature:
-            order.sii_document_number = order.journal_document_class_id.sequence_id.next_by_id()
+            if order.sii_document_number or order.sii_document_number == 0:
+                order.sii_document_number = order.journal_document_class_id.sequence_id.next_by_id()
             order.do_validate()
         self.write(cr, uid, ids, {'state': 'paid'}, context=context)
         self.create_picking(cr, uid, ids, context=context)
