@@ -1197,7 +1197,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         if self.signature and ted != self.signature:
             _logger.info(ted)
             _logger.info(self.signature)
-            raise UserError("¡La firma del pos es distinta a la del Backend!")
+            _logger.info("¡La firma del pos es distinta a la del Backend!")
         self.sii_barcode = ted
         image = False
         if ted:
