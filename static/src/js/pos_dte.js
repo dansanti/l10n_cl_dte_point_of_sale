@@ -378,12 +378,24 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   var PosModelSuper = models.PosModel.prototype.push_order;
   models.PosModel.prototype.push_order = function(order, opts) {
         if(order && order.es_boleta()){
-            var sii_document_number = (parseInt(order.orden_numero) -1) + parseInt(this.pos_session.start_number);
+          var sii_document_number = (parseInt(order.orden_numero) -1) + parseInt(this.pos_session.start_number);
+          var caf_files = JSON.parse(this.pos_session.caf_file);
+          var caf_file = false;
+          for (var x in caf_files){
+            if(caf_files[x].AUTORIZACION.CAF.DA.RNG.D <= sii_document_number && sii_document_number <= caf_files[x].AUTORIZACION.CAF.DA.RNG.H){
+              caf_file = caf_files[x];
+            }else if( !caf_file || ( sii_document_number <= caf_files[x].AUTORIZACION.CAF.DA.RNG.H && caf_file.AUTORIZACION.CAF.DA.RNG.D > caf_files[x].AUTORIZACION.CAF.DA.RNG.D)){
+              caf_file = caf_files[x];
+            }
+            if(sii_document_number < caf_file.AUTORIZACION.CAF.DA.RNG.D){
+              sii_document_number = caf_file.AUTORIZACION.CAF.DA.RNG.D;
+            }
             order.sii_document_number = sii_document_number;
             var amount = Math.round(order.get_total_with_tax());
             if (amount > 0){
               order.signature = order.timbrar(order);
             }
+          }
         }
         return PosModelSuper.call(this, order, opts);
   };
@@ -399,7 +411,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           }
           this.signature = this.signature || false;
           this.sii_document_number = this.sii_document_number || false;
-          this.orden_numero = this.orden_numero || 0;
+          this.orden_numero = this.orden_numero || this.pos.pos_session.numero_ordenes;
     },
     export_as_JSON: function() {
          var json = _super_order.export_as_JSON.apply(this,arguments);
@@ -503,7 +515,13 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           if (order.signature){ //no firmar otra vez
             return order.signature;
           }
-          var caf_file = JSON.parse(this.pos.pos_session.caf_file);
+          var caf_files = JSON.parse(this.pos.pos_session.caf_file);
+          var caf_file = false;
+          for (var x in caf_files){
+            if(caf_files[x].AUTORIZACION.CAF.DA.RNG.D <= order.sii_document_number && order.sii_document_number <= caf_files[x].AUTORIZACION.CAF.DA.RNG.H){
+              caf_file =caf_files[x]
+            }
+          }
           var priv_key = caf_file.AUTORIZACION.RSASK;
           var pki = forge.pki;
           var privateKey = pki.privateKeyFromPem(priv_key);

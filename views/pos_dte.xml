@@ -2,7 +2,7 @@
 <openerp>
     <data>
 
-	     <template id="pos_dte_extend" name="pos_dte" inherit_id="web.assets_backend">
+	     <template id="pos_dte_extend" name="pos_dte" inherit_id="point_of_sale.index">
             <xpath expr="." position="inside">
               <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/util.js"></script>
               <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/cipher.js"></script>

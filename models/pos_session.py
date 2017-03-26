@@ -20,8 +20,11 @@ class PosSession(models.Model):
     start_number = fields.Integer(
         string='Folio comienzo',
     )
-    caf_file = fields.Char( invisible=True)
-    numero_ordenes = fields.Integer(string="Número de ordenes", default=0)
+    caf_file = fields.Char(
+        invisible=True)
+    numero_ordenes = fields.Integer(
+        string="Número de ordenes",
+        default=0)
 
     def create(self, cr, uid, values, context=None):
         context = dict(context or {})
@@ -33,11 +36,10 @@ class PosSession(models.Model):
         if pos_config.journal_document_class_id:
             sequence = pos_config.journal_document_class_id.sequence_id
             values.update({
-                'start_number': sequence.number_next,
+                'start_number': sequence.number_next_actual,
                 'journal_document_class_id': pos_config.journal_document_class_id.id,
                 'caf_file': self.get_caf_string(cr, uid, sequence, context=context),
             })
-
         return super(PosSession, self).create(cr, is_pos_user and SUPERUSER_ID or uid, values, context=context)
 
     @api.model
@@ -47,21 +49,15 @@ class PosSession(models.Model):
             if not sequence:
                 return
         folio = sequence.number_next_actual
-        caffiles = sequence.dte_caf_ids
+        caffiles = sequence.get_caf_files()
         if not caffiles:
             return
+        caffs = []
         for caffile in caffiles:
-            post = base64.b64decode(caffile.caf_file)
-            post = xmltodict.parse(post.replace(
-                '<?xml version="1.0"?>','',1))
-            folio_inicial = post['AUTORIZACION']['CAF']['DA']['RNG']['D']
-            folio_final = post['AUTORIZACION']['CAF']['DA']['RNG']['H']
-            if folio in range(int(folio_inicial), (int(folio_final)+1)):
-                post = json.dumps(post, ensure_ascii=False)
-                return post
-        if folio > int(folio_final):
-            msg = '''El folio de este documento: {} está fuera de rango \
+            caffs += [caffile]
+        if caffs:
+            return json.dumps(caffs, ensure_ascii=False)
+        msg = '''El folio de este documento: {} está fuera de rango \
 del CAF vigente (desde {} hasta {}). Solicite un nuevo CAF en el sitio \
 www.sii.cl'''.format(folio, folio_inicial, folio_final)
-            caffile.status = 'spent'
-            raise UserError(_(msg))
+        raise UserError(_(msg))
