@@ -861,12 +861,12 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 order_id.session_id.numero_ordenes = order['orden_numero']
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.document_class_id = order_id.session_id.journal_document_class_id.sii_document_class_id
-            order_id.sii_document_number = order['orden_numero'] + order_id.session_id.start_number - 1
+            #order_id.sii_document_number = order['orden_numero'] + order_id.session_id.start_number - 1
             sign = self.get_digital_signature(self.env.user.company_id)
             if order_id.session_id.caf_file and sign:
                 order_id.signature = order['signature']
+                order_id.sii_document_number = order_id.journal_document_class_id.sequence_id.next_by_id()#consumo Folio
                 order_id._timbrar()
-                order_id.journal_document_class_id.sequence_id.next_by_id()#consumo Folio
         return order_id.id
 
     def action_invoice(self, cr, uid, ids, context=None):
