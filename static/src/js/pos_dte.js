@@ -386,7 +386,8 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           var caf_files = JSON.parse(this.pos_session.caf_file);
           var start_caf_file = false;
           for (var x in caf_files){
-            if(caf_files[x].AUTORIZACION.CAF.DA.RNG.D <= parseInt(this.pos_session.start_number) && parseInt(this.pos_session.start_number) <= caf_files[x].AUTORIZACION.CAF.DA.RNG.H){
+            if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) <= parseInt(this.pos_session.start_number)
+                && parseInt(this.pos_session.start_number) <= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H)){
               start_caf_file = caf_files[x];
             }
           }
@@ -394,22 +395,23 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
             var caf_file = false;
             var gived = 0;
             for (var x in caf_files){
-              if(caf_files[x].AUTORIZACION.CAF.DA.RNG.D <= sii_document_number && sii_document_number <= caf_files[x].AUTORIZACION.CAF.DA.RNG.H){
+              if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) >= sii_document_number && sii_document_number <= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H)){
                 caf_file = caf_files[x];
-              }else if( !caf_file || ( sii_document_number <= caf_files[x].AUTORIZACION.CAF.DA.RNG.H && caf_file.AUTORIZACION.CAF.DA.RNG.D > caf_files[x].AUTORIZACION.CAF.DA.RNG.D)){
+              }else if( !caf_file ||
+                ( sii_document_number <= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H) && parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) > parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D))){
                 caf_file = caf_files[x];
               }
-              if (sii_document_number > caf_files[x].AUTORIZACION.CAF.DA.RNG.H && caf_files[x] != start_caf_file){
-                gived += (caf_files[x].AUTORIZACION.CAF.DA.RNG.H - caf_files[x].AUTORIZACION.CAF.DA.RNG.D) +1;
+              if (sii_document_number > parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H) && caf_files[x] != start_caf_file){
+                gived += (parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H) - parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D)) +1;
               }
             }
             if (!caf_file){
               return sii_document_number;
             }
-            if(sii_document_number < caf_file.AUTORIZACION.CAF.DA.RNG.D){
-              var dif = order.orden_numero - ((start_caf_file.AUTORIZACION.CAF.DA.RNG.H - this.pos_session.start_number) + gived);
-              sii_document_number = caf_file.AUTORIZACION.CAF.DA.RNG.D + dif;
-              if (sii_document_number >  caf_file.AUTORIZACION.CAF.DA.RNG.H){
+            if(sii_document_number < parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D)){
+              var dif = order.orden_numero - ((parseInt(start_caf_file.AUTORIZACION.CAF.DA.RNG.H) - this.pos_session.start_number) + gived);
+              sii_document_number = parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) + dif;
+              if (sii_document_number >  parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.H)){
                 sii_document_number = get_next_number(sii_document_number);
               }
             }
