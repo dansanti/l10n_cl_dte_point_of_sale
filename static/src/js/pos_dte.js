@@ -417,7 +417,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
             }
             return sii_document_number;
           }
-          var sii_document_number = get_next_number((parseInt(order.orden_numero) -1) + parseInt(this.pos_session.start_number));
+          var sii_document_number = get_next_number(parseInt(order.orden_numero) + parseInt(this.pos_session.start_number));
 
           order.sii_document_number = sii_document_number;
           var amount = Math.round(order.get_total_with_tax());
