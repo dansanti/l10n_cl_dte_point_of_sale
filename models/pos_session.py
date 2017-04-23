@@ -35,8 +35,11 @@ class PosSession(models.Model):
         is_pos_user = self.pool['res.users'].has_group(cr, uid, 'point_of_sale.group_pos_user')
         if pos_config.journal_document_class_id:
             sequence = pos_config.journal_document_class_id.sequence_id
+            start_number = sequence.number_next_actual
+            sequence.update_next_by_caf()
+            start_number = start_number if sequence.number_next_actual == start_number else sequence.number_next_actual -1
             values.update({
-                'start_number': sequence.number_next_actual,
+                'start_number': start_number,
                 'journal_document_class_id': pos_config.journal_document_class_id.id,
                 'caf_file': self.get_caf_string(cr, uid, sequence, context=context),
             })
