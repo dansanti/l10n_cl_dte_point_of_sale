@@ -54,7 +54,7 @@ class PosSession(models.Model):
             return
         caffs = []
         for caffile in caffiles:
-            caffs += [caffile]
+            caffs += [caffile.decode_caf()]
         if caffs:
             return json.dumps(caffs, ensure_ascii=False)
         msg = '''El folio de este documento: {} está fuera de rango \
