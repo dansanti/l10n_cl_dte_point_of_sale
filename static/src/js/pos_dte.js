@@ -383,6 +383,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   var PosModelSuper = models.PosModel.prototype.push_order;
   models.PosModel.prototype.push_order = function(order, opts) {
         if(order && order.es_boleta()){
+          var orden_numero = order.orden_numero;
           var caf_files = JSON.parse(this.pos_session.caf_file);
           var start_caf_file = false;
           for (var x in caf_files){
@@ -409,7 +410,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
               return sii_document_number;
             }
             if(sii_document_number < parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D)){
-              var dif = order.orden_numero - ((parseInt(start_caf_file.AUTORIZACION.CAF.DA.RNG.H) - this.pos_session.start_number) + gived);
+              var dif = orden_numero - ((parseInt(start_caf_file.AUTORIZACION.CAF.DA.RNG.H) - this.pos_session.start_number) + gived);
               sii_document_number = parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) + dif;
               if (sii_document_number >  parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.H)){
                 sii_document_number = get_next_number(sii_document_number);
@@ -417,7 +418,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
             }
             return sii_document_number;
           }
-          var sii_document_number = get_next_number(parseInt(order.orden_numero) + parseInt(this.pos_session.start_number));
+          var sii_document_number = get_next_number(parseInt(orden_numero) + parseInt(this.pos_session.start_number));
 
           order.sii_document_number = sii_document_number;
           var amount = Math.round(order.get_total_with_tax());
