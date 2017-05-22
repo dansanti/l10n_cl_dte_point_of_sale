@@ -106,7 +106,7 @@
           <br/>
           <div class="row" t-if="receipt.barcode">
             <div class="col-xs-12">
-              <img t-att-src="receipt.barcode" style="width:100%"/>
+              <img t-att-src="receipt.barcode" style="width:100%;height: 150px;"/>
             </div>
             <div class="col-xs-12">
                 <p style="text-align:center;color:red; font-size:8px;">
@@ -220,7 +220,7 @@
           <right>$ <value value-decimals='0'><t t-esc='receipt.change' /></value></right>
         </line>
         <div t-if="receipt.barcode">
-          <img t-att-src="receipt.barcode" style="width:100%"/>
+          <img t-att-src="receipt.barcode" style="width:100%; height:150px;"/>
           <em>
             <p >
               Timbre Electrónico SII
@@ -377,7 +377,7 @@
         <br/>
         <div class="row">
           <div class="col-xs-12">
-            <img t-att-src="order.barcode_pdf417()" style="width:100%"/>
+            <img t-att-src="order.barcode_pdf417()" style="width:100%; height: 150px;"/>
 
           </div>
           <div class="col-xs-12">

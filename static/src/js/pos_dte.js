@@ -392,6 +392,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
               start_caf_file = caf_files[x];
             }
           }
+          var  pos_session = this.pos_session;
           var get_next_number = function(sii_document_number){
             var caf_file = false;
             var gived = 0;
@@ -410,7 +411,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
               return sii_document_number;
             }
             if(sii_document_number < parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D)){
-              var dif = orden_numero - ((parseInt(start_caf_file.AUTORIZACION.CAF.DA.RNG.H) - this.pos_session.start_number) + gived);
+              var dif = orden_numero - ((parseInt(start_caf_file.AUTORIZACION.CAF.DA.RNG.H) - pos_session.start_number) + gived);
               sii_document_number = parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) + dif;
               if (sii_document_number >  parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.H)){
                 sii_document_number = get_next_number(sii_document_number);
@@ -618,13 +619,13 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         if (!this.pos.pos_session.caf_file || !order.sii_document_number){
           return false;
         }
-        PDF417.init(order.signature);
+        PDF417.init(order.signature, 5, 1);
         var barcode = PDF417.getBarcodeArray();
-        var bw = 1.2;
+        var bw = 2;
         var bh = 2;
         var canvas = document.createElement('canvas');
         canvas.width = bw * barcode['num_cols'];
-        canvas.height = "150"; //bh * barcode['num_rows'];
+        canvas.height = bh * barcode['num_rows'];
         var ctx = canvas.getContext('2d');
         var y = 0;
         for (var r = 0; r < barcode['num_rows']; ++r) {
