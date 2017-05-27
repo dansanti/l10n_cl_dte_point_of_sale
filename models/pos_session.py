@@ -37,7 +37,7 @@ class PosSession(models.Model):
             sequence = pos_config.journal_document_class_id.sequence_id
             start_number = sequence.number_next_actual
             sequence.update_next_by_caf()
-            start_number = start_number if sequence.number_next_actual == start_number else sequence.number_next_actual -1
+            start_number = start_number if sequence.number_next_actual == start_number else sequence.number_next_actual
             values.update({
                 'start_number': start_number,
                 'journal_document_class_id': pos_config.journal_document_class_id.id,
