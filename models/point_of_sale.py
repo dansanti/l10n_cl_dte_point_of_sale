@@ -61,6 +61,7 @@ except ImportError:
 
 try:
     import dicttoxml
+    dicttoxml.set_debug(False)
 except ImportError:
     _logger.info('Cannot import dicttoxml library')
 
@@ -665,29 +666,6 @@ version="1.0">
         # saca el folio directamente de la secuencia
         return int(self.sii_document_number)
 
-    def get_caf_file(self):
-        caffiles = self.journal_document_class_id.sequence_id.dte_caf_ids
-        if not caffiles:
-            raise UserError(_('''There is no CAF file available or in use \
-for this Document. Please enable one.'''))
-        folio = self.get_folio()
-        for caffile in caffiles:
-            post = base64.b64decode(caffile.caf_file)
-            post = xmltodict.parse(post.replace(
-                '<?xml version="1.0"?>','',1))
-            folio_inicial = post['AUTORIZACION']['CAF']['DA']['RNG']['D']
-            folio_final = post['AUTORIZACION']['CAF']['DA']['RNG']['H']
-            if folio in range(int(folio_inicial), (int(folio_final)+1)):
-                return post
-        if folio > int(folio_final):
-            msg = '''El folio de este documento: {} está fuera de rango \
-del CAF vigente (desde {} hasta {}). Solicite un nuevo CAF en el sitio \
-www.sii.cl'''.format(folio, folio_inicial, folio_final)
-            # defino el status como "spent"
-            caffile.status = 'spent'
-            raise UserError(_(msg))
-        return False
-
     def format_vat(self, value):
         ''' Se Elimina el 0 para prevenir problemas con el sii, ya que las muestras no las toma si va con
         el 0 , y tambien internamente se generan problemas'''
@@ -861,12 +839,12 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
                 order_id.session_id.numero_ordenes = order['orden_numero']
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.document_class_id = order_id.session_id.journal_document_class_id.sii_document_class_id
-            #order_id.sii_document_number = order['orden_numero'] + order_id.session_id.start_number - 1
+            order_id.sii_document_number = order['sii_document_number']
             sign = self.get_digital_signature(self.env.user.company_id)
             if order_id.session_id.caf_file and sign:
                 order_id.signature = order['signature']
-                order_id.sii_document_number = order_id.journal_document_class_id.sequence_id.next_by_id()#consumo Folio
                 order_id._timbrar()
+                order_id.journal_document_class_id.sequence_id.next_by_id()#consumo Folio
         return order_id.id
 
     def action_invoice(self, cr, uid, ids, context=None):
@@ -1156,7 +1134,7 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
         lines = self.lines
         sorted(lines, key=lambda e: e.pos_order_line_id)
         result['TED']['DD']['IT1'] = self._acortar_str(lines[0].product_id.with_context(display_default_code=False, lang='es_CL').name,40)
-        resultcaf = self.get_caf_file()
+        resultcaf = self.journal_document_class_id.sequence_id.get_caf_file(folio)
         result['TED']['DD']['CAF'] = resultcaf['AUTORIZACION']['CAF']
         dte = result['TED']['DD']
         dicttoxml.set_debug(False)
@@ -1187,9 +1165,9 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
 </FRMT></TED>''').format(ddxml, frmt)
         root = etree.XML(ted)
         if self.signature and ted != self.signature:
-            _logger.info(ted)
-            _logger.info(self.signature)
-            _logger.info("¡La firma del pos es distinta a la del Backend!")
+            _logger.warning(ted)
+            _logger.warning(self.signature)
+            _logger.warning("¡La firma del pos es distinta a la del Backend!")
         self.sii_barcode = ted
         image = False
         if ted:
@@ -1699,8 +1677,8 @@ www.sii.cl'''.format(folio, folio_inicial, folio_final)
 
     def action_paid(self, cr, uid, ids, context=None):
         order = self.browse(cr, uid, ids,context=context)
-        if order.journal_document_class_id and not order.signature:
-            if not order.sii_document_number or order.sii_document_number == 0:
+        if order.journal_document_class_id:
+            if not order.sii_document_number or order.sii_document_number == 0 and not order.signature:
                 order.sii_document_number = order.journal_document_class_id.sequence_id.next_by_id()
             order.do_validate()
         self.write(cr, uid, ids, {'state': 'paid'}, context=context)
