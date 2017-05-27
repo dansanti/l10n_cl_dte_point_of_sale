@@ -143,11 +143,23 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
            return;
        }
        if (fields.document_number ) {
-          fields.document_number = fields.document_number.toUpperCase();
+          fields.document_number = fields.document_number.toUpperCase().replace('.','').replace('.','');
           var dv = fields.document_number.charAt(fields.document_number.length-1);
-          if (parseInt(fields.document_number.replace('-'+dv, '')) < 10000000 ){
-            fields.document_number = '0' + fields.document_number;
+          var entero = parseInt(fields.document_number.replace('-'+dv, ''));
+          if (entero < 10000000 ){
+            fields.document_number = '0' + entero;
           }
+          var rut = '';
+          for(var c = 0; c < fields.document_number.length ; c++){
+            if (c === 2 || c === 5){
+              rut += '.';
+            }
+            if (c === 8 ){
+              rut += '-';
+            }
+            rut += fields.document_number[c];
+          }
+          fields.document_number = rut;
            if (!this.validar_rut(fields.document_number))
             {return;}
        }
