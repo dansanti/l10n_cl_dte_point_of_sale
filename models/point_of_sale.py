@@ -1233,8 +1233,6 @@ version="1.0">
                 lines['MontoItem'] = 0
             line_number += 1
             invoice_lines.extend([{'Detalle': lines}])
-            if 'IndExe' in lines:
-            	taxInclude = False
         return {
                 'invoice_lines': invoice_lines,
                 'MntExe':MntExe,
