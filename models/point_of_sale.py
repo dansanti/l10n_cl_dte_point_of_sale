@@ -1675,7 +1675,7 @@ version="1.0">
 
     def action_paid(self, cr, uid, ids, context=None):
         order = self.browse(cr, uid, ids,context=context)
-        if order.journal_document_class_id:
+        if order.journal_document_class_id and not order.sii_xml_request::
             if not order.sii_document_number or order.sii_document_number == 0 and not order.signature:
                 order.sii_document_number = order.journal_document_class_id.sequence_id.next_by_id()
             order.do_validate()
