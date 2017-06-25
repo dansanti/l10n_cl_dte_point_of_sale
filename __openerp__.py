@@ -22,12 +22,13 @@ Chile: API and GUI to access Electronic Invoicing webservices for Point of Sale.
         'point_of_sale',
         'report',
         'l10n_cl_libro_compra_venta',
+        'webiste',
         ],
     'external_dependencies': {
         'python': [
             'xmltodict',
             'dicttoxml',
-            'elaphe',
+            'pdf417gen',# v0.6 <=
             'M2Crypto',
             'base64',
             'hashlib',
