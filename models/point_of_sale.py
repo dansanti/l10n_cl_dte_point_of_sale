@@ -214,11 +214,18 @@ class POS(models.Model):
         copy=False,
         help="SII request result",
         default = '')
-    canceled = fields.Boolean(string="Canceled?")
-    sii_send_file_name = fields.Char(string="Send File Name")
-    responsable_envio = fields.Many2one('res.users')
-    sii_document_number = fields.Integer(string="Folio de documento")
-    referencias = fields.One2many('pos.order.referencias','order_id',
+    canceled = fields.Boolean(
+        string="Canceled?")
+    sii_send_file_name = fields.Char(
+        string="Send File Name")
+    responsable_envio = fields.Many2one(
+        'res.users')
+    sii_document_number = fields.Integer(
+        string="Folio de documento",
+        copy=False,)
+    referencias = fields.One2many(
+        'pos.order.referencias',
+        'order_id',
         readonly=True,
         states={'draft': [('readonly', False)]})
 
@@ -1381,19 +1388,10 @@ version="1.0">
                 certp,
                 'SetDoc',
                 env)
-            result = False
-            if id_class_doc in [ 61 ]:
-                result = self.send_xml_file(envio_dte, file_name, company_id)
             for inv in self:
                 if inv.document_class_id.sii_code == id_class_doc:
                     inv.sii_xml_request = envio_dte
-                    if result:
-                        inv.write({'sii_xml_response':result['sii_xml_response'],
-                            'sii_send_ident':result['sii_send_ident'],
-                            'sii_result': result['sii_result'],
-                            'sii_xml_request':envio_dte,
-                            'sii_send_file_name' : file_name,
-                            })
+                    inv.sii_send_file_name = file_name
 
     def _get_send_status(self, track_id, signature_d,token):
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws?WSDL'
@@ -1676,7 +1674,7 @@ version="1.0">
     def action_paid(self, cr, uid, ids, context=None):
         order = self.browse(cr, uid, ids,context=context)
         if order.journal_document_class_id and not order.sii_xml_request:
-            if not order.sii_document_number or order.sii_document_number == 0 and not order.signature:
+            if (not order.sii_document_number or order.sii_document_number == 0) and not order.signature:
                 order.sii_document_number = order.journal_document_class_id.sequence_id.next_by_id()
             order.do_validate()
         self.write(cr, uid, ids, {'state': 'paid'}, context=context)
