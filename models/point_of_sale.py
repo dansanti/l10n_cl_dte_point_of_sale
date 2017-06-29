@@ -1072,7 +1072,7 @@ version="1.0">
             if MntExe < 0:
                 MntExe *=-1
             Neto = amount_untaxed - MntExe
-            if not taxInclude:
+            if not taxInclude and not self._es_boleta():
                 IVA = False
                 for l in self.lines:
                     for t in l.tax_ids:
@@ -1083,7 +1083,7 @@ version="1.0">
                     Totales['MntNeto'] = int(round((Neto), 0))
             if MntExe > 0:
                 Totales['MntExe'] = int(round( MntExe))
-            if not taxInclude:
+            if not taxInclude and not self._es_boleta():
                 if IVA:
                     if not self._es_boleta():
                         Totales['TasaIVA'] = IVAAmount
