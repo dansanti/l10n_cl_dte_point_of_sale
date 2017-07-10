@@ -476,6 +476,8 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           var json = _super_order.export_for_printing.apply(this,arguments);
           json.company.document_number = this.pos.company.document_number;
           json.company.activity_description = this.pos.company.activity_description[1]
+          json.company.street = this.pos.company.street;
+          json.company.city = this.pos.company.city;
           json.sii_document_number = this.sii_document_number;
           json.orden_numero = this.orden_numero;
           json.journal_document_class_id = this.pos.config.journal_document_class_id[1];
