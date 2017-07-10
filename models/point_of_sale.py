@@ -971,15 +971,7 @@ version="1.0">
                 if order.sii_result not in [False, '', 'NoEnviado']:
                     raise UserError("El documento %s ya ha sido enviado o está en cola de envío" % order.sii_document_number)
                 order.responsable_envio = self.env.user.id
-                order.sii_result = 'EnCola'
-                ids.append(order.id)
-        if len(ids) > 0:
-            self.env['sii.cola_envio'].create({
-                                        'doc_ids': ids,
-                                        'model':'pos.order',
-                                        'user_id':self.env.user.id,
-                                        'tipo_trabajo':'envio',
-                                        })
+        self.do_dte_send()
 
     def _es_boleta(self):
         if self.document_class_id.sii_code in [35, 38, 39, 41, 70, 71]:
@@ -1411,7 +1403,7 @@ version="1.0">
             self.sii_result = "Proceso"
             if resp['SII:RESPUESTA']['SII:RESP_BODY']['RECHAZADOS'] == "1":
                 self.sii_result = "Rechazado"
-        elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "RCT":
+        elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "RCH":
             self.sii_result = "Rechazado"
             _logger.info(resp)
             status = {'warning':{'title':_('Error RCT'), 'message': _(resp['SII:RESPUESTA']['GLOSA'])}}
