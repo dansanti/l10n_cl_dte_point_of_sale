@@ -475,7 +475,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     export_for_printing: function() {
           var json = _super_order.export_for_printing.apply(this,arguments);
           json.company.document_number = this.pos.company.document_number;
-          json.company.activity_description = this.pos.company.activity_description[1]
+          json.company.activity_description = this.pos.company.activity_description[1];
           json.company.street = this.pos.company.street;
           json.company.city = this.pos.company.city;
           json.sii_document_number = this.sii_document_number;
@@ -607,8 +607,12 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           var seconds = d.getSeconds();
           var date = curr_year + '-' + curr_month + '-' + curr_date + 'T' +
                     this.completa_cero(hours) + ':' + this.completa_cero(minutes) + ':' + this.completa_cero(seconds);
+          var rut_emisor = this.pos.company.document_number.replace('.','').replace('.','');
+          if (rut_emisor.charAt(0) == "0"){
+            rut_emisor = rut_emisor.substr(1);
+          }
           var string='<DD>' +
-                '<RE>' + this.pos.company.document_number.replace('.','').replace('.','') + '</RE>' +
+                '<RE>' + rut_emisor + '</RE>' +
                 '<TD>' + this.pos.config.sii_document_class_id.sii_code + '</TD>' +
                 '<F>' + order.sii_document_number + '</F>' +
                 '<FE>' + curr_year + '-' + curr_month + '-' + curr_date + '</FE>' +
