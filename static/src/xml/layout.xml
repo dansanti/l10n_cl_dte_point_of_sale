@@ -220,7 +220,7 @@
           <right>$ <value value-decimals='0'><t t-esc='receipt.change' /></value></right>
         </line>
         <div t-if="receipt.barcode">
-          <img t-att-src="receipt.barcode" style="width:100%; height:150px;"/>
+          <img t-att-src="receipt.barcode" />
           <em>
             <p >
               Timbre Electrónico SII

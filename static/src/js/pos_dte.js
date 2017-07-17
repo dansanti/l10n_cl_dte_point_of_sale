@@ -647,8 +647,9 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         var bh = 2;
         var canvas = document.createElement('canvas');
         canvas.width = bw * barcode['num_cols'];
-        canvas.height = bh * barcode['num_rows'];
+        canvas.height = 255;
         var ctx = canvas.getContext('2d');
+        ctx.scale(1,0.9);
         var y = 0;
         for (var r = 0; r < barcode['num_rows']; ++r) {
             var x = 0;
