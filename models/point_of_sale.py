@@ -147,6 +147,7 @@ class POS(models.Model):
     def _get_document_class_id(self):
         if self.journal_document_class_id:
             return self.journal_document_class_id.self.journal_document_class_id.id
+        return self.env['sii.document_class']
 
     signature = fields.Char(string="Signature")
     available_journal_document_class_ids = fields.Many2many(

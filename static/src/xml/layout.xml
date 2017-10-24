@@ -142,7 +142,7 @@
           <h3><t t-esc="receipt.company.name"/></h3>
           <h4><t t-esc="receipt.company.document_number"/></h4>
           <em>
-            <t t-esc="receipt.company.activity_description"/>
+            <t t-esc="receipt.company.activity_description"/><br />
             <t t-esc="receipt.company.street"/> <t t-esc="receipt.company.city"/><br />
           </em>
           <div class="pos-center-align"><t t-esc="receipt.journal_document_class_id"/> N°:<t t-esc="receipt.sii_document_number or receipt.name"/></div>
@@ -220,7 +220,7 @@
           <right>$ <value value-decimals='0'><t t-esc='receipt.change' /></value></right>
         </line>
         <div t-if="receipt.barcode">
-          <img t-att-src="receipt.barcode" />
+          <img t-att-src="receipt.barcode"/>
           <em>
             <p >
               Timbre Electrónico SII
