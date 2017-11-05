@@ -573,7 +573,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
             }
           }
           if (!caf_file){
-            this.gui.show_popup('error',_t('No quedan más Folios Disponibles'));
+            this.pos.gui.show_popup('error',_t('No quedan más Folios Disponibles'));
             return false;
           }
           var priv_key = caf_file.AUTORIZACION.RSASK;
