@@ -115,7 +115,9 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
             order.set_boleta(false);
             this.$('.js_boleta').removeClass('highlight');
           } else {
-            this.click_invoice();
+            if(order.is_to_invoice()){
+              this.click_invoice();
+            }
             order.set_boleta(true);
             this.$('.js_boleta').addClass('highlight');
           }
