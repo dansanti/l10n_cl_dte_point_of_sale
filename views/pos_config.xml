@@ -11,6 +11,7 @@
                      options="{'no_create': True}"
                      domain="[('journal_id','=', journal_id)]"/>
               <field name="ticket" />
+              <field name="marcar" widget="radio" />
              </field>
           </field>
       </record>

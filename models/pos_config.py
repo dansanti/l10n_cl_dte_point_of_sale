@@ -47,6 +47,14 @@ class PosConfig(models.Model):
     left_number = fields.Integer(
         compute="get_left_numbers",
         string="Left Available Numbers")
+    marcar = fields.Selection(
+        [
+            ('boleta', 'Boletas'),
+            ('factura', 'Facturas'),
+        ],
+        string="Marcar por defecto",
+        default='boleta',
+    )
 
     def get_valid_document_letters(
             self, cr, uid, partner_id, operation_type='sale',

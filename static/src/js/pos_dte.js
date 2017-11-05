@@ -102,16 +102,13 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         });
 
     },
-    click_invoice: function(){
-      this._super();
-      var order = this.pos.get_order();
-      if (order.es_boleta()){
-        this.click_boleta();
-      }
-    },
     click_boleta: function(){
           var order = this.pos.get_order();
-          if (order.es_boleta()) {
+          var no_caf = true;
+          if (this.pos.pos_session.caf_file){
+            no_caf = false;
+          }
+          if (order.es_boleta() || no_caf) {
             order.set_boleta(false);
             this.$('.js_boleta').removeClass('highlight');
           } else {
@@ -452,10 +449,13 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   models.Order = models.Order.extend({
     initialize: function(attr, options) {
           _super_order.initialize.call(this,attr,options);
-          if (this.pos.pos_session.caf_file){
-            this.set_boleta(true);
-          }else{
-            this.set_boleta(false);
+          this.set_boleta(false);
+          if (this.pos.config.marcar === 'boleta'){
+            if (this.pos.pos_session.caf_file){
+              this.set_boleta(true);
+            }
+          }else if (this.pos.config.marcar === 'factura'){
+            this.set_to_invoice(true);
           }
           this.signature = this.signature || false;
           this.sii_document_number = this.sii_document_number || false;
