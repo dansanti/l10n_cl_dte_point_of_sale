@@ -643,7 +643,8 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         if (!this.pos.pos_session.caf_file || !order.sii_document_number){
           return false;
         }
-        PDF417.init(order.signature, 5, 1);
+        PDF417.ROWHEIGHT = 2;
+        PDF417.init(order.signature, 6);
         var barcode = PDF417.getBarcodeArray();
         var bw = 2;
         var bh = 2;
@@ -651,7 +652,6 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         canvas.width = bw * barcode['num_cols'];
         canvas.height = 255;
         var ctx = canvas.getContext('2d');
-        ctx.scale(1,0.9);
         var y = 0;
         for (var r = 0; r < barcode['num_rows']; ++r) {
             var x = 0;
