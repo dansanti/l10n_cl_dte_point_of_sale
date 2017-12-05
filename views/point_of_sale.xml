@@ -7,7 +7,9 @@
           <field name="arch" type="xml">
             <button name="refund" position="replace">
               <button name="%(action_pos_order_refund)d" string="Crear una Nota de Crédito" type="action"
-                            attrs="{'invisible':[('state','=','draft')]}"/>
+                            attrs="{'invisible':[('state','=','draft'), ('document_class_id', '=', False)]}"/>
+              <button name="refund" string="Return Products" type="object"
+                      attrs="{'invisible':[('state','=','draft'), ('document_class_id', '!=', False)]}"/>
             </button>
             <field name="name" position="after">
               <field name="sii_document_number" />
