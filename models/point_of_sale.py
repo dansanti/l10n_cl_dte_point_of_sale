@@ -1281,9 +1281,8 @@ version="1.0">
         return xml
 
     def _timbrar(self):
-        try:
-            signature_d = self.get_digital_signature(self.company_id)
-        except:
+        signature_d = self.get_digital_signature(self.company_id)
+        if not signature_d:
             raise UserError(_('''There is no Signer Person with an \
         authorized signature for you in the system. Please make sure that \
         'user_signature_key' module has been installed and enable a digital \
