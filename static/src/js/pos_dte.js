@@ -273,9 +273,9 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
             });
        }
    },
-   display_client_details: function(visibility,partner,clickpos){
+   display_client_details: function(visibility, partner, clickpos){
        var self = this;
-       this._super(visibility,partner,clickpos);
+       this._super(visibility, partner, clickpos);
        if (visibility === "edit"){
         var state_options = self.$("select[name='state_id']:visible option:not(:first)");
         var comuna_options = self.$("select[name='city_id']:visible option:not(:first)");
