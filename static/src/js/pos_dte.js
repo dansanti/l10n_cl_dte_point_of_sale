@@ -9,7 +9,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   var screens = require('point_of_sale.screens');
   var core = require('web.core');
   var _t = core._t;
-  var Model = require('web.DataModel');
+  var rpc = require('web.rpc');
 
   var modules = models.PosModel.prototype.models;
   var round_pr = utils.round_precision;
@@ -195,26 +195,46 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         fields.vat = country[0].code + fields.document_number.replace('-','').replace('.','').replace('.','');
        }
 
+       if (fields.property_product_pricelist) {
+            fields.property_product_pricelist = parseInt(fields.property_product_pricelist, 10);
+        } else {
+            fields.property_product_pricelist = false;
+        }
+
        if (fields.activity_description && !parseInt(fields.activity_description)){
-         new Model('sii.activity.description').call('create_from_ui',[fields]).then(function(description){
-           fields.activity_description = description;
-           new Model('res.partner').call('create_from_ui',[fields]).then(function(partner_id){
-               self.saved_client_details(partner_id);
-           },function(err,event){
-               event.preventDefault();
-               if (err.data.message) {
-                self.gui.show_popup('error',{
+         rpc.query(
+           {
+              model:'sii.activity.description',
+              method:'create_from_ui',
+              args: [fields]
+            }).then(
+              function(description){
+                fields.activity_description = description;
+                rpc.query(
+                  {
+                    model:'res.partner',
+                    method: 'create_from_ui',
+                    args: [fields]
+                  }).then(
+                    function(partner_id){
+                      self.saved_client_details(partner_id);
+                    },
+                    function(err,event){
+                      event.preventDefault();
+                      if (err.data.message) {
+                        self.gui.show_popup('error',{
                          'title': _t('Error: Could not Save Changes partner'),
                          'body': err.data.message,
-                     });
-              }else{
-                self.gui.show_popup('error',{
+                        });
+                      }else{
+                        self.gui.show_popup('error',{
                          'title': _t('Error: Could not Save Changes'),
                          'body': _t('Your Internet connection is probably down.'),
-                     });
-              }
-           });
-         },function(err,event){
+                        });
+                      }
+                    });
+            },
+            function(err,event){
              event.preventDefault();
              if (err.data.message) {
                 self.gui.show_popup('error',{
@@ -229,22 +249,28 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
               }
             });
        }else{
-         new Model('res.partner').call('create_from_ui',[fields]).then(function(partner_id){
+         rpc.query(
+           {
+            model: 'res.partner',
+            method: 'create_from_ui',
+            args: [fields]
+          }).then(
+            function(partner_id){
              self.saved_client_details(partner_id);
-         },function(err,event){
+            },function(err,event){
              event.preventDefault();
-             if (err.data.message) {
-              self.gui.show_popup('error',{
+              if (err.data.message) {
+                self.gui.show_popup('error',{
                        'title': _t('Error: Could not Save Changes'),
                        'body': err.data.message,
                    });
-            }else{
-              self.gui.show_popup('error',{
+              }else{
+               self.gui.show_popup('error',{
                        'title': _t('Error: Could not Save Changes'),
                        'body': _t('Your Internet connection is probably down.'),
                    });
-            }
-         });
+              }
+            });
        }
    },
    display_client_details: function(visibility,partner,clickpos){
