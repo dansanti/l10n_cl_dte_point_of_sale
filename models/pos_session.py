@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from openerp import fields, models, api, _, SUPERUSER_ID
-from openerp.exceptions import UserError
+from odoo import fields, models, api, _, SUPERUSER_ID
+from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 import logging
 import json

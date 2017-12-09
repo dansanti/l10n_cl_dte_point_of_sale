@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
   <template id="website_layout_input" name="Validación Boleta Electrónica">
 			<t t-call="website.layout">
         <div class="row text-center">
@@ -153,4 +153,4 @@
         </div>
       </t>
   </template>
-</openerp>
+</odoo>

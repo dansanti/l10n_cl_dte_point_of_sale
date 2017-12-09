@@ -1,27 +1,35 @@
 # -*- coding: utf-8 -*-
-
-from openerp import fields, models, api, _
-from openerp.exceptions import UserError
+from odoo import fields, models, api, _
+from odoo.exceptions import UserError
 from datetime import datetime, timedelta
-import logging
 from lxml import etree
 from lxml.etree import Element, SubElement
-from openerp import SUPERUSER_ID
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
+from odoo import SUPERUSER_ID
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 import time
 import math
 
 import xml.dom.minidom
 import pytz
-
-
 import socket
 import collections
+import logging
+
+_logger = logging.getLogger(__name__)
 
 try:
-    from cStringIO import StringIO
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives.serialization import load_pem_private_key
+    import OpenSSL
+    from OpenSSL import crypto
+    type_ = crypto.FILETYPE_PEM
 except:
-    from StringIO import StringIO
+    _logger.warning('Cannot import OpenSSL library')
+
+try:
+    from io import BytesIO
+except:
+    _logger.warning("no se ha cargado io")
 
 # ejemplo de suds
 import traceback as tb
@@ -52,8 +60,6 @@ try:
 except:
     pass
 
-_logger = logging.getLogger(__name__)
-
 try:
     import xmltodict
 except ImportError:
@@ -71,11 +77,6 @@ except ImportError:
     _logger.info('Cannot import pdf417gen library')
 
 try:
-    import M2Crypto
-except ImportError:
-    _logger.info('Cannot import M2Crypto library')
-
-try:
     import base64
 except ImportError:
     _logger.info('Cannot import base64 library')
@@ -89,11 +90,6 @@ try:
     import cchardet
 except ImportError:
     _logger.info('Cannot import cchardet library')
-
-try:
-    from SOAPpy import SOAPProxy
-except ImportError:
-    _logger.info('Cannot import SOOAPpy')
 
 try:
     from signxml import xmldsig, methods
@@ -115,7 +111,7 @@ afeqWjiRVMvV4+s4Q==</FRMA></CAF><TSTED>2014-04-24T12:02:20</TSTED></DD>\
 fHlAa7j08Xff95Yb2zg31sJt6lMjSKdOK+PQp25clZuECig==</FRMT></TED>"""
 result = xmltodict.parse(timbre)
 
-server_url = {'SIIHOMO':'https://maullin.sii.cl/DTEWS/','SII':'https://palena.sii.cl/DTEWS/'}
+server_url = {'SIICERT':'https://maullin.sii.cl/DTEWS/','SII':'https://palena.sii.cl/DTEWS/'}
 
 BC = '''-----BEGIN CERTIFICATE-----\n'''
 EC = '''\n-----END CERTIFICATE-----\n'''
@@ -149,12 +145,14 @@ class POS(models.Model):
             return self.journal_document_class_id.self.journal_document_class_id.id
         return self.env['sii.document_class']
 
-    signature = fields.Char(string="Signature")
+    signature = fields.Char(
+            string="Signature",
+        )
     available_journal_document_class_ids = fields.Many2many(
-        'account.journal.sii_document_class',
-        #compute='_get_available_journal_document_class',
-        string='Available Journal Document Classes')
-
+            'account.journal.sii_document_class',
+            #compute='_get_available_journal_document_class',
+            string='Available Journal Document Classes',
+        )
     document_class_id = fields.Many2one(
         'sii.document_class',
         string='Document Type',
@@ -309,13 +307,6 @@ class POS(models.Model):
             _logger.info(etree.tostring(xml_doc))
             raise UserError(_('XML Malformed Error:  %s') % e.args)
 
-    '''
-    Funcion usada en autenticacion en SII
-    Obtencion de la semilla desde el SII.
-    Basada en función de ejemplo mostrada en el sitio edreams.cl
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2015-04-01
-    '''
     def get_seed(self, company_id):
         #En caso de que haya un problema con la validación de certificado del sii ( por una mala implementación de ellos)
         #esto omite la validacion
@@ -326,18 +317,11 @@ class POS(models.Model):
             pass
         url = server_url[company_id.dte_service_provider] + 'CrSeed.jws?WSDL'
         ns = 'urn:'+server_url[company_id.dte_service_provider] + 'CrSeed.jws'
-        _server = SOAPProxy(url, ns)
+        _server = Client(url, ns)
         root = etree.fromstring(_server.getSeed())
         semilla = root[0][0].text
         return semilla
 
-    '''
-    Funcion usada en autenticacion en SII
-    Creacion de plantilla xml para realizar el envio del token
-    Previo a realizar su firma
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_seed(self, seed):
         xml = u'''<getToken>
 <item>
@@ -347,26 +331,12 @@ class POS(models.Model):
 '''.format(seed)
         return xml
 
-    '''
-    Funcion usada en autenticacion en SII
-    Creacion de plantilla xml para envolver el DTE
-    Previo a realizar su firma (1)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_doc(self, doc):
         xml = '''<DTE xmlns="http://www.sii.cl/SiiDte" version="1.0">
 {}
 </DTE>'''.format(doc)
         return xml
 
-    '''
-    Funcion usada en autenticacion en SII
-    Creacion de plantilla xml para envolver el Envio de DTEs
-    Previo a realizar su firma (2da)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_env(self, doc):
         xml = '''<?xml version="1.0" encoding="ISO-8859-1"?>
 <EnvioDTE xmlns="http://www.sii.cl/SiiDte" \
@@ -387,24 +357,10 @@ version="1.0">
 </EnvioBOLETA>'''.format(doc)
         return xml
 
-    '''
-    Funcion usada en autenticacion en SII
-    Insercion del nodo de firma (1ra) dentro del DTE
-    Una vez firmado.
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_doc1(self, doc, sign):
         xml = doc.replace('</DTE>', '') + sign + '</DTE>'
         return xml
 
-    '''
-    Funcion usada en autenticacion en SII
-    Insercion del nodo de firma (2da) dentro del DTE
-    Una vez firmado.
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_env1(self, doc, sign):
         xml = doc.replace('</EnvioDTE>', '') + sign + '</EnvioDTE>'
         return xml
@@ -425,10 +381,6 @@ version="1.0">
         xml = doc.replace('</EnvioBOLETA>', '') + sign + '</EnvioBOLETA>'
         return xml
 
-    '''
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def sign_seed(self, message, privkey, cert):
         doc = etree.fromstring(message)
         signed_node = xmldsig(
@@ -440,17 +392,10 @@ version="1.0">
             signed_node, pretty_print=True).replace('ds:', '')
         return msg
 
-    '''
-    Funcion usada en autenticacion en SII
-    Obtencion del token a partir del envio de la semilla firmada
-    Basada en función de ejemplo mostrada en el sitio edreams.cl
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def get_token(self, seed_file,company_id):
         url = server_url[company_id.dte_service_provider] + 'GetTokenFromSeed.jws?WSDL'
         ns = 'urn:'+ server_url[company_id.dte_service_provider] +'GetTokenFromSeed.jws'
-        _server = SOAPProxy(url, ns)
+        _server = Client(url, ns)
         tree = etree.fromstring(seed_file)
         ss = etree.tostring(tree, pretty_print=True, encoding='iso-8859-1')
         respuesta = etree.fromstring(_server.getToken(ss))
@@ -465,13 +410,6 @@ version="1.0">
         return x
 
     def long_to_bytes(self, n, blocksize=0):
-        """long_to_bytes(n:long, blocksize:int) : string
-        Convert a long integer to a byte string.
-        If optional blocksize is given and greater than zero, pad the front of the
-        byte string with binary zeros so that the length is a multiple of
-        blocksize.
-        """
-        # after much testing, this algorithm was deemed to be the fastest
         s = b''
         n = long(n)  # noqa
         import struct
@@ -519,11 +457,6 @@ version="1.0">
         sig_root = Element("Signature",attrib={'xmlns':'http://www.w3.org/2000/09/xmldsig#'})
         sig_root.append(etree.fromstring(signed_info_c14n))
         signature_value = SubElement(sig_root, "SignatureValue")
-        from cryptography.hazmat.backends import default_backend
-        from cryptography.hazmat.primitives.serialization import load_pem_private_key
-        import OpenSSL
-        from OpenSSL.crypto import *
-        type_ = FILETYPE_PEM
         key=OpenSSL.crypto.load_privatekey(type_,privkey.encode('ascii'))
         signature= OpenSSL.crypto.sign(key,signed_info_c14n,'sha1')
         signature_value.text =textwrap.fill(base64.b64encode(signature),64)
@@ -592,13 +525,6 @@ version="1.0">
             'cert': obj.cert}
         return signature_data
 
-    '''
-    Funcion usada en SII
-    Toma los datos referentes a la resolución SII que autoriza a
-    emitir DTE
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def get_resolution_data(self, comp_id):
         resolution_data = {
             'dte_resolution_date': comp_id.dte_resolution_date,
@@ -623,7 +549,7 @@ version="1.0">
             return
 
         url = 'https://palena.sii.cl'
-        if company_id.dte_service_provider == 'SIIHOMO':
+        if company_id.dte_service_provider == 'SIICERT':
             url = 'https://maullin.sii.cl'
         post = '/cgi_dte/UPL/DTEUpload'
         headers = {
@@ -655,11 +581,6 @@ version="1.0">
             retorno.update({'sii_result': 'Enviado','sii_send_ident':respuesta_dict['RECEPCIONDTE']['TRACKID']})
         return retorno
 
-    '''
-    Funcion para descargar el xml en el sistema local del usuario
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-05-01
-    '''
     @api.multi
     def get_xml_file(self):
         filename = 'BE' + str(self.sii_document_number)+'.xml'.replace(' ','')
@@ -697,22 +618,10 @@ version="1.0">
         )
         return image
 
-    '''
-    Funcion usada en SII
-    para firma del timbre (dio errores de firma para el resto de los doc)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2015-03-01
-    '''
     def digest(self, data):
         sha1 = hashlib.new('sha1', data)
         return sha1.digest()
 
-    '''
-    Funcion usada en SII
-    para firma del timbre (dio errores de firma para el resto de los doc)
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2015-03-01
-    '''
     def signrsa(self, MESSAGE, KEY, digst=''):
         KEY = KEY.encode('ascii')
         rsa = M2Crypto.EVP.load_key_string(KEY)
@@ -1388,7 +1297,7 @@ version="1.0">
     def _get_send_status(self, track_id, signature_d,token):
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws?WSDL'
         ns = 'urn:'+ server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws'
-        _server = SOAPProxy(url, ns)
+        _server = Client(url, ns)
         rut = self.format_vat(self.company_id.vat)
         respuesta = _server.getEstUp(rut[:8], str(rut[-1]),track_id,token)
         self.sii_message = respuesta
@@ -1412,7 +1321,7 @@ version="1.0">
     def _get_dte_status(self, signature_d, token):
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstDte.jws?WSDL'
         ns = 'urn:'+ server_url[self.company_id.dte_service_provider] + 'QueryEstDte.jws'
-        _server = SOAPProxy(url, ns)
+        _server = Client(url, ns)
         receptor = self.format_vat(self.partner_id.vat)
         util_model = self.env['cl.utils']
         from_zone = pytz.UTC

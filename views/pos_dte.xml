@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<openerp>
+<odoo>
     <data>
 
 	     <template id="pos_dte_extend" name="pos_dte" inherit_id="point_of_sale.index">
@@ -40,4 +40,4 @@
         </template>
 
     </data>
-</openerp>
+</odoo>

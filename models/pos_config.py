@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from openerp import fields, models, api, _
-from openerp.exceptions import UserError
+from odoo import fields, models, api, _
+from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 import logging
 
@@ -103,7 +103,7 @@ class PosConfig(models.Model):
                 print('responsabilidad del partner')
                 if issuer_responsability_id == self.pool.get(
                         'ir.model.data').get_object_reference(
-                        cr, uid, 'l10n_cl_invoice', 'res_BH')[1]:
+                        cr, uid, 'l10n_cl_fe', 'res_BH')[1]:
                     print('el proveedor es de segunda categoria y emite boleta de honorarios')
                 else:
                     print('el proveedor es de primera categoria y emite facturas o facturas no afectas')

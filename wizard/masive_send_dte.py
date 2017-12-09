@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from openerp import models, fields, api, _
-from openerp.exceptions import UserError
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -15,7 +15,11 @@ class masive_send_dte_wizard(models.TransientModel):
         active_ids = context.get('active_ids', []) or []
         return [(6, 0, active_ids)]
 
-    documentos = fields.Many2many('pos.order',string="Movimientos", default=_getIDs)
+    documentos = fields.Many2many(
+            'pos.order',
+            string="Documentos",
+            default=_getIDs,
+        )
 
     @api.multi
     def confirm(self):

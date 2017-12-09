@@ -1,7 +1,7 @@
-from openerp import SUPERUSER_ID
-from openerp import models, http, api
-from openerp.http import request
-from openerp.addons.web.controllers.main import serialize_exception, content_disposition
+from odoo import SUPERUSER_ID
+from odoo import models, http, api
+from odoo.http import request
+from odoo.addons.web.controllers.main import serialize_exception, content_disposition
 import logging
 _logger = logging.getLogger(__name__)
 

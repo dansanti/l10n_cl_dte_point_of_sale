@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 {
-    "name": """Chile - Web Services de Documentos Tributarios Electrónicos Para Punto de Ventas\
+    "name": """Boleta / Factura Electrónica Chilena para punto de ventas \
     """,
-    'version': '9.0.5.5.2',
+    'version': '11.0.5.5.2',
     'category': 'Localization/Chile',
     'sequence': 12,
-    'author':  'Daniel Santibáñez Polanco',
+    'author':  'Daniel Santibáñez Polanco, Cooperativa OdooCoop',
     'website': 'https://globalresponse.cl',
     'license': 'AGPL-3',
     'summary': '',
@@ -13,31 +13,13 @@
 Chile: API and GUI to access Electronic Invoicing webservices for Point of Sale.
 """,
     'depends': [
-        'l10n_cl_counties',
-        'l10n_cl_invoice',
-        'l10n_cl_dte_caf',
-        'l10n_cl_dte',
-        'user_signature_key',
+        'l10n_cl_fe',
         'account',
         'point_of_sale',
-        'report',
-        'l10n_cl_libro_compra_venta',
         'website',
         ],
     'external_dependencies': {
         'python': [
-            'xmltodict',
-            'dicttoxml',
-            'pdf417gen',# v0.6 <=
-            'M2Crypto',
-            'base64',
-            'hashlib',
-            'cchardet',
-            'suds',
-            'urllib3',
-            'SOAPpy',
-            'signxml',
-            'ast'
         ]
     },
     'data': [
@@ -50,7 +32,6 @@ Chile: API and GUI to access Electronic Invoicing webservices for Point of Sale.
         'views/website_layout.xml',
         'wizard/masive_send_dte.xml',
 #        'data/sequence.xml',
-#        'data/cron.xml',
         'security/ir.model.access.csv',
     ],
     'qweb': [
