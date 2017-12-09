@@ -14,36 +14,37 @@ class PosSession(models.Model):
     _inherit = "pos.session"
 
     journal_document_class_id = fields.Many2one(
-        'account.journal.sii_document_class',
-        'Documents Type',)
-
+            'account.journal.sii_document_class',
+            string='Documents Type',
+        )
     start_number = fields.Integer(
-        string='Folio comienzo',
-    )
+            string='Folio comienzo',
+        )
     caf_file = fields.Char(
-        invisible=True)
+            invisible=True,
+        )
     numero_ordenes = fields.Integer(
-        string="Número de ordenes",
-        default=0)
+            string="Número de ordenes",
+            default=0,
+        )
 
-    def create(self, cr, uid, values, context=None):
-        context = dict(context or {})
-        config_id = values.get('config_id', False) or context.get('default_config_id', False)
-        jobj = self.pool.get('pos.config')
-        pos_config = jobj.browse(cr, uid, config_id, context=context)
-        context.update({'company_id': pos_config.company_id.id})
-        is_pos_user = self.pool['res.users'].has_group(cr, uid, 'point_of_sale.group_pos_user')
-        if pos_config.journal_document_class_id:
-            sequence = pos_config.journal_document_class_id.sequence_id
+    @api.model
+    def create(self, values):
+        pos_config = values.get('config_id') or self.env.context.get('default_config_id')
+        config_id = self.browse(pos_config)
+        if not config_id:
+            raise UserError(_("You should assign a Point of Sale to your session."))
+        if config_id.journal_document_class_id:
+            sequence = config_id.journal_document_class_id.sequence_id
             start_number = sequence.number_next_actual
             sequence.update_next_by_caf()
             start_number = start_number if sequence.number_next_actual == start_number else sequence.number_next_actual
             values.update({
                 'start_number': start_number,
-                'journal_document_class_id': pos_config.journal_document_class_id.id,
-                'caf_file': self.get_caf_string(cr, uid, sequence, context=context),
+                'journal_document_class_id': config_id.journal_document_class_id.id,
+                'caf_file': self.get_caf_string(sequence),
             })
-        return super(PosSession, self).create(cr, is_pos_user and SUPERUSER_ID or uid, values, context=context)
+        return super(PosSession, self).create(values)
 
     @api.model
     def get_caf_string(self, sequence=None):
