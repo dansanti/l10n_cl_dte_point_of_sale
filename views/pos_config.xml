@@ -3,16 +3,31 @@
       <record id="view_pos_config_form" model="ir.ui.view">
           <field name="model">pos.config</field>
           <field name="name">pos.config.sii.form</field>
-          <field name="inherit_id" ref="point_of_sale.view_pos_config_form" />
+          <field name="inherit_id" ref="point_of_sale.pos_config_view_form" />
           <field name="arch" type="xml">
-            <field name="journal_id" position="after">
+            <div id="iface_invoicing" position="after">
               <field name="available_journal_document_class_ids" invisible="1"/>
-              <field name="journal_document_class_id"
-                     options="{'no_create': True}"
-                     domain="[('journal_id','=', journal_id)]"/>
-              <field name="ticket" />
-              <field name="marcar" widget="radio" />
-             </field>
+              <div class="col-xs-12 col-md-6 o_setting_box" id="iface_boleta">
+                  <div class="o_setting_right_pane">
+                      <label for="journal_document_class_id"/>
+                      <div class="text-muted" id="journal_document_class_id_label">
+                         Imprimir Boletas
+                      </div>
+                      <div class="content-group mt16">
+                          <div class="row mt16">
+                              <label string="Diario Boleta" for="journal_document_class_id" class="col-md-3 o_light_label"/>
+                              <field name="journal_document_class_id"
+                                     options="{'no_create': True}"
+                                     domain="[('journal_id','=', journal_id)]"/>
+                             <label string="Ticket?" for="ticket" class="col-md-3 o_light_label"/>
+                             <field name="ticket" />
+                             <label string="Marcar por defecto" for="marcar" class="col-md-3 o_light_label"/>
+                             <field name="marcar" widget="radio" />
+                          </div>
+                      </div>
+                  </div>
+              </div>
+            </div>
           </field>
       </record>
 
@@ -22,7 +37,7 @@
         <field name="model">pos.config</field>
         <field name="inherit_id" ref="point_of_sale.view_pos_config_kanban"/>
         <field name="arch" type="xml">
-          <field name="state" position="after">
+          <field name="pos_session_state" position="after">
             <field name="next_number" />
             <field name="left_number" />
           </field>
