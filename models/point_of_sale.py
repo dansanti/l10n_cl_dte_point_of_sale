@@ -135,7 +135,11 @@ connection_status = {
 
 class POSL(models.Model):
     _inherit = 'pos.order.line'
-    pos_order_line_id = fields.Integer(string="POS Line ID", readonly=True)
+
+    pos_order_line_id = fields.Integer(
+            string="POS Line ID",
+            readonly=True,
+        )
 
 class POS(models.Model):
     _inherit = 'pos.order'
@@ -154,48 +158,53 @@ class POS(models.Model):
             string='Available Journal Document Classes',
         )
     document_class_id = fields.Many2one(
-        'sii.document_class',
-        string='Document Type',
-        copy=False,
-        readonly=True,
-        states={'draft': [('readonly', False)]},
-        default=_get_document_class_id,
+            'sii.document_class',
+            string='Document Type',
+            copy=False,
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+            default=_get_document_class_id,
         )
     journal_document_class_id = fields.Many2one(
-        'account.journal.sii_document_class',
-        'Documents Type',
-        readonly=True,
-        store=True,
-        states={'draft': [('readonly', False)]})
+            'account.journal.sii_document_class',
+            string='Documents Type',
+            readonly=True,
+            store=True,
+            states={'draft': [('readonly', False)]},
+        )
     sii_batch_number = fields.Integer(
-        copy=False,
-        string='Batch Number',
-        readonly=True,
-        help='Batch number for processing multiple invoices together')
-
+            copy=False,
+            string='Batch Number',
+            readonly=True,
+            help='Batch number for processing multiple invoices together',
+        )
     sii_barcode = fields.Char(
-        copy=False,
-        string=_('SII Barcode'),
-        readonly=True,
-        help='SII Barcode Name')
-
+            copy=False,
+            string='SII Barcode',
+            readonly=True,
+            help='SII Barcode Name',
+        )
     sii_barcode_img = fields.Binary(
-        copy=False,
-        string=_('SII Barcode Image'),
-        help='SII Barcode Image in PDF417 format')
-
+            copy=False,
+            string=_('SII Barcode Image'),
+            help='SII Barcode Image in PDF417 format',
+        )
     sii_message = fields.Text(
-        string='SII Message',
-        copy=False)
+            string='SII Message',
+            copy=False,
+        )
     sii_xml_request = fields.Text(
-        string='SII XML Request',
-        copy=False)
+            string='SII XML Request',
+            copy=False,
+        )
     sii_xml_response = fields.Text(
-        string='SII XML Response',
-        copy=False)
+            string='SII XML Response',
+            copy=False,
+        )
     sii_send_ident = fields.Text(
-        string='SII Send Identification',
-        copy=False)
+            string='SII Send Identification',
+            copy=False,
+        )
     sii_result = fields.Selection(
             [
                     ('', 'n/a'),
@@ -252,11 +261,6 @@ class POS(models.Model):
             certf += cert[76 * i:76 * (i + 1)] + '\n'
         return certf
 
-    '''
-    Funcion que permite crear una plantilla para el EnvioDTE
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2016-06-01
-    '''
     def create_template_envio(self, RutEmisor, RutReceptor, FchResol, NroResol,
                               TmstFirmaEnv, EnvioDTE,signature_d,SubTotDTE):
         xml = '''<SetDTE ID="SetDoc">
@@ -276,18 +280,6 @@ class POS(models.Model):
     def time_stamp(self, formato='%Y-%m-%dT%H:%M:%S'):
         tz = pytz.timezone('America/Santiago')
         return datetime.now(tz).strftime(formato)
-
-    '''
-    Funcion auxiliar para conversion de codificacion de strings
-     proyecto experimentos_dte
-     @author: Daniel Blanco Martin (daniel[at]blancomartin.cl)
-     @version: 2014-12-01
-    '''
-    def convert_encoding(self, data, new_coding = 'UTF-8'):
-        encoding = cchardet.detect(data)['encoding']
-        if new_coding.upper() != encoding.upper():
-            data = data.decode(encoding, data).encode(new_coding)
-        return data
 
     def xml_validator(self, some_xml_string, validacion='doc'):
         if validacion == 'bol':
@@ -315,28 +307,16 @@ class POS(models.Model):
             raise UserError(_('XML Malformed Error:  %s') % e.args)
 
     def get_seed(self, company_id):
-        #En caso de que haya un problema con la validación de certificado del sii ( por una mala implementación de ellos)
-        #esto omite la validacion
-        try:
-            import ssl
-            ssl._create_default_https_context = ssl._create_unverified_context
-        except:
-            pass
-        url = server_url[company_id.dte_service_provider] + 'CrSeed.jws?WSDL'
-        ns = 'urn:'+server_url[company_id.dte_service_provider] + 'CrSeed.jws'
-        _server = Client(url, ns)
-        root = etree.fromstring(_server.getSeed())
-        semilla = root[0][0].text
-        return semilla
+        return self.env['account.invoice'].get_seed(company_id)
 
     def create_template_seed(self, seed):
-        xml = u'''<getToken>
-<item>
-<Semilla>{}</Semilla>
-</item>
-</getToken>
-'''.format(seed)
-        return xml
+        return self.env['account.invoice'].create_template_seed(seed)
+
+    def sign_seed(self, message, privkey, cert):
+        return self.env['account.invoice'].sign_seed(message, privkey, cert)
+
+    def get_token(self, seed_file, company_id):
+        return self.env['account.invoice'].get_token(seed_file, company_id)
 
     def create_template_doc(self, doc):
         xml = '''<DTE xmlns="http://www.sii.cl/SiiDte" version="1.0">
@@ -363,137 +343,6 @@ version="1.0">
 {}
 </EnvioBOLETA>'''.format(doc)
         return xml
-
-    def create_template_doc1(self, doc, sign):
-        xml = doc.replace('</DTE>', '') + sign + '</DTE>'
-        return xml
-
-    def create_template_env1(self, doc, sign):
-        xml = doc.replace('</EnvioDTE>', '') + sign + '</EnvioDTE>'
-        return xml
-
-    def append_sign_recep(self, doc, sign):
-        xml = doc.replace('</Recibo>', '') + sign + '</Recibo>'
-        return xml
-
-    def append_sign_env_recep(self, doc, sign):
-        xml = doc.replace('</EnvioRecibos>', '') + sign + '</EnvioRecibos>'
-        return xml
-
-    def append_sign_env_resp(self, doc, sign):
-        xml = doc.replace('</RespuestaDTE>', '') + sign + '</RespuestaDTE>'
-        return xml
-
-    def append_sign_env_bol(self, doc, sign):
-        xml = doc.replace('</EnvioBOLETA>', '') + sign + '</EnvioBOLETA>'
-        return xml
-
-    def sign_seed(self, message, privkey, cert):
-        doc = etree.fromstring(message)
-        signed_node = xmldsig(
-            doc, digest_algorithm=u'sha1').sign(
-            method=methods.enveloped, algorithm=u'rsa-sha1',
-            key=privkey.encode('ascii'),
-            cert=cert)
-        msg = etree.tostring(
-            signed_node, pretty_print=True).replace('ds:', '')
-        return msg
-
-    def get_token(self, seed_file,company_id):
-        url = server_url[company_id.dte_service_provider] + 'GetTokenFromSeed.jws?WSDL'
-        ns = 'urn:'+ server_url[company_id.dte_service_provider] +'GetTokenFromSeed.jws'
-        _server = Client(url, ns)
-        tree = etree.fromstring(seed_file)
-        ss = etree.tostring(tree, pretty_print=True, encoding='iso-8859-1')
-        respuesta = etree.fromstring(_server.getToken(ss))
-        token = respuesta[0][0].text
-        return token
-
-    def ensure_str(self,x, encoding="utf-8", none_ok=False):
-        if none_ok is True and x is None:
-            return x
-        if not isinstance(x, str):
-            x = x.decode(encoding)
-        return x
-
-    def long_to_bytes(self, n, blocksize=0):
-        s = b''
-        n = long(n)  # noqa
-        import struct
-        pack = struct.pack
-        while n > 0:
-            s = pack(b'>I', n & 0xffffffff) + s
-            n = n >> 32
-        # strip off leading zeros
-        for i in range(len(s)):
-            if s[i] != b'\000'[0]:
-                break
-        else:
-            # only happens when n == 0
-            s = b'\000'
-            i = 0
-        s = s[i:]
-        # add back some pad bytes.  this could be done more efficiently w.r.t. the
-        # de-padding being done above, but sigh...
-        if blocksize > 0 and len(s) % blocksize:
-            s = (blocksize - len(s) % blocksize) * b'\000' + s
-        return s
-
-    def sign_full_xml(self, message, privkey, cert, uri, type='doc'):
-        doc = etree.fromstring(message)
-        string = etree.tostring(doc[0])
-        mess = etree.tostring(etree.fromstring(string), method="c14n")
-        digest = base64.b64encode(self.digest(mess))
-        reference_uri='#'+uri
-        signed_info = Element("SignedInfo")
-        c14n_method = SubElement(signed_info, "CanonicalizationMethod", Algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315')
-        sign_method = SubElement(signed_info, "SignatureMethod", Algorithm='http://www.w3.org/2000/09/xmldsig#rsa-sha1')
-        reference = SubElement(signed_info, "Reference", URI=reference_uri)
-        transforms = SubElement(reference, "Transforms")
-        SubElement(transforms, "Transform", Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
-        digest_method = SubElement(reference, "DigestMethod", Algorithm="http://www.w3.org/2000/09/xmldsig#sha1")
-        digest_value = SubElement(reference, "DigestValue")
-        digest_value.text = digest
-        signed_info_c14n = etree.tostring(signed_info,method="c14n",exclusive=False,with_comments=False,inclusive_ns_prefixes=None)
-        if type in ['doc','recep']:
-            att = 'xmlns="http://www.w3.org/2000/09/xmldsig#"'
-        else:
-            att = 'xmlns="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
-        #@TODO Find better way to add xmlns:xsi attrib
-        signed_info_c14n = signed_info_c14n.replace("<SignedInfo>","<SignedInfo " + att + ">")
-        sig_root = Element("Signature",attrib={'xmlns':'http://www.w3.org/2000/09/xmldsig#'})
-        sig_root.append(etree.fromstring(signed_info_c14n))
-        signature_value = SubElement(sig_root, "SignatureValue")
-        key=OpenSSL.crypto.load_privatekey(type_,privkey.encode('ascii'))
-        signature= OpenSSL.crypto.sign(key,signed_info_c14n,'sha1')
-        signature_value.text =textwrap.fill(base64.b64encode(signature),64)
-        key_info = SubElement(sig_root, "KeyInfo")
-        key_value = SubElement(key_info, "KeyValue")
-        rsa_key_value = SubElement(key_value, "RSAKeyValue")
-        modulus = SubElement(rsa_key_value, "Modulus")
-        key = load_pem_private_key(privkey.encode('ascii'),password=None, backend=default_backend())
-        modulus.text =  textwrap.fill(base64.b64encode(self.long_to_bytes(key.public_key().public_numbers().n)),64)
-        exponent = SubElement(rsa_key_value, "Exponent")
-        exponent.text = self.ensure_str(base64.b64encode(self.long_to_bytes(key.public_key().public_numbers().e)))
-        x509_data = SubElement(key_info, "X509Data")
-        x509_certificate = SubElement(x509_data, "X509Certificate")
-        x509_certificate.text = '\n'+textwrap.fill(cert,64)
-        msg = etree.tostring(sig_root)
-        msg = msg if self.xml_validator(msg, 'sig') else ''
-        if type in ['doc', 'bol']:
-            fulldoc = self.create_template_doc1(message, msg)
-        if type=='env':
-            fulldoc = self.create_template_env1(message,msg)
-        if type=='recep':
-            fulldoc = self.append_sign_recep(message,msg)
-        if type=='env_recep':
-            fulldoc = self.append_sign_env_recep(message,msg)
-        if type=='env_resp':
-            fulldoc = self.append_sign_env_resp(message,msg)
-        if type=='env_boleta':
-            fulldoc = self.append_sign_env_bol(message,msg)
-        fulldoc = fulldoc if self.xml_validator(fulldoc, type) else ''
-        return fulldoc
 
     def get_digital_signature_pem(self, comp_id):
         obj = user = self[0].responsable_envio if self else False
@@ -539,62 +388,10 @@ version="1.0">
         return resolution_data
 
     @api.multi
-    def send_xml_file(self, envio_dte=None, file_name="envio",company_id=False, sii_result='NoEnviado', doc_ids=''):
-        if not company_id.dte_service_provider:
-            raise UserError(_("Not Service provider selected!"))
-        try:
-            signature_d = self.get_digital_signature_pem(
-                company_id)
-            seed = self.get_seed(company_id)
-            template_string = self.create_template_seed(seed)
-            seed_firmado = self.sign_seed(
-                template_string, signature_d['priv_key'],
-                signature_d['cert'])
-            token = self.get_token(seed_firmado,company_id)
-        except:
-            _logger.info('error')
-            return
-
-        url = 'https://palena.sii.cl'
-        if company_id.dte_service_provider == 'SIICERT':
-            url = 'https://maullin.sii.cl'
-        post = '/cgi_dte/UPL/DTEUpload'
-        headers = {
-            'Accept': 'image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/vnd.ms-powerpoint, application/ms-excel, application/msword, */*',
-            'Accept-Language': 'es-cl',
-            'Accept-Encoding': 'gzip, deflate',
-            'User-Agent': 'Mozilla/4.0 (compatible; PROG 1.0; Windows NT 5.0; YComp 5.0.2.4)',
-            'Referer': '{}'.format(company_id.website),
-            'Connection': 'Keep-Alive',
-            'Cache-Control': 'no-cache',
-            'Cookie': 'TOKEN={}'.format(token),
-        }
-        params = collections.OrderedDict()
-        params['rutSender'] = signature_d['subject_serial_number'][:8]
-        params['dvSender'] = signature_d['subject_serial_number'][-1]
-        params['rutCompany'] = company_id.vat[2:-1]
-        params['dvCompany'] = company_id.vat[-1]
-        params['archivo'] = (file_name,envio_dte,"text/xml")
-        multi  = urllib3.filepost.encode_multipart_formdata(params)
-        headers.update({'Content-Length': '{}'.format(len(multi[0]))})
-        response = pool.request_encode_body('POST', url+post, params, headers)
-        retorno = {'sii_xml_response': response.data, 'sii_result': 'NoEnviado','sii_send_ident':''}
-        if response.status != 200:
-            return retorno
-        respuesta_dict = xmltodict.parse(response.data)
-        if respuesta_dict['RECEPCIONDTE']['STATUS'] != '0':
-            _logger.info(connection_status[respuesta_dict['RECEPCIONDTE']['STATUS']])
-        else:
-            retorno.update({'sii_result': 'Enviado','sii_send_ident':respuesta_dict['RECEPCIONDTE']['TRACKID']})
-        return retorno
-
-    @api.multi
     def get_xml_file(self):
-        filename = 'BE' + str(self.sii_document_number)+'.xml'.replace(' ','')
         return {
             'type' : 'ir.actions.act_url',
-            'url': '/web/binary/download_document?model=pos.order\
-&field=sii_xml_request&id=%s&filename=%s' % (self.id,filename ),
+            'url': '/download/xml/boleta/%s' % (self.id ),
             'target': 'self',
         }
 
@@ -628,41 +425,6 @@ version="1.0">
     def digest(self, data):
         sha1 = hashlib.new('sha1', data)
         return sha1.digest()
-
-    def signrsa(self, MESSAGE, KEY, digst=''):
-        KEY = KEY.encode('ascii')
-        rsa = M2Crypto.EVP.load_key_string(KEY)
-        rsa.reset_context(md='sha1')
-        rsa_m = rsa.get_rsa()
-        rsa.sign_init()
-        rsa.sign_update(MESSAGE)
-        FRMT = base64.b64encode(rsa.sign_final())
-        if digst == '':
-            return {
-                'firma': FRMT, 'modulus': base64.b64encode(rsa_m.n),
-                'exponent': base64.b64eDigesncode(rsa_m.e)}
-        else:
-            return {
-                'firma': FRMT, 'modulus': base64.b64encode(rsa_m.n),
-                'exponent': base64.b64encode(rsa_m.e),
-                'digest': base64.b64encode(self.digest(MESSAGE))}
-
-    def signmessage(self, MESSAGE, KEY, pubk='', digst=''):
-        rsa = M2Crypto.EVP.load_key_string(KEY)
-        rsa.reset_context(md='sha1')
-        rsa_m = rsa.get_rsa()
-        rsa.sign_init()
-        rsa.sign_update(MESSAGE)
-        FRMT = base64.b64encode(rsa.sign_final())
-        if digst == '':
-            return {
-                'firma': FRMT, 'modulus': base64.b64encode(rsa_m.n),
-                'exponent': base64.b64encode(rsa_m.e)}
-        else:
-            return {
-                'firma': FRMT, 'modulus': base64.b64encode(rsa_m.n),
-                'exponent': base64.b64encode(rsa_m.e),
-                'digest': base64.b64encode(self.digest(MESSAGE))}
 
     @api.onchange('journal_id', 'partner_id', 'turn_issuer','invoice_turn')
     def _get_available_journal_document_class(self, default=None):
@@ -727,18 +489,6 @@ version="1.0">
                             document_class_id = dc
                 inv.journal_document_class_id = document_class_id.id
                 inv.document_class_id = document_class_id.sii_document_class_id
-
-    @api.multi
-    def get_related_invoices_data(self):
-        """
-        List related invoice information to fill CbtesAsoc.
-        """
-        self.ensure_one()
-        rel_invoices = self.search([
-            ('number', '=', self.origin),
-            ('state', 'not in',
-                ['draft', 'proforma', 'proforma2', 'cancel'])])
-        return rel_invoices
 
     def _acortar_str(self, texto, size=1):
         c = 0
@@ -976,33 +726,26 @@ version="1.0">
         resultcaf = self.journal_document_class_id.sequence_id.get_caf_file(folio)
         result['TED']['DD']['CAF'] = resultcaf['AUTORIZACION']['CAF']
         dte = result['TED']['DD']
+        timestamp = date_order.replace(' ','T')
+        #if date( int(timestamp[:4]), int(timestamp[5:7]), int(timestamp[8:10])) < date(int(self.date[:4]), int(self.date[5:7]), int(self.date[8:10])):
+        #    raise UserError("La fecha de timbraje no puede ser menor a la fecha de emisión del documento")
+        dte['TSTED'] = timestamp
         dicttoxml.set_debug(False)
         ddxml = '<DD>'+dicttoxml.dicttoxml(
-            dte, root=False, attr_type=False).replace(
+            dte, root=False, attr_type=False).decode().replace(
             '<key name="@version">1.0</key>','',1).replace(
             '><key name="@version">1.0</key>',' version="1.0">',1).replace(
             '><key name="@algoritmo">SHA1withRSA</key>',
             ' algoritmo="SHA1withRSA">').replace(
             '<key name="#text">','').replace(
             '</key>','').replace('<CAF>','<CAF version="1.0">')+'</DD>'
-        ddxml = self.convert_encoding(ddxml, 'utf-8')
-        keypriv = (resultcaf['AUTORIZACION']['RSASK']).encode(
-            'latin-1').replace('\t','')
-        keypub = (resultcaf['AUTORIZACION']['RSAPUBK']).encode(
-            'latin-1').replace('\t','')
-        #####
-        ## antes de firmar, formatear
+        keypriv = resultcaf['AUTORIZACION']['RSASK'].replace('\t','')
         root = etree.XML( ddxml )
-        ##
-        # formateo sin remover indents
         ddxml = etree.tostring(root)
-        timestamp = self.time_stamp()
-        ddxml = ddxml.replace('2014-04-24T12:02:20', date_order.replace(' ','T'))
-        frmt = self.signmessage(ddxml, keypriv, keypub)['firma']
+        frmt = self.signmessage(ddxml, keypriv)
         ted = (
             '''<TED version="1.0">{}<FRMT algoritmo="SHA1withRSA">{}\
-</FRMT></TED>''').format(ddxml, frmt)
-        root = etree.XML(ted)
+</FRMT></TED>''').format(ddxml.decode(), frmt)
         if self.signature and ted != self.signature:
             _logger.warning(ted)
             _logger.warning(self.signature)
@@ -1010,12 +753,12 @@ version="1.0">
         self.sii_barcode = ted
         image = False
         if ted:
-            barcodefile = StringIO()
+            barcodefile = BytesIO()
             image = self.pdf417bc(ted)
             image.save(barcodefile,'PNG')
             data = barcodefile.getvalue()
             self.sii_barcode_img = base64.b64encode(data)
-        ted  += '<TmstFirma>{}</TmstFirma>'.format(date_order.replace(' ','T'))
+        ted  += '<TmstFirma>{}</TmstFirma>'.format(timestamp)
         return ted
 
     def _invoice_lines(self):
@@ -1141,9 +884,13 @@ version="1.0">
         envelope_efact = self.convert_encoding(xml_pret, 'ISO-8859-1')
         envelope_efact = self.create_template_doc(envelope_efact)
         type = 'bol'
-        einvoice = self.sign_full_xml(
-            envelope_efact, signature_d['priv_key'],
-            self.split_cert(certp), doc_id_number, type)
+        einvoice = self.env['account.invoice'].sign_full_xml(
+                envelope_efact,
+                signature_d['priv_key'],
+                self.split_cert(certp),
+                doc_id_number,
+                type,
+            )
         self.sii_xml_request = einvoice
 
     @api.multi
@@ -1186,7 +933,7 @@ version="1.0">
         signature_d = self.get_digital_signature(company_id)
         RUTEmisor = self.format_vat(company_id.vat)
 
-        for id_class_doc, classes in clases.iteritems():
+        for id_class_doc, classes in clases.items():
             NroDte = 0
             documentos[id_class_doc] = ''
             for documento in classes:
@@ -1197,7 +944,7 @@ version="1.0">
         file_name += ".xml"
         # firma del sobre
         RUTRecep = "60803000-K" # RUT SII
-        for id_class_doc, documento in documentos.iteritems():
+        for id_class_doc, documento in documentos.items():
             dtes = self.create_template_envio(
                 RUTEmisor,
                 RUTRecep,
@@ -1208,17 +955,18 @@ version="1.0">
                 signature_d,
                 SubTotDTE[id_class_doc] )
             env = 'env'
-            if id_class_doc in [ 39 ]:
+            if self._es_boleta(id_class_doc):
                 envio_dte  = self.create_template_env_boleta(dtes)
                 env = 'env_boleta'
             else:
                 envio_dte  = self.create_template_env(dtes)
-            envio_dte = self.sign_full_xml(
-                envio_dte,
-                signature_d['priv_key'],
-                certp,
-                'SetDoc',
-                env)
+            envio_dte = self.env['account.invoice'].sign_full_xml(
+                    envio_dte,
+                    signature_d['priv_key'],
+                    certp,
+                    'SetDoc',
+                    env,
+                )
             for inv in self:
                 if inv.document_class_id.sii_code == id_class_doc:
                     inv.sii_xml_request = envio_dte
@@ -1226,10 +974,9 @@ version="1.0">
 
     def _get_send_status(self, track_id, signature_d,token):
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws?WSDL'
-        ns = 'urn:'+ server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws'
-        _server = Client(url, ns)
+        _server = Client(url)
         rut = self.format_vat(self.company_id.vat)
-        respuesta = _server.getEstUp(rut[:8], str(rut[-1]),track_id,token)
+        respuesta = _server.service.getEstUp(rut[:8], str(rut[-1]),track_id,token)
         self.sii_message = respuesta
         resp = xmltodict.parse(respuesta)
         status = False
@@ -1244,14 +991,13 @@ version="1.0">
                 self.sii_result = "Rechazado"
         elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "RCH":
             self.sii_result = "Rechazado"
-            _logger.info(resp)
+            _logger.warning(resp)
             status = {'warning':{'title':_('Error RCT'), 'message': _(resp['SII:RESPUESTA']['GLOSA'])}}
         return status
 
     def _get_dte_status(self, signature_d, token):
         url = server_url[self.company_id.dte_service_provider] + 'QueryEstDte.jws?WSDL'
-        ns = 'urn:'+ server_url[self.company_id.dte_service_provider] + 'QueryEstDte.jws'
-        _server = Client(url, ns)
+        _server = Client(url)
         receptor = self.format_vat(self.partner_id.vat)
         util_model = self.env['cl.utils']
         from_zone = pytz.UTC
@@ -1262,7 +1008,7 @@ version="1.0">
         amount = int(self.amount_total)
         if amount < 0:
             amount *= -1
-        respuesta = _server.getEstDte(rut[:8],
+        respuesta = _server.service.getEstDte(rut[:8],
                                       str(rut[-1]),
                                       self.company_id.vat[2:-1],
                                       self.company_id.vat[-1],
@@ -1299,7 +1045,7 @@ version="1.0">
                 signature_d['cert'])
             token = self.get_token(seed_firmado,self.company_id)
         except:
-            _logger.info(connection_status)
+            _logger.warning(connection_status)
             raise UserError(connection_status)
         if not self.sii_send_ident:
             raise UserError('No se ha enviado aún el documento, aún está en cola de envío interna en odoo')
