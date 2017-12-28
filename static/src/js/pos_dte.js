@@ -149,7 +149,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
             fields.document_number = '0' + entero;
           }
           var rut = '';
-          for(var c = 0; c < fields.document_number.length ; c++){
+          for(var c = 0; c < fields.document_number.replace('-','').length ; c++){
             if (c === 2 || c === 5){
               rut += '.';
             }

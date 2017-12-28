@@ -306,7 +306,7 @@ class POS(models.Model):
                 xmlschema.assert_(xml_doc)
             return result
         except AssertionError as e:
-            _logger.info(etree.tostring(xml_doc))
+            _logger.warning(etree.tostring(xml_doc))
             raise UserError(_('XML Malformed Error:  %s') % e.args)
 
     '''
