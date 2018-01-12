@@ -513,7 +513,7 @@ version="1.0">
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.document_class_id = order_id.session_id.journal_document_class_id.sii_document_class_id
             order_id.sii_document_number = order['sii_document_number']
-            sign = self.get_digital_signature(self.env.uid.company_id)
+            sign = self.get_digital_signature(self.env.user.company_id)
             if order_id.session_id.caf_file and sign:
                 order_id.signature = order['signature']
                 order_id._timbrar()
