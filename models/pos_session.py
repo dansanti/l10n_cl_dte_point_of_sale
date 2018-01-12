@@ -31,7 +31,7 @@ class PosSession(models.Model):
     @api.model
     def create(self, values):
         pos_config = values.get('config_id') or self.env.context.get('default_config_id')
-        config_id = self.browse(pos_config)
+        config_id = self.env['pos.config'].browse(pos_config)
         if not config_id:
             raise UserError(_("You should assign a Point of Sale to your session."))
         if config_id.journal_document_class_id:

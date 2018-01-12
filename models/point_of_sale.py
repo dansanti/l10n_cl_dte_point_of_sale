@@ -513,7 +513,7 @@ version="1.0">
             order_id.journal_document_class_id = order_id.session_id.journal_document_class_id
             order_id.document_class_id = order_id.session_id.journal_document_class_id.sii_document_class_id
             order_id.sii_document_number = order['sii_document_number']
-            sign = self.get_digital_signature(self.env.uid.company_id)
+            sign = self.get_digital_signature(self.env.user.company_id)
             if order_id.session_id.caf_file and sign:
                 order_id.signature = order['signature']
                 order_id._timbrar()
@@ -742,7 +742,7 @@ version="1.0">
         keypriv = resultcaf['AUTORIZACION']['RSASK'].replace('\t','')
         root = etree.XML( ddxml )
         ddxml = etree.tostring(root)
-        frmt = self.signmessage(ddxml, keypriv)
+        frmt = self.env['account.invoice'].signmessage(ddxml, keypriv)
         ted = (
             '''<TED version="1.0">{}<FRMT algoritmo="SHA1withRSA">{}\
 </FRMT></TED>''').format(ddxml.decode(), frmt)
@@ -855,7 +855,7 @@ version="1.0">
         ted = dte['Documento ID']['TEDd']
         dte['Documento ID']['TEDd'] = ''
         xml = dicttoxml.dicttoxml(
-            dte, root=False, attr_type=False) \
+            dte, root=False, attr_type=False).decode() \
             .replace('<item>','').replace('</item>','')\
             .replace('<reflines>','').replace('</reflines>','')\
             .replace('<TEDd>','').replace('</TEDd>','')\
@@ -879,10 +879,9 @@ version="1.0">
         dte['Documento ID'] = self._dte()
         xml = self._dte_to_xml(dte)
         root = etree.XML( xml )
-        xml_pret = etree.tostring(root, pretty_print=True).replace(
+        xml_pret = etree.tostring(root, pretty_print=True).decode().replace(
 '<Documento_ID>', doc_id).replace('</Documento_ID>', '</Documento>')
-        envelope_efact = self.convert_encoding(xml_pret, 'ISO-8859-1')
-        envelope_efact = self.create_template_doc(envelope_efact)
+        envelope_efact = self.create_template_doc(xml_pret)
         type = 'bol'
         einvoice = self.env['account.invoice'].sign_full_xml(
                 envelope_efact,
