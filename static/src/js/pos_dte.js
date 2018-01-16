@@ -118,6 +118,15 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
             order.set_boleta(true);
             this.$('.js_boleta').addClass('highlight');
           }
+      },
+      click_invoice: function(){
+    	  var order = this.pos.get_order();
+    	  if (!order.is_to_invoice() && order.es_boleta()) {
+              order.set_boleta(false);
+              this.$('.js_boleta').removeClass('highlight');
+    	  }
+    	  var res = this._super();
+    	  
       }
     });
 
@@ -538,10 +547,6 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       return round_pr(this.orderlines.reduce((function(sum, orderLine) {
           return sum + orderLine.get_price_with_tax();
       }), 0), this.pos.currency.rounding);
-    },
-    set_to_invoice: function(){
-      _super_order.set_to_invoice.apply(this,arguments);
-      this.set_boleta(!this.is_to_invoice());
     },
     set_boleta: function(boleta){
       this.boleta = boleta;
