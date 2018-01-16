@@ -113,6 +113,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
             this.$('.js_boleta').removeClass('highlight');
           } else {
             if(order.is_to_invoice()){
+              this.$('.js_boleta').removeClass('highlight');
               order.set_boleta(false);
               this.click_invoice();
             }
@@ -456,7 +457,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
               this.set_boleta(true);
             }
           }else if (this.pos.config.marcar === 'factura'){
-            this.set_to_invoice(true);
+            this.click_invoice(true);
           }
           this.signature = this.signature || false;
           this.sii_document_number = this.sii_document_number || false;
@@ -513,10 +514,6 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       return round_pr(this.orderlines.reduce((function(sum, orderLine) {
           return sum + orderLine.get_price_with_tax();
       }), 0), this.pos.currency.rounding);
-    },
-    set_to_invoice: function(){
-      _super_order.set_to_invoice.apply(this,arguments);
-      this.set_boleta(!this.is_to_invoice());
     },
     set_boleta: function(boleta){
       this.boleta = boleta;
