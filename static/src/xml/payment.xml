@@ -7,6 +7,11 @@
               <i class='fa fa-file-text-o' /> Boleta
           </div>
         </t>
+        <t t-if='widget.pos.get_order() and widget.pos.folios_boleta_exenta()'>
+          <div t-attf-class='button js_boleta_exenta #{ widget.pos.get_order().es_boleta_exenta() ? "highlight" : ""} '>
+              <i class='fa fa-file-text-o' /> Boleta Exenta
+          </div>
+        </t>
       </t>
     </t>
   </templates>

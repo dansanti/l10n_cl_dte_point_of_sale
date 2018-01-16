@@ -7,9 +7,13 @@
           <field name="arch" type="xml">
             <field name="journal_id" position="after">
               <field name="available_journal_document_class_ids" invisible="1"/>
-              <field name="journal_document_class_id"
-                     options="{'no_create': True}"
-                     domain="[('journal_id','=', journal_id)]"/>
+              <h3>Secuencias de Boleta</h3>
+              <field name="secuencia_boleta"
+                         options="{'no_create': True}"
+                         domain="[('journal_id','=', journal_id),('sii_document_class_id.sii_code', 'in', [39])]" />
+             <field name="secuencia_boleta_exenta"
+                                     options="{'no_create': True}"
+                                     domain="[('journal_id','=', journal_id),('sii_document_class_id.sii_code', 'in', [41])]" />
               <field name="ticket" />
               <field name="marcar" widget="radio" />
              </field>
@@ -25,22 +29,40 @@
           <field name="state" position="after">
             <field name="next_number" />
             <field name="left_number" />
+            <field name="next_number_exenta" />
+            <field name="left_number_exenta" />
           </field>
           <xpath expr="//div[@class='col-xs-6 o_kanban_primary_right']/div[1]" position="before">
             <div t-if="record.next_number.value > 0" class="row">
+              <h3>Boletas Afectas</h3>
+              <div class="col-xs-6">
+                  <span>Próximo Folio</span>
+              </div>
+              <div class="col-xs-6">
+                  <span><field name="next_number"/></span>
+              </div>
+              <div class="col-xs-6">
+                  <span>Folios Restantes</span>
+              </div>
+              <div class="col-xs-6">
+                  <span><field name="left_number"/></span>
+              </div>
+            </div>
+            <div t-if="record.next_number_exenta.value > 0" class="row">
+              <h3>Boletas Exentas</h3>
                 <div class="col-xs-6">
                     <span>Próximo Folio</span>
                 </div>
                 <div class="col-xs-6">
-                    <span><field name="next_number"/></span>
+                    <span><field name="next_number_exenta"/></span>
                 </div>
                 <div class="col-xs-6">
                     <span>Folios Restantes</span>
                 </div>
                 <div class="col-xs-6">
-                    <span><field name="left_number"/></span>
+                    <span><field name="left_number_exenta"/></span>
                 </div>
-              </div>
+            </div>
           </xpath>
         </field>
       </record>

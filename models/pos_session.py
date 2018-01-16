@@ -13,18 +13,34 @@ _logger = logging.getLogger(__name__)
 class PosSession(models.Model):
     _inherit = "pos.session"
 
-    journal_document_class_id = fields.Many2one(
-        'account.journal.sii_document_class',
-        'Documents Type',)
-
+    secuencia_boleta = fields.Many2one(
+            'account.journal.sii_document_class',
+            string='Documents Type',
+        )
+    secuencia_boleta_exenta = fields.Many2one(
+            'account.journal.sii_document_class',
+            string='Documents Type',
+        )
     start_number = fields.Integer(
-        string='Folio comienzo',
-    )
-    caf_file = fields.Char(
-        invisible=True)
+            string='Folio Inicio',
+        )
+    start_number_exentas = fields.Integer(
+            string='Folio Inicio Exentas',
+        )
     numero_ordenes = fields.Integer(
-        string="Número de ordenes",
-        default=0)
+            string="Número de ordenes",
+            default=0,
+        )
+    numero_ordenes_exentas = fields.Integer(
+            string="Número de ordenes exentas",
+            default=0,
+        )
+    caf_files = fields.Char(
+            invisible=True,
+        )
+    caf_files_exentas = fields.Char(
+            invisible=True,
+        )
 
     def create(self, cr, uid, values, context=None):
         context = dict(context or {})
@@ -33,15 +49,25 @@ class PosSession(models.Model):
         pos_config = jobj.browse(cr, uid, config_id, context=context)
         context.update({'company_id': pos_config.company_id.id})
         is_pos_user = self.pool['res.users'].has_group(cr, uid, 'point_of_sale.group_pos_user')
-        if pos_config.journal_document_class_id:
-            sequence = pos_config.journal_document_class_id.sequence_id
+        if config_id.secuencia_boleta:
+            sequence = config_id.secuencia_boleta.sequence_id
             start_number = sequence.number_next_actual
-            sequence.update_next_by_caf()
+            sequence.update_next_by_caf(cr, uid, context=context)
             start_number = start_number if sequence.number_next_actual == start_number else sequence.number_next_actual
             values.update({
                 'start_number': start_number,
-                'journal_document_class_id': pos_config.journal_document_class_id.id,
-                'caf_file': self.get_caf_string(cr, uid, sequence, context=context),
+                'secuencia_boleta': config_id.secuencia_boleta.id,
+                'caf_files': self.get_caf_string(cr, uid, sequence, context=context),
+            })
+        if config_id.secuencia_boleta_exenta:
+            sequence = config_id.secuencia_boleta_exenta.sequence_id
+            start_number = sequence.number_next_actual
+            sequence.update_next_by_caf(cr, uid, context=context)
+            start_number = start_number if sequence.number_next_actual == start_number else sequence.number_next_actual
+            values.update({
+                'start_number_exentas': start_number,
+                'secuencia_boleta_exenta': config_id.secuencia_boleta_exenta.id,
+                'caf_files_exentas': self.get_caf_string(cr, uid, sequence, context=context),
             })
         return super(PosSession, self).create(cr, is_pos_user and SUPERUSER_ID or uid, values, context=context)
 
