@@ -6,23 +6,30 @@
           <field name="inherit_id" ref="point_of_sale.pos_config_view_form" />
           <field name="arch" type="xml">
             <div id="iface_invoicing" position="after">
-              <field name="available_journal_document_class_ids" invisible="1"/>
               <div class="col-xs-12 col-md-6 o_setting_box" id="iface_boleta">
                   <div class="o_setting_right_pane">
-                      <label for="journal_document_class_id"/>
+                      <h3>Secuencias de Boleta</h3>
                       <div class="text-muted" id="journal_document_class_id_label">
                          Imprimir Boletas
                       </div>
                       <div class="content-group mt16">
                           <div class="row mt16">
-                              <label string="Diario Boleta" for="journal_document_class_id" class="col-md-3 o_light_label"/>
-                              <field name="journal_document_class_id"
+                              <label string="Secuencias de Boleta" for="secuencia_boleta" class="col-md-3 o_light_label"/>
+                              <field name="secuencia_boleta"
                                      options="{'no_create': True}"
-                                     domain="[('journal_id','=', journal_id)]"/>
-                             <label string="Ticket?" for="ticket" class="col-md-3 o_light_label"/>
-                             <field name="ticket" />
-                             <label string="Marcar por defecto" for="marcar" class="col-md-3 o_light_label"/>
-                             <field name="marcar" widget="radio" />
+                                     domain="[('journal_id','=', journal_id),('sii_document_class_id.sii_code', 'in', [39])]" />
+                          </div>
+                          <div class="row mt16">
+                            <label string="Secuencias de Boleta Exenta" for="secuencia_boleta_exenta" class="col-md-3 o_light_label"/>
+                            <field name="secuencia_boleta_exenta"
+                                      options="{'no_create': True}"
+                                      domain="[('journal_id','=', journal_id),('sii_document_class_id.sii_code', 'in', [41])]" />
+                          </div>
+                          <div class="row mt16">
+                              <label string="Ticket?" for="ticket" class="col-md-3 o_light_label"/>
+                              <field name="ticket" />
+                              <label string="Marcar por defecto" for="marcar" class="col-md-3 o_light_label"/>
+                              <field name="marcar" widget="radio" />
                           </div>
                       </div>
                   </div>
@@ -40,20 +47,38 @@
           <field name="pos_session_state" position="after">
             <field name="next_number" />
             <field name="left_number" />
+            <field name="next_number_exenta" />
+            <field name="left_number_exenta" />
           </field>
           <xpath expr="//div[@class='col-xs-6 o_kanban_primary_right']/div[1]" position="before">
             <div t-if="record.next_number.value > 0" class="row">
+              <h3>Boletas Afectas</h3>
+              <div class="col-xs-6">
+                  <span>Próximo Folio</span>
+              </div>
+              <div class="col-xs-6">
+                  <span><field name="next_number"/></span>
+              </div>
+              <div class="col-xs-6">
+                  <span>Folios Restantes</span>
+              </div>
+              <div class="col-xs-6">
+                  <span><field name="left_number"/></span>
+              </div>
+            </div>
+            <div t-if="record.next_number_exenta.value > 0" class="row">
+              <h3>Boletas Exentas</h3>
                 <div class="col-xs-6">
                     <span>Próximo Folio</span>
                 </div>
                 <div class="col-xs-6">
-                    <span><field name="next_number"/></span>
+                    <span><field name="next_number_exenta"/></span>
                 </div>
                 <div class="col-xs-6">
                     <span>Folios Restantes</span>
                 </div>
                 <div class="col-xs-6">
-                    <span><field name="left_number"/></span>
+                    <span><field name="left_number_exenta"/></span>
                 </div>
               </div>
           </xpath>

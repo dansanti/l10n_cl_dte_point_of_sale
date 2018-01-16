@@ -6,11 +6,20 @@
           <field name="inherit_id" ref="point_of_sale.view_pos_session_form" />
           <field name="arch" type="xml">
             <field name="config_id" position="after">
-              <field name="journal_document_class_id"
-                     options="{'no_create': True}"/>
-              <field name="start_number" />
-              <field name="caf_file" invisible="True" readonly="True" />
-              <field name="numero_ordenes" readonly="True"/>
+              <group string="Boletas Afectas">
+                <field name="secuencia_boleta"
+                       options="{'no_create': True}"/>
+                <field name="start_number" />
+                <field name="caf_files" invisible="True" readonly="True" />
+                <field name="caf_files_exentas" invisible="True" readonly="True" />
+                <field name="numero_ordenes" readonly="True"/>
+              </group>
+              <group string="Boletas Exentas" attrs="{'invisible':[('secuencia_boleta_exenta','=', False)]}">
+                <field name="secuencia_boleta_exenta"
+                              options="{'no_create': True}"/>
+                <field name="start_number_exentas" />
+                <field name="numero_ordenes_exentas" readonly="True"/>
+              </group>
              </field>
           </field>
       </record>

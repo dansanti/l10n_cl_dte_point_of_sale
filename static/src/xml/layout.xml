@@ -9,7 +9,7 @@
           <h4><t t-esc="widget.pos.company.document_number"/></h4>
           <t t-esc="widget.pos.company.activity_description[1]"/><br />
           <t t-esc="widget.pos.company.street"/> <t t-esc="widget.pos.company.city"/><br />
-          <div class="pos-center-align"><t t-esc="widget.pos.config.journal_document_class_id[1]"/> N°:<t t-esc="order.sii_document_number or order.name"/></div>
+          <div class="pos-center-align"><t t-esc="order.nombre_documento"/> N°:<t t-esc="order.sii_document_number or order.name"/></div>
         </div>
           <br />
 
@@ -145,7 +145,7 @@
             <t t-esc="receipt.company.activity_description"/><br />
             <t t-esc="receipt.company.street"/> <t t-esc="receipt.company.city"/><br />
           </em>
-          <div class="pos-center-align"><t t-esc="receipt.journal_document_class_id"/> N°:<t t-esc="receipt.sii_document_number or receipt.name"/></div>
+          <div class="pos-center-align"><t t-esc="receipt.nombre_documento"/> N°:<t t-esc="receipt.sii_document_number or receipt.name"/></div>
         </div>
         <line><left font='b'>Teléfono: </left><right><t t-esc="receipt.company.phone || ''"/></right></line>
         <line><left font='b'>Vendedor: </left><right><t t-esc="receipt.cashier"/></right></line>
