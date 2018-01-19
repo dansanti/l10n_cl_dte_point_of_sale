@@ -132,6 +132,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
 
   models.PosModel.prototype.folios_boleta_exenta = function(){
       return this.pos_session.caf_files_exentas;
+  };
+  
+  models.PosModel.prototype.folios_boleta_afecta = function(){
+      return this.pos_session.caf_files;
     };
 
   screens.PaymentScreenWidget.include({
@@ -154,6 +158,8 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     },
     click_boleta: function(){
           var order = this.pos.get_order();
+          order.set_to_invoice(false);
+          this.$('.js_invoice').removeClass('highlight');
           var caf = false;
           if (this.pos.pos_session.caf_files){
             caf = true;
@@ -162,11 +168,15 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           if (!order.es_boleta() && caf) {
             order.set_boleta(true);
             order.set_tipo_boleta(this.pos.config.secuencia_boleta);
-            this.$('.js_boleta').addClass('highlight');
+            if (this.pos.config.secuencia_boleta){
+            	this.$('.js_boleta').addClass('highlight');
+            }
           }
       },
       click_boleta_exenta: function(){
             var order = this.pos.get_order();
+            order.set_to_invoice(false);
+            this.$('.js_invoice').removeClass('highlight');
             var caf = false;
             if (this.pos.pos_session.caf_files_exentas){
               caf = true;
@@ -175,20 +185,23 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
             if (!order.es_boleta_exenta() || caf){
               order.set_boleta(true);
               order.set_tipo_boleta(this.pos.config.secuencia_boleta_exenta);
-              this.$('.js_boleta_exenta').addClass('highlight');
+              if (this.pos.config.secuencia_boleta_exenta){
+            	  this.$('.js_boleta_exenta').addClass('highlight');
+              }
             }
       },
       click_invoice: function(){
     	  var order = this.pos.get_order();
-        this.unset_boleta(order);
+    	  this.unset_boleta(order);
     	  var res = this._super();
-
       }
     });
 
   screens.ClientListScreenWidget.include({
-   // what happens when we save the changes on the client edit form -> we fetch the fields, sanitize them,
-   // send them to the backend for update, and call saved_client_details() when the server tells us the
+   // what happens when we save the changes on the client edit form -> we fetch
+	// the fields, sanitize them,
+   // send them to the backend for update, and call saved_client_details() when
+	// the server tells us the
    // save was successfull.
    save_client_details: function(partner) {
        var self = this;
@@ -398,7 +411,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
 
       for ( i=1, j=2; i<largo; i++,j++ )
       {
-        //alert("i=[" + i + "] j=[" + j +"]" );
+        // alert("i=[" + i + "] j=[" + j +"]" );
         if ( cnt == 3 )
         {
           dtexto = dtexto + '.';
@@ -506,7 +519,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
                 ( sii_document_number < parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) &&
                 sii_document_number < parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) &&
                 parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) < parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D)
-              )){//menor de los superiores caf
+              )){// menor de los superiores caf
                 caf_file = caf_files[x];
               }
               if (sii_document_number > parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H) && caf_files[x] != start_caf_file){
@@ -541,10 +554,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     initialize: function(attr, options) {
           _super_order.initialize.call(this,attr,options);
           this.set_boleta(false);
-          if (this.pos.config.marcar === 'boleta'){
+          if (this.pos.config.marcar === 'boleta' && this.pos.config.secuencia_boleta){
               this.set_boleta(true);
               this.set_tipo_boleta(this.pos.config.secuencia_boleta);
-          }else if (this.pos.config.marcar === 'boleta_exenta'){
+          }else if (this.pos.config.marcar === 'boleta_exenta' && this.pos.config.secuencia_boleta_exenta){
               this.set_boleta(true);
               this.set_tipo_boleta(this.pos.config.secuencia_boleta_exenta);
           }else if (this.pos.config.marcar === 'factura'){
@@ -564,7 +577,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
          json.orden_numero = this.orden_numero;
          return json;
     },
-    init_from_JSON: function(json) {//carga pedido individual
+    init_from_JSON: function(json) {// carga pedido individual
           _super_order.init_from_JSON.apply(this,arguments);
           this.journal_document_class_id = json.journal_document_class_id;
           this.sii_document_number = json.sii_document_number;
@@ -582,7 +595,9 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           json.nombre_documento = this.journal_document_class_id.sii_document_class_id.name;
             var d = this.creation_date;
            var curr_date = this.completa_cero(d.getDate());
-           var curr_month = this.completa_cero(d.getMonth() + 1); //Months are zero based
+           var curr_month = this.completa_cero(d.getMonth() + 1); // Months
+																	// are zero
+																	// based
            var curr_year = d.getFullYear();
            var hours = d.getHours();
            var minutes = d.getMinutes();
@@ -598,59 +613,68 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       },
     initialize_validation_date: function(){
         _super_order.initialize_validation_date.apply(this,arguments);
-        if (!this.is_to_invoice() && this.es_boleta())
-        {
-          if(this.es_boleta_exenta()){
-            this.pos.pos_session.numero_ordenes_exentas ++;
-            this.orden_numero = this.pos.pos_session.numero_ordenes_exentas;
-          }else{
-            this.pos.pos_session.numero_ordenes ++;
-            this.orden_numero = this.pos.pos_session.numero_ordenes;
-          }
-
+        if (!this.is_to_invoice() && this.es_boleta()){
+        	if(this.es_boleta_exenta()){
+        		this.pos.pos_session.numero_ordenes_exentas ++;
+        		this.orden_numero = this.pos.pos_session.numero_ordenes_exentas;
+        	}else{
+        		this.pos.pos_session.numero_ordenes ++;
+        		this.orden_numero = this.pos.pos_session.numero_ordenes;
+        	}
         }
     },
     get_total_with_tax: function() {
-      _super_order.get_total_with_tax.apply(this,arguments);
-      return round_pr(this.orderlines.reduce((function(sum, orderLine) {
-          return sum + orderLine.get_price_with_tax();
-      }), 0), this.pos.currency.rounding);
+    	_super_order.get_total_with_tax.apply(this,arguments);
+    	return round_pr(this.orderlines.reduce((function(sum, orderLine) {
+    		return sum + orderLine.get_price_with_tax();
+    	}), 0), this.pos.currency.rounding);
     },
     set_tipo_boleta: function(tipo_boleta){
-      this.journal_document_class_id = tipo_boleta;
+    	this.journal_document_class_id = tipo_boleta;
     },
     set_boleta: function(boleta){
-      this.boleta = boleta;
+    	this.boleta = boleta;
     },
+    // esto devolvera True si es Boleta(independiente si es exenta o afecta)
+    // para diferenciar solo si es una factura o una boleta
     es_boleta: function(){
-      return this.boleta;
+    	return this.boleta;
     },
+    // esto devolvera True si es Boleta exenta(sii_code = 41)
     es_boleta_exenta: function(check_marcar=false){
-      if(!this.es_boleta())
-      {
-        return false;
-      }
-      if (this.journal_document_class_id.sii_document_class_id.sii_code === 41){
-        return true;
-      }
-      return false;
+    	if(!this.es_boleta()){
+    		return false;
+    	}
+    	if (this.journal_document_class_id.sii_document_class_id.sii_code === 41){
+    		return true;
+    	}
+    	return false;
+    },
+    // esto devolvera True si es Boleta afecta(sii_code = 39)
+    es_boleta_afecta: function(check_marcar=false){
+    	if(!this.es_boleta()){
+    		return false;
+    	}
+    	if (this.journal_document_class_id.sii_document_class_id.sii_code === 39){
+    		return true;
+    	}
+    	return false;
     },
     get_total_exento:function(){
-      var taxes =  this.pos.taxes;
-      var exento = 0;
-
-      this.orderlines.each(function(line){
-        var product =  line.get_product();
-        var taxes_ids = product.taxes_id;
-        _(taxes_ids).each(function(el){
-              _.detect(taxes,function(t){
-                  if(t.id === el && t.amount === 0){
-                    exento += (line.get_unit_price() * line.get_quantity());
-                  }
-              });
-          });
-      });
-      return exento;
+    	var taxes =  this.pos.taxes;
+    	var exento = 0;
+    	this.orderlines.each(function(line){
+    		var product =  line.get_product();
+    		var taxes_ids = product.taxes_id;
+    		_(taxes_ids).each(function(el){
+    			_.detect(taxes,function(t){
+    				if(t.id === el && t.amount === 0){
+    					exento += (line.get_unit_price() * line.get_quantity());
+    				}
+    			});
+    		});
+    	});
+    	return exento;
     },
     completa_cero(val){
         if (parseInt(val) < 10){
@@ -674,7 +698,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         return string;
       },
       timbrar: function(order){
-          if (order.signature){ //no firmar otra vez
+          if (order.signature){ // no firmar otra vez
             return order.signature;
           }
           var caf_files = JSON.parse(order.journal_document_class_id.caf_files);
@@ -714,7 +738,9 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
          }
          var d = order.validation_date;
           var curr_date = this.completa_cero(d.getDate());
-          var curr_month = this.completa_cero(d.getMonth() + 1); //Months are zero based
+          var curr_month = this.completa_cero(d.getMonth() + 1); // Months
+																	// are zero
+																	// based
           var curr_year = d.getFullYear();
           var hours = d.getHours();
           var minutes = d.getMinutes();
