@@ -444,7 +444,7 @@ version="1.0">
                 order_id.session_id.numero_ordenes_exentas = order['orden_numero']
             order_id.sii_document_number = order['sii_document_number']
             sign = self.get_digital_signature(self.env.user.company_id)
-            if order_id.session_id.caf_files and sign:
+            if (order_id.session_id.caf_files or order_id.session_id.caf_files_exentas) and sign:
                 order_id.signature = order['signature']
                 order_id._timbrar()
                 order_id.journal_document_class_id.sequence_id.next_by_id()#consumo Folio
