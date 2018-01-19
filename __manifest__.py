@@ -16,7 +16,7 @@ Chile: API and GUI to access Electronic Invoicing webservices for Point of Sale.
         'l10n_cl_fe',
         'account',
         'point_of_sale',
-        'website',
+        'portal',
         ],
     'external_dependencies': {
         'python': [
@@ -29,7 +29,7 @@ Chile: API and GUI to access Electronic Invoicing webservices for Point of Sale.
         'views/pos_session.xml',
         'views/point_of_sale.xml',
         #'views/bo_receipt.xml',
-        'views/website_layout.xml',
+        'views/portal_boleta_layout.xml',
         'wizard/masive_send_dte.xml',
 #        'data/sequence.xml',
         'security/ir.model.access.csv',
