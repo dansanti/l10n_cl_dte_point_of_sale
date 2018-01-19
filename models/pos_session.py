@@ -44,15 +44,15 @@ class PosSession(models.Model):
 
     def create(self, cr, uid, values, context=None):
         context = dict(context or {})
-        config_id = values.get('config_id', False) or context.get('default_config_id', False)
+        pos_config = values.get('config_id', False) or context.get('default_config_id', False)
         jobj = self.pool.get('pos.config')
-        pos_config = jobj.browse(cr, uid, config_id, context=context)
-        context.update({'company_id': pos_config.company_id.id})
+        config_id = jobj.browse(cr, uid, pos_config, context=context)
+        context.update({'company_id': config_id.company_id.id})
         is_pos_user = self.pool['res.users'].has_group(cr, uid, 'point_of_sale.group_pos_user')
         if config_id.secuencia_boleta:
             sequence = config_id.secuencia_boleta.sequence_id
             start_number = sequence.number_next_actual
-            sequence.update_next_by_caf(cr, uid, context=context)
+            sequence.update_next_by_caf()
             start_number = start_number if sequence.number_next_actual == start_number else sequence.number_next_actual
             values.update({
                 'start_number': start_number,
