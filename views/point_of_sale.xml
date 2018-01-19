@@ -23,7 +23,6 @@
             </field>
 
               <notebook>
-                  <field name="available_journal_document_class_ids" invisible="1"/>
                   <page string="Electronic Invoice" name="electronic_invoice" >
                       <header>
                           <button string="Download XML" type="object"  name="get_xml_file"  attrs="{'invisible':[('state', 'in', ['draft'])]}"/>

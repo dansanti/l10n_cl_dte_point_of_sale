@@ -6,7 +6,6 @@
           <field name="inherit_id" ref="point_of_sale.view_pos_config_form" />
           <field name="arch" type="xml">
             <field name="journal_id" position="after">
-              <field name="available_journal_document_class_ids" invisible="1"/>
               <h3>Secuencias de Boleta</h3>
               <field name="secuencia_boleta"
                          options="{'no_create': True}"
