@@ -884,7 +884,7 @@ version="1.0">
                 signature_d,
                 SubTotDTE[id_class_doc] )
             env = 'env'
-            if self._es_boleta(id_class_doc):
+            if self._es_boleta():
                 envio_dte  = self.create_template_env_boleta(dtes)
                 env = 'env_boleta'
             else:
