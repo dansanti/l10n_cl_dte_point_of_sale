@@ -1193,6 +1193,12 @@ version="1.0">
                 exento += l.price_subtotal
         return exento if exento > 0 else (exento * -1)
 
+    @api.multi
+    def print_nc(self):
+        """ Print NC
+        """
+        return self.env.ref('l10n_cl_dte_point_of_sale.action_print_nc').report_action(self)
+
 class Referencias(models.Model):
     _name = 'pos.order.referencias'
 

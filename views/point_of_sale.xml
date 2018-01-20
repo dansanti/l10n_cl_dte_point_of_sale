@@ -5,6 +5,9 @@
           <field name="name">pos.order.sii.form</field>
           <field name="inherit_id" ref="point_of_sale.view_pos_pos_form" />
           <field name="arch" type="xml">
+            <header>
+              <button string="Imprimir NC" type="object"  name="print_nc"  attrs="{'invisible':[('state', 'in', ['draft']), ('document_class_id.sii_code','=', 61)]}"/>
+            </header>
             <button name="refund" position="replace">
               <button name="%(action_pos_order_refund)d" string="Crear una Nota de Crédito" type="action"
                             attrs="{'invisible':[('state','=','draft'), ('document_class_id', '=', False)]}"/>
