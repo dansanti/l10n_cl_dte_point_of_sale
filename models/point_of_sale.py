@@ -318,8 +318,7 @@ class POS(models.Model):
         return xml
 
     def create_template_env(self, doc):
-        xml = '''<?xml version="1.0" encoding="ISO-8859-1"?>
-<EnvioDTE xmlns="http://www.sii.cl/SiiDte" \
+        xml = '''<EnvioDTE xmlns="http://www.sii.cl/SiiDte" \
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
 xsi:schemaLocation="http://www.sii.cl/SiiDte EnvioDTE_v10.xsd" \
 version="1.0">
@@ -328,8 +327,7 @@ version="1.0">
         return xml
 
     def create_template_env_boleta(self, doc):
-        xml = '''<?xml version="1.0" encoding="ISO-8859-1"?>
-<EnvioBOLETA xmlns="http://www.sii.cl/SiiDte" \
+        xml = '''<EnvioBOLETA xmlns="http://www.sii.cl/SiiDte" \
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" \
 xsi:schemaLocation="http://www.sii.cl/SiiDte EnvioBOLETA_v11.xsd" \
 version="1.0">
@@ -493,7 +491,12 @@ version="1.0">
                 order.responsable_envio = self.env.user.id
         self.do_dte_send()
 
-    def _es_boleta(self):
+    def _es_boleta(self, id_doc=False):
+        if id_doc and id_doc in [35, 38, 39, 41, 70, 71]:
+            return True
+        elif id_doc:
+            return False
+
         if self.document_class_id.sii_code in [35, 38, 39, 41, 70, 71]:
             return True
         return False
@@ -884,7 +887,7 @@ version="1.0">
                 signature_d,
                 SubTotDTE[id_class_doc] )
             env = 'env'
-            if self._es_boleta():
+            if self._es_boleta(id_class_doc):
                 envio_dte  = self.create_template_env_boleta(dtes)
                 env = 'env_boleta'
             else:
