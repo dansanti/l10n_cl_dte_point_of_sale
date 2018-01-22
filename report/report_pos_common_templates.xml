@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<!-- plantilla para la cabecera de los documentos -->
+	<template id="report_boleta_header_layout">
+		<div class="row" id="header">
+			<div class="col-xs-12 text-center">
+				<h4>
+					<span t-esc="o.company_id.partner_id.name" />
+				</h4>
+				<h4>
+					<span t-esc="o.company_id.partner_id.document_number" />
+				</h4>
+			</div>
+			<div class="col-xs-12 text-center">
+				<h5 t-field="o.company_id.activity_description" />
+			</div>
+			<div class="col-xs-12 text-center">
+				<h5>
+					<span t-esc="o.company_id.partner_id.street" />
+					<span t-esc="o.company_id.partner_id.city" />
+				</h5>
+			</div>
+			<div class="col-xs-12 text-center" t-if="o.journal_document_class_id">
+				<h5>
+					<span t-field="o.journal_document_class_id.sii_document_class_id.name" />
+					N°:
+					<span t-field="o.sii_document_number" />
+				</h5>
+			</div>
+		</div>
+	</template>
+
+	<!-- plantilla para la informacion del cliente -->
+	<template id="report_boleta_partner_layout">
+		<div id="info">
+			<strong>Teléfono:</strong>
+			<t t-esc="o.company_id.phone" />
+			<br />
+			<strong>Vendedor:</strong>
+			<t t-esc="o.user_id.name" />
+			<br />
+			<strong>Tienda:</strong>
+			<t t-esc="o.location_id.name" />
+			<br />
+			<strong>Fecha:</strong>
+			<t t-esc="o.date_order" />
+			<br />
+			<br />
+			<t t-if="o.partner_id">
+				<strong>Cliente:</strong>
+				<span t-esc="o.partner_id.name" />
+				<br />
+				<strong>Rut:</strong>
+				<span t-esc="o.partner_id.document_number" />
+				<br />
+				<strong>Dirección:</strong>
+				<span t-esc="o.partner_id.street" />
+				<br />
+				<strong>Número de identificación:</strong>
+				<span t-esc="o.partner_id.id" />
+				<br />
+			</t>
+		</div>
+	</template>
+
+	<!-- plantilla para el detalle de las lineas -->
+	<template id="report_boleta_detail_layout">
+		<table class="table table-condensed" id="lines">
+			<thead>
+				<tr>
+					<th>Descripción</th>
+					<th class="text-right">Cantidad</th>
+					<th class="text-right">Precio Unitario</th>
+					<th class="text-right">Total</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr t-foreach="o.lines" t-as="line">
+					<td>
+						<span t-field="line.product_id" />
+					</td>
+					<td class="text-right">
+						<t t-if="o.state != 'cancel' and o.statement_ids">
+							<span t-field="line.qty" />
+						</t>
+					</td>
+					<td class="text-right">
+						<t t-if="o.state != 'cancel' and o.statement_ids">
+							<span t-field="line.price_unit" widget="monetary" />
+						</t>
+						<t t-if="line.discount != 0.0">
+							<span t-esc="line.discount" />
+							%
+						</t>
+					</td>
+					<td>
+						<t t-if="o.state != 'cancel' and o.statement_ids">
+							<span t-field="line.price_subtotal_incl" widget="monetary" />
+						</t>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</template>
+
+	<!-- plantilla para el subtotal -->
+	<template id="report_boleta_subtotal_layout">
+		<div class="row" id="subtotal">
+			<div class="col-xs-6 pull-right">
+				<table class="table table-condensed">
+					<tr t-if="o.exento() !=0">
+						<td>Exento:</td>
+						<td class="pos-right-align">
+							<t t-esc="o.exento()" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<strong>MONTO TOTAL</strong>
+						</td>
+						<td class="text-right">
+							<strong t-field="o.amount_total" widget="monetary" />
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</template>
+
+	<!-- plantilla para las formas de pago -->
+	<template id="report_boleta_payment_layout">
+		<table class="table table-condensed" id="payments">
+			<thead>
+				<tr>
+					<th>FORMAS DE PAGO</th>
+					<th>Monto</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr t-foreach="o.statement_ids" t-as="p">
+					<td>
+						<span t-esc="p.name" />
+					</td>
+					<td>
+						<span t-field="p.amount" />
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</template>
+
+	<!-- plantilla para el barcode del sii -->
+	<template id="report_boleta_sii_barcode_layout">
+		<div class="row" t-if="o.sii_barcode_img" id="barcode">
+			<div class="col-xs-12">
+				<span t-field="o.sii_barcode_img" t-options="{'widget': 'image'}"
+					style="width: 100%" />
+			</div>
+			<div class="col-xs-12">
+				<p style="text-align:center;color:red; font-size:8px;">
+					Timbre Electrónico SII
+					<br />
+					Verifique documento:
+					<t t-esc="o.company_id.website + '/boleta/' + str(o.sii_document_number)" />
+				</p>
+			</div>
+		</div>
+	</template>
+</odoo>
