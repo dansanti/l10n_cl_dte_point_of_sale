@@ -1201,6 +1201,14 @@ version="1.0">
         """ Print NC
         """
         return self.env.ref('l10n_cl_dte_point_of_sale.action_print_nc').report_action(self)
+    
+    @api.multi
+    def _get_printed_report_name(self):
+        self.ensure_one()
+        report_string = "Boleta Electronica %s" % self.sii_document_number
+        if self.journal_document_class_id.sii_document_class_id.sii_code == 61:
+            report_string = "Nota de Credito Electronica %s" % self.sii_document_number
+        return report_string
 
 class Referencias(models.Model):
     _name = 'pos.order.referencias'

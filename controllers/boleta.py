@@ -56,7 +56,7 @@ class Boleta(http.Controller):
         if document._name == 'account.invoice':
             pdf = request.env['report'].sudo().get_pdf([document.id], 'intersport_account.report_boleta')
         else:
-            pdf = request.env['report'].sudo().get_pdf([document.id], 'intersport_pos.report_pos_boleta_ticket')
+            pdf = request.env.ref('l10n_cl_dte_point_of_sale.action_report_pos_boleta_ticket').sudo().render_qweb_pdf([document.id])[0]
         pdfhttpheaders = [
             ('Content-Type', 'application/pdf'), ('Content-Length', len(pdf)),
             ('Content-Disposition', 'attachment; filename=%s.pdf;' % file_name)
