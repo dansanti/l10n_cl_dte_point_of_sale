@@ -23,6 +23,9 @@ Chile: API and GUI to access Electronic Invoicing webservices for Point of Sale.
         ]
     },
     'data': [
+        'data/report_paperformat.xml',
+        'report/report_pos_common_templates.xml',
+        'report/report_pos_boleta.xml',
         'wizard/notas.xml',
         'views/pos_dte.xml',
         'views/pos_config.xml',
