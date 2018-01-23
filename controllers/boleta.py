@@ -54,7 +54,7 @@ class Boleta(http.Controller):
         document = request.env[post['model']].sudo().browse(int(post['model_id']))
         file_name = document._get_printed_report_name()
         if document._name == 'account.invoice':
-            pdf = request.env['report'].sudo().get_pdf([document.id], 'intersport_account.report_boleta')
+            pdf = request.env.ref('account.account_invoices').sudo().render_qweb_pdf([document.id])[0]
         else:
             pdf = request.env.ref('l10n_cl_dte_point_of_sale.action_report_pos_boleta_ticket').sudo().render_qweb_pdf([document.id])[0]
         pdfhttpheaders = [

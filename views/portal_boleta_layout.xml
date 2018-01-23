@@ -132,7 +132,7 @@
 					<t t-call="l10n_cl_dte_point_of_sale.boleta_report_body_layout" />
 				</t>
 				<t t-if="o._name == 'account.invoice'">
-					<t t-call="l10n_cl_dte_point_of_sale.boleta_report_body_layout" />
+					<t t-call="l10n_cl_dte_point_of_sale.boleta_inv_report_body_layout" />
 				</t>
 			</t>
 		</div>
@@ -146,6 +146,12 @@
 			<t t-call="l10n_cl_dte_point_of_sale.report_boleta_subtotal_layout" />
 			<t t-call="l10n_cl_dte_point_of_sale.report_boleta_payment_layout" />
 			<t t-call="l10n_cl_dte_point_of_sale.report_boleta_sii_barcode_layout" />
+		</div>
+	</template>
+	
+	<template id="boleta_inv_report_body_layout" name="Reporte Boleta Electrónica(invoice)">
+		<div class="page">
+			<span>Reporte no disponible por el momento</span>
 		</div>
 	</template>
 
