@@ -1205,9 +1205,7 @@ version="1.0">
     @api.multi
     def _get_printed_report_name(self):
         self.ensure_one()
-        report_string = "Boleta Electronica %s" % self.sii_document_number
-        if self.journal_document_class_id.sii_document_class_id.sii_code == 61:
-            report_string = "Nota de Credito Electronica %s" % self.sii_document_number
+        report_string = "%s %s" % (self.document_class_id.name, self.sii_document_number)
         return report_string
 
 class Referencias(models.Model):

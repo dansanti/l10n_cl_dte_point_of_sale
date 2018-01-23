@@ -38,7 +38,7 @@ class Boleta(http.Controller):
             if post.get('amount_total', ''):
                 domain.append(('amount_total','=',post.get('amount_total', '')))
             if post.get('sii_codigo', ''):
-                domain.append(('sii_document_class_id.sii_code','=',post.get('sii_codigo', '')))
+                domain.append(('sii_document_class_id.sii_code','=',int(post.get('sii_codigo', ''))))
             else:
                 domain.append(('sii_document_class_id.sii_code', 'in', [39, 41] ))
             orders = Model.search(domain, limit=1)
@@ -52,7 +52,7 @@ class Boleta(http.Controller):
     @http.route(['/download/boleta'], type='http', auth="public", website=True)
     def download_boleta(self, **post):
         document = request.env[post['model']].sudo().browse(int(post['model_id']))
-        file_name = "Boleta Electronica %s" % (document.sii_document_number)
+        file_name = document._get_printed_report_name()
         if document._name == 'account.invoice':
             pdf = request.env['report'].sudo().get_pdf([document.id], 'intersport_account.report_boleta')
         else:
