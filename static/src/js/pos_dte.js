@@ -220,23 +220,6 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
            return;
        }
        if (fields.document_number ) {
-          fields.document_number = fields.document_number.toUpperCase().replace('.','').replace('.','');
-          var dv = fields.document_number.charAt(fields.document_number.length-1);
-          var entero = parseInt(fields.document_number.replace('-'+dv, ''));
-          if (entero < 10000000 ){
-            fields.document_number = '0' + entero;
-          }
-          var rut = '';
-          for(var c = 0; c < fields.document_number.replace('-','').length ; c++){
-            if (c === 2 || c === 5){
-              rut += '.';
-            }
-            if (c === 8 ){
-              rut += '-';
-            }
-            rut += fields.document_number[c];
-          }
-          fields.document_number = rut;
            if (!this.validar_rut(fields.document_number))
             {return;}
        }
@@ -370,6 +353,17 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
                select.val(selected_comuna);
                displayed_comuna.appendTo(select).show();
         });
+        self.$(".client-document_number").on('change', function(){
+    		var document_number = self.$(this).val() || '';
+    		document_number = document_number.replace(/[^1234567890Kk]/g, "");
+    		document_number = _.str.lpad(document_number, 9, '0');
+    		document_number = _.str.sprintf('%s.%s.%s-%s',  
+    				document_number.slice(0, 2), 
+    				document_number.slice(2, 5),
+    				document_number.slice(5, 8),
+    				document_number.slice(-1))
+    		self.$(this).val(document_number);
+    	});
         self.$("select[name='country_id']").change();
         self.$("select[name='state_id']").change();
        }
