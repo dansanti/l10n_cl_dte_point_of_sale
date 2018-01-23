@@ -297,8 +297,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
                     function(partner_id){
                       self.saved_client_details(partner_id);
                     },
-                    function(err,event){
-                      event.preventDefault();
+                    function(err_type, err){
                       if (err.data.message) {
                         self.gui.show_popup('error',{
                          'title': _t('Error: Could not Save Changes partner'),
@@ -312,8 +311,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
                       }
                     });
             },
-            function(err,event){
-             event.preventDefault();
+            function(err_type, err){
              if (err.data.message) {
                 self.gui.show_popup('error',{
                          'title': _t('Error: Could not Save Changes'),
@@ -335,8 +333,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           }).then(
             function(partner_id){
              self.saved_client_details(partner_id);
-            },function(err,event){
-             event.preventDefault();
+            },function(err_type, err){
               if (err.data.message) {
                 self.gui.show_popup('error',{
                        'title': _t('Error: Could not Save Changes'),
