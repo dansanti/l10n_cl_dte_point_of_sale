@@ -830,7 +830,6 @@ version="1.0">
                 'company_id': company_id,
                 'user_id': uid,
                 'ticket':  order.session_id.config_id.ticket,
-                'available_journal_document_class_ids': order.session_id.config_id.available_journal_document_class_ids.ids,
                 'sii_document_class_id': journal_document_class_id.sii_document_class_id.id,
                 'journal_document_class_id': journal_document_class_id.id,
                 'responsable_envio': uid,
