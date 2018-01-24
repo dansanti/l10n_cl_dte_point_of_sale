@@ -466,7 +466,6 @@ version="1.0">
             'turn_issuer' : turn_issuer.id,
             'activity_description': self.partner_id.activity_description.id,
             'ticket':  self.session_id.config_id.ticket,
-            'available_journal_document_class_ids': self.session_id.config_id.available_journal_document_class_ids.ids,
             'sii_document_class_id': journal_document_class_id.sii_document_class_id.id,
             'journal_document_class_id': journal_document_class_id.id,
             'responsable_envio': self.env.uid.id,
