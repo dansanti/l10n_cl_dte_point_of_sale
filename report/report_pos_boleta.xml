@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+	
+		<template id="report_pos_boleta_ticket_body">
+			<t t-call="web.basic_layout">
+				<!-- llamar a las mismas plantilla QWeb que se usan en el portal -->
+				<div class="page">
+					<t t-call="l10n_cl_dte_point_of_sale.report_boleta_header_layout" />
+					<t t-call="l10n_cl_dte_point_of_sale.report_boleta_partner_layout" />
+					<t t-call="l10n_cl_dte_point_of_sale.report_boleta_detail_layout" />
+					<t t-call="l10n_cl_dte_point_of_sale.report_boleta_subtotal_layout" />
+					<t t-call="l10n_cl_dte_point_of_sale.report_boleta_payment_layout" />
+					<t t-call="l10n_cl_dte_point_of_sale.report_boleta_sii_barcode_layout" />
+				</div>
+			</t>
+		</template>
+
+		<template id="report_pos_boleta_ticket">
+			<t t-call="web.html_container">
+				<t t-foreach="docs" t-as="o">
+					<t t-call="l10n_cl_dte_point_of_sale.report_pos_boleta_ticket_body" />
+				</t>
+			</t>
+		</template>
+
+		<report id="action_report_pos_boleta_ticket" 
+			model="pos.order"
+			report_type="qweb-pdf" 
+			string="Boleta electronica" 
+			menu="False"
+			name="l10n_cl_dte_point_of_sale.report_pos_boleta_ticket" 
+			file="l10n_cl_dte_point_of_sale.report_pos_boleta_ticket"
+			paperformat="l10n_cl_dte_point_of_sale.paperformat_pos_boleta_ticket" 
+			print_report_name="(object._get_printed_report_name())" />
+
+	</data>
+</odoo>

@@ -1200,6 +1200,12 @@ version="1.0">
         """ Print NC
         """
         return self.env.ref('l10n_cl_dte_point_of_sale.action_print_nc').report_action(self)
+    
+    @api.multi
+    def _get_printed_report_name(self):
+        self.ensure_one()
+        report_string = "%s %s" % (self.document_class_id.name, self.sii_document_number)
+        return report_string
 
 class Referencias(models.Model):
     _name = 'pos.order.referencias'
