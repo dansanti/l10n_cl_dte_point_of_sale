@@ -150,11 +150,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         });
 
     },
-    unset_boleta(order){
-      order.set_boleta(false);
+    unset_boleta:function(order){
+      order.unset_boleta();
       this.$('.js_boleta').removeClass('highlight');
       this.$('.js_boleta_exenta').removeClass('highlight');
-      order.set_tipo_boleta(false);
     },
     click_boleta: function(){
           var order = this.pos.get_order();
@@ -553,7 +552,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   models.Order = models.Order.extend({
     initialize: function(attr, options) {
           _super_order.initialize.call(this,attr,options);
-          this.set_boleta(false);
+          this.unset_boleta();
           if (this.pos.config.marcar === 'boleta' && this.pos.config.secuencia_boleta){
               this.set_boleta(true);
               this.set_tipo_boleta(this.pos.config.secuencia_boleta);
@@ -563,9 +562,6 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           }else if (this.pos.config.marcar === 'factura'){
             this.is_to_invoice(true);
           }
-          this.orden_numero = false;
-          this.sii_document_number = false;
-          this.journal_document_class_id = false;
           if(this.es_boleta()){
             this.signature = this.signature || false;
             this.sii_document_number = this.sii_document_number || false;
@@ -639,6 +635,12 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     },
     set_boleta: function(boleta){
     	this.boleta = boleta;
+    },
+    unset_boleta: function(){
+      this.set_tipo_boleta(false);
+      this.set_boleta(false);
+      this.orden_numero = false;
+      this.sii_document_number = false;
     },
     // esto devolvera True si es Boleta(independiente si es exenta o afecta)
     // para diferenciar solo si es una factura o una boleta
