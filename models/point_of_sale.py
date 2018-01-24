@@ -434,7 +434,7 @@ version="1.0">
         order['lines'] = lines
         order_id = super(POS,self)._process_order(order)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
-        if order['orden_numero']:
+        if order.get('orden_numero', False):
             order_id.journal_document_class_id = order['journal_document_class_id'].get('id')
             if order_id.journal_document_class_id.sii_document_class_id.sii_code == 39 and  order['orden_numero'] > order_id.session_id.numero_ordenes:
                 order_id.session_id.numero_ordenes = order['orden_numero']
@@ -468,7 +468,7 @@ version="1.0">
             'ticket':  self.session_id.config_id.ticket,
             'sii_document_class_id': journal_document_class_id.sii_document_class_id.id,
             'journal_document_class_id': journal_document_class_id.id,
-            'responsable_envio': self.env.uid.id,
+            'responsable_envio': self.env.uid,
         })
         return result
 
@@ -1200,7 +1200,7 @@ version="1.0">
         """ Print NC
         """
         return self.env.ref('l10n_cl_dte_point_of_sale.action_print_nc').report_action(self)
-    
+
     @api.multi
     def _get_printed_report_name(self):
         self.ensure_one()

@@ -133,7 +133,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   models.PosModel.prototype.folios_boleta_exenta = function(){
       return this.pos_session.caf_files_exentas;
   };
-  
+
   models.PosModel.prototype.folios_boleta_afecta = function(){
       return this.pos_session.caf_files;
     };
@@ -563,6 +563,9 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           }else if (this.pos.config.marcar === 'factura'){
             this.is_to_invoice(true);
           }
+          this.orden_numero = false;
+          this.sii_document_number = false;
+          this.journal_document_class_id = false;
           if(this.es_boleta()){
             this.signature = this.signature || false;
             this.sii_document_number = this.sii_document_number || false;
@@ -592,8 +595,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           json.company.city = this.pos.company.city;
           json.sii_document_number = this.sii_document_number;
           json.orden_numero = this.orden_numero;
-          json.nombre_documento = this.journal_document_class_id.sii_document_class_id.name;
-            var d = this.creation_date;
+          if(this.journal_document_class_id){
+            json.nombre_documento = this.journal_document_class_id.sii_document_class_id.name;
+          }
+          var d = this.creation_date;
            var curr_date = this.completa_cero(d.getDate());
            var curr_month = this.completa_cero(d.getMonth() + 1); // Months
 																	// are zero
