@@ -21,10 +21,10 @@ class Boleta(http.Controller):
             return request.redirect('/boleta/%s' %(post['otra_boleta']))
         Model = request.env['pos.order'].sudo()
         domain = [('sii_document_number', '=', int(folio))]
-        if post.get('date_invoice', ''):
-            domain.append(('date_order','=',post.get('date_invoice', '')))
-        if post.get('amount_total', ''):
-            domain.append(('amount_total','=',float(post.get('amount_total', ''))))
+        #if post.get('date_invoice', ''):
+        #    domain.append(('date_order','=',post.get('date_invoice', '')))
+        #if post.get('amount_total', ''):
+        #    domain.append(('amount_total','=',float(post.get('amount_total', ''))))
         if post.get('sii_codigo', ''):
             domain.append(('document_class_id.sii_code','=',int(post.get('sii_codigo', ''))))
         else:
