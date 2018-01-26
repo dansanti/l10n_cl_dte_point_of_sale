@@ -146,11 +146,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
         });
 
     },
-    unset_boleta(order){
-      order.set_boleta(false);
+    unset_boleta:function(order){
+      order.unset_boleta();
       this.$('.js_boleta').removeClass('highlight');
       this.$('.js_boleta_exenta').removeClass('highlight');
-      order.set_tipo_boleta(false);
     },
     click_boleta: function(){
           var order = this.pos.get_order();
@@ -514,7 +513,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   models.Order = models.Order.extend({
     initialize: function(attr, options) {
           _super_order.initialize.call(this,attr,options);
-          this.set_boleta(false);
+          this.unset_boleta();
           if (this.pos.config.marcar === 'boleta'){
               this.set_boleta(true);
               this.set_tipo_boleta(this.pos.config.secuencia_boleta);
@@ -553,7 +552,9 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           json.company.city = this.pos.company.city;
           json.sii_document_number = this.sii_document_number;
           json.orden_numero = this.orden_numero;
-          json.nombre_documento = this.journal_document_class_id.sii_document_class_id.name;
+          if(this.journal_document_class_id){
+            json.nombre_documento = this.journal_document_class_id.sii_document_class_id.name;
+          }
             var d = this.creation_date;
            var curr_date = this.completa_cero(d.getDate());
            var curr_month = this.completa_cero(d.getMonth() + 1); //Months are zero based
@@ -595,6 +596,12 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     },
     set_boleta: function(boleta){
       this.boleta = boleta;
+    },
+    unset_boleta: function(){
+      this.set_tipo_boleta(false);
+      this.set_boleta(false);
+      this.orden_numero = false;
+      this.sii_document_number = false;
     },
     es_boleta: function(){
       return this.boleta;

@@ -774,11 +774,12 @@ version="1.0">
         order_id = super(POS,self)._process_order(order)
         order_id = self.browse(order_id)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
-        if order['orden_numero']:
-            order_id.journal_document_class_id = order['journal_document_class_id'].get('id')
-            if order_id.journal_document_class_id.sii_document_class_id.sii_code == 39 and  order['orden_numero'] > order_id.session_id.numero_ordenes:
+        if order.get('orden_numero', False) and order.get('journal_document_class_id', False):
+            if order.get('journal_document_class_id', False):
+                order_id.journal_document_class_id = order['journal_document_class_id'].get('id', False)
+            if order_id.journal_document_class_id and  order_id.journal_document_class_id.sii_document_class_id.sii_code == 39 and  order['orden_numero'] > order_id.session_id.numero_ordenes:
                 order_id.session_id.numero_ordenes = order['orden_numero']
-            elif order_id.journal_document_class_id.sii_document_class_id.sii_code == 41 and order['orden_numero'] > order_id.session_id.numero_ordenes_exentas:
+            elif order_id.journal_document_class_id and order_id.journal_document_class_id.sii_document_class_id.sii_code == 41 and order['orden_numero'] > order_id.session_id.numero_ordenes_exentas:
                 order_id.session_id.numero_ordenes_exentas = order['orden_numero']
             order_id.sii_document_number = order['sii_document_number']
             sign = self.get_digital_signature(self.env.user.company_id)
@@ -806,7 +807,7 @@ version="1.0">
             journal_document_class_id = jdc_ob.browse(cr, uid, jdc_ob.search(cr, uid,
                     [
                         ('journal_id','=', order.sale_journal.id),
-                        ('sii_document_class_id.sii_code', 'in', ['33', '34']),
+                        ('sii_document_class_id.sii_code', 'in', ['33']),
                     ], context=context), context=context)
             if not journal_document_class_id:
                 raise UserError("Por favor defina Secuencia de Facturas para el Journal del POS")
