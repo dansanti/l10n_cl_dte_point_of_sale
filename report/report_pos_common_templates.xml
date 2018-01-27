@@ -153,8 +153,9 @@
 	<template id="report_boleta_sii_barcode_layout">
 		<div class="row" t-if="o.sii_barcode_img" id="barcode">
 			<div class="col-xs-12">
-				<span t-field="o.sii_barcode_img" t-options="{'widget': 'image'}"
-					style="width: 100%" />
+				<span>
+				      <img t-att-src="'data:image/png;base64,%s' % to_text(o.sii_barcode_img)" style="width: 100%" t-att-widget="'image'" />
+				</span>
 			</div>
 			<div class="col-xs-12">
 				<p style="text-align:center;color:red; font-size:8px;">

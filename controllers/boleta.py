@@ -16,7 +16,7 @@ class Boleta(http.Controller):
         return request.redirect('/boleta/%s?%s' % (post['boleta'], urllib.parse.urlencode(post)))
 
     @http.route(['/boleta/<int:folio>'], type='http', auth="public", website=True)
-    def download_document(self, folio=None, **post):
+    def view_document(self, folio=None, **post):
         if 'otra_boleta' in post:
             return request.redirect('/boleta/%s' %(post['otra_boleta']))
         Model = request.env['pos.order'].sudo()
