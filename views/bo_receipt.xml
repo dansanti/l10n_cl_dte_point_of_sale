@@ -136,7 +136,7 @@
             <p style="text-align:center;color:red; font-size:8px;">
               Timbre Electrónico SII
               <br/>
-              Resolución 393/2016 Verifique documento: www.sii.cl
+              Resolución <t t-esc='company.dte_resolution_number'/> de <t t-esc='company.dte_resolution_date[:4]'/> Verifique documento: www.sii.cl
             </p>
           </div>
         </div>
@@ -273,6 +273,7 @@
                           <p style="text-align:center;color:red; font-size:8px;">
                             Timbre Electrónico SII
                             <br/>
+                            Resolución <t t-esc='company.dte_resolution_number'/> de <t t-esc='company.dte_resolution_date[:4]'/>
                             Verifique documento: <t t-esc="company.website + '/boleta/' + str(o.sii_document_number)" />
                           </p>
                       </div>
