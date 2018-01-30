@@ -241,15 +241,15 @@
     </t>
   </t>
 
-  <t t-id="PosInvoice">
+  <t t-name="PosInvoice">
     <div class="pos-sale-ticket">
       <div style="text-align:center; color:red; border-color:1px solid red;padding:5px;">
         <h2>R.U.T.:<t t-esc="widget.pos.company.document_number"/></h2>
-        <div class="pos-center-align"><t t-esc="widget.pos.config.journal_document_class_id[1]"/> N°:<t t-esc="order.sii_document_number"/></div>
+        <div class="pos-center-align"><t t-esc="order.nombre_documento"/> N°:<t t-esc="order.sii_document_number"/></div>
       </div>
       <br/>
       <div stle="text-align:center;">
-        <img t-att-src='widget.company.logo' />
+        <img t-att-src='widget.pos.company.logo' />
       </div>
       <br/>
       <div style="text-align:right;">
@@ -271,7 +271,7 @@
               Número de identificación: <span t-esc="client.id"/><br/>
           </div>
         </div>
-        <div class="row" t-if="receipt.referencias">
+        <div class="row" t-if="receipt.referencias.length > 0">
           <table  class='receipt-orderlines'>
             <colgroup>
                 <col width='10%' />
@@ -384,7 +384,7 @@
               <p style="text-align:center;color:red; font-size:8px;">
                 Timbre Electrónico SII
                 <br/>
-                Resolución <t t-esc='receipt.company.dte_resolution_number'/> de <t t-esc='receipt.company.dte_resolution_date.slice(0, 4)'/> Verifique documento: www.sii.cl
+                Resolución <t t-esc='widget.pos.company.dte_resolution_number'/> de <t t-esc='widget.pos.company.dte_resolution_date.slice(0, 4)'/> Verifique documento: www.sii.cl
               </p>
           </div>
         </div>

@@ -4,10 +4,10 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
 // implementaciónen el lado del cliente de firma
   var PosDB = require('point_of_sale.DB');
   var models = require('point_of_sale.models');
-  var PosBaseWidget = require('point_of_sale.BaseWidget');
   var utils = require('web.utils');
   var screens = require('point_of_sale.screens');
   var core = require('web.core');
+  var QWeb = core.qweb;
   var _t = core._t;
   var rpc = require('web.rpc');
 
@@ -803,21 +803,16 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     },
   });
 
-var _super_screen = PosBaseWidget.prototype;
-PosBaseWidget.render_receipt = function() {
+screens.ReceiptScreenWidget.include({
+	render_receipt: function() {
         var order = this.pos.get_order();
         if (order.to_invoice)
         {
-          this.$('.pos-receipt-container').html(QWeb.render('PosInvoice',{
-                  widget:this,
-                  order: order,
-                  receipt: order.export_for_printing(),
-                  orderlines: order.get_orderlines(),
-                  paymentlines: order.get_paymentlines(),
-              }));
+          this.$('.pos-receipt-container').html(QWeb.render('PosInvoice', this.get_receipt_render_env()));
 
         }else{
-          _super_screen.render_receipt();
+          this._super();
         }
-    };
+    }
+});
 });
