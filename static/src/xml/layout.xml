@@ -112,7 +112,7 @@
                 <p style="text-align:center;color:red; font-size:8px;">
                   Timbre Electrónico SII
                   <br/>
-                  Resolución <t t-esc='widget.pos.company.dte_resolution_number'/> de <t t-esc='widget.pos.company.dte_resolution_date[:4]'/> Verifique documento en:
+                  Resolución <t t-esc='widget.pos.company.dte_resolution_number'/> de <t t-esc='widget.pos.company.dte_resolution_date.slice(0, 4)'/> Verifique documento en:
                   <br />
                   <t t-esc="widget.pos.company.website + '/boleta/' + order.sii_document_number"/>
                 </p>
@@ -225,7 +225,7 @@
             <p >
               Timbre Electrónico SII
               <br/>
-              Resolución <t t-esc='receipt.company.dte_resolution_number'/> de <t t-esc='receipt.company.dte_resolution_date[:4]'/> Verifique documento en:
+              Resolución <t t-esc='receipt.company.dte_resolution_number'/> de <t t-esc='receipt.company.dte_resolution_date.slice(0, 4)'/> Verifique documento en:
               <br />
               <t t-esc="receipt.company.website +'/boleta/' + receipt.sii_document_number " />
             </p>
@@ -384,7 +384,7 @@
               <p style="text-align:center;color:red; font-size:8px;">
                 Timbre Electrónico SII
                 <br/>
-                Resolución <t t-esc='receipt.company.dte_resolution_number'/> de <t t-esc='receipt.company.dte_resolution_date[:4]'/> Verifique documento: www.sii.cl
+                Resolución <t t-esc='receipt.company.dte_resolution_number'/> de <t t-esc='receipt.company.dte_resolution_date.slice(0, 4)'/> Verifique documento: www.sii.cl
               </p>
           </div>
         </div>

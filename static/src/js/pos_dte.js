@@ -19,7 +19,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       var model=modules[i];
 
       if(model.model === 'res.company'){
-           model.fields.push('activity_description','street','city');
+           model.fields.push('activity_description','street','city', 'dte_resolution_date', 'dte_resolution_number');
       }
       if(model.model === 'res.partner'){
            model.fields.push('document_number','activity_description','document_type_id', 'state_id', 'city_id');
