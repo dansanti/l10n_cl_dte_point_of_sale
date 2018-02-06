@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+		<record id="res_users_form_view" model="ir.ui.view">
+			<field name="name">res.users.form</field>
+			<field name="model">res.users</field>
+			<field name="inherit_id" ref="point_of_sale.res_users_form_view" />
+			<field name="arch" type="xml">
+				<field name="barcode" position="before">
+					<field name="pos_config_ids" options="{'no_create': True, 'no_open': True}"
+						widget="many2many_tags" />
+				</field>
+			</field>
+		</record>
+
+	</data>
+</odoo>
