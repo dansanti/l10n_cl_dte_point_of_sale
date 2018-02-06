@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data noupdate="1">
+		<record id="pos_config_user_rule" model="ir.rule">
+			<field name="name">TPV permitidos por Usuario</field>
+			<field name="model_id" ref="point_of_sale.model_pos_config" />
+			<field name="groups" eval="[(4, ref('point_of_sale.group_pos_user'))]" />
+			<field name="domain_force">[("id","in",user.pos_config_ids.ids)]</field>
+			<field name="perm_create" eval="False" />
+			<field name="perm_unlink" eval="False" />
+			<field name="perm_write" eval="False" />
+		</record>
+
+		<record id="pos_config_manager_rule" model="ir.rule">
+			<field name="name">Ver todos los TPV</field>
+			<field name="model_id" ref="point_of_sale.model_pos_config" />
+			<field name="groups" eval="[(4, ref('point_of_sale.group_pos_manager'))]" />
+			<field name="domain_force">[(1,"=",1)]</field>
+			<field name="perm_create" eval="False" />
+			<field name="perm_unlink" eval="False" />
+			<field name="perm_write" eval="False" />
+		</record>
+
+	</data>
+</odoo>
