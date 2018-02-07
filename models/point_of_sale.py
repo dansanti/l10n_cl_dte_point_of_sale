@@ -86,16 +86,6 @@ try:
 except ImportError:
     _logger.info('Cannot import hashlib library')
 
-try:
-    import cchardet
-except ImportError:
-    _logger.info('Cannot import cchardet library')
-
-try:
-    from signxml import xmldsig, methods
-except ImportError:
-    _logger.info('Cannot import signxml')
-
 # timbre patrón. Permite parsear y formar el
 # ordered-dict patrón corespondiente al documento
 timbre  = """<TED version="1.0"><DD><RE>99999999-9</RE><TD>11</TD><F>1</F>\

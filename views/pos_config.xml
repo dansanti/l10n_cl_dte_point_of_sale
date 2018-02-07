@@ -50,7 +50,7 @@
             <field name="next_number_exenta" />
             <field name="left_number_exenta" />
           </field>
-          <xpath expr="//div[@class='col-xs-6 o_kanban_primary_right']/div[1]" position="before">
+          <xpath expr="//div[hasclass('o_kanban_primary_right')]/div[1]" position="before">
             <div t-if="record.next_number.value > 0" class="row">
               <h3>Boletas Afectas</h3>
               <div class="col-xs-6">
