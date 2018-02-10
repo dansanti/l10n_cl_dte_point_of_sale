@@ -535,9 +535,9 @@ version="1.0">
             Emisor['Telefono'] = self.company_id.phone or ''
             Emisor['CorreoEmisor'] = self.company_id.dte_email
             Emisor['item'] = self._giros_emisor()
-        if self.sale_journal.sii_code:
-            Emisor['Sucursal'] = self.sale_journal.sucursal.name
-            Emisor['CdgSIISucur'] = self.sale_journal.sii_code
+        if self.sale_journal.sucursal_id:
+            Emisor['Sucursal'] = self.sale_journal.sucursal_id.name
+            Emisor['CdgSIISucur'] = self.sale_journal.sucursal_id.sii_code
         Emisor['DirOrigen'] = self.company_id.street + ' ' +(self.company_id.street2 or '')
         Emisor['CmnaOrigen'] = self.company_id.city_id.name or ''
         Emisor['CiudadOrigen'] = self.company_id.city or ''
