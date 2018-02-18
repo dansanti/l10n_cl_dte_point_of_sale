@@ -162,7 +162,7 @@
 					Timbre Electrónico SII
 					<br />
 					Verifique documento:
-					Resolución <t t-esc='o.company.dte_resolution_number'/> de <t t-esc='o.company.dte_resolution_date[:4]'/>
+					Resolución <t t-esc='o.company_id.dte_resolution_number'/> de <t t-esc='o.company_id.dte_resolution_date[:4]'/>
 					<t t-esc="o.company_id.website + '/boleta/' + str(o.sii_document_number)" />
 				</p>
 			</div>
