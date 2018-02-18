@@ -18,9 +18,9 @@
               <field name="sii_document_number" />
             </field>
             <field name="sale_journal" position="after">
-              <field name="journal_document_class_id"
+              <field name="sequence_id"
                      options="{'no_create': True}"
-                     domain="[('journal_id','=', sale_journal),('sii_document_class_id.sii_code', 'in', [39, 41])]" />
+                     domain="[('sii_document_class_id.sii_code', 'in', [39, 41])]" />
               <field name="document_class_id" />
               <field name="referencias" />
              </field>

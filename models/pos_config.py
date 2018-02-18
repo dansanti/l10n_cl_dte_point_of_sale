@@ -14,16 +14,16 @@ class PosConfig(models.Model):
     def get_left_numbers(self):
         for rec in self:
             if rec.secuencia_boleta:
-                rec.left_number = rec.secuencia_boleta.sequence_id.get_qty_available()
+                rec.left_number = rec.secuencia_boleta.get_qty_available()
             if rec.secuencia_boleta_exenta:
-                rec.left_number_exenta = rec.secuencia_boleta_exenta.sequence_id.get_qty_available()
+                rec.left_number_exenta = rec.secuencia_boleta_exenta.get_qty_available()
 
     secuencia_boleta = fields.Many2one(
-            'account.journal.sii_document_class',
+            'ir.sequence',
             string='Secuencia Boleta',
         )
     secuencia_boleta_exenta = fields.Many2one(
-            'account.journal.sii_document_class',
+            'ir.sequence',
             string='Secuencia Boleta Exenta',
         )
     ticket = fields.Boolean(
@@ -31,11 +31,11 @@ class PosConfig(models.Model):
             default=False,
         )
     next_number = fields.Integer(
-            related="secuencia_boleta.sequence_id.number_next_actual",
+            related="secuencia_boleta.number_next_actual",
             string="Next Number",
         )
     next_number_exenta = fields.Integer(
-            related="secuencia_boleta_exenta.sequence_id.number_next_actual",
+            related="secuencia_boleta_exenta.number_next_actual",
             string="Next Number Exenta",
         )
     left_number = fields.Integer(
@@ -71,5 +71,5 @@ class PosConfig(models.Model):
             raise ValidationError("Al marcar por defecto Facturas, "
                                   "debe activar el check de Facturacion, "
                                   "por favor verifique su configuracion")
-    
+
     

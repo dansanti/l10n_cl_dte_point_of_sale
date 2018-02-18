@@ -135,21 +135,21 @@ class POS(models.Model):
     _inherit = 'pos.order'
 
     def _get_document_class_id(self):
-        if self.journal_document_class_id:
-            return self.journal_document_class_id.self.journal_document_class_id.id
+        if self.sequence_id:
+            return self.sequence_id.sii_document_class_id.id
         return self.env['sii.document_class']
 
     signature = fields.Char(
             string="Signature",
         )
-    journal_document_class_id = fields.Many2one(
-            'account.journal.sii_document_class',
-            string='Documents Type',
+    sequence_id = fields.Many2one(
+            'ir.sequence',
+            string='Sequencia de Boleta',
             states={'draft': [('readonly', False)]},
         )
     document_class_id = fields.Many2one(
             'sii.document_class',
-            related="journal_document_class_id.sii_document_class_id",
+            related="sequence_id.sii_document_class_id",
             string='Document Type',
             copy=False,
             readonly=True,
@@ -424,18 +424,18 @@ version="1.0">
         order['lines'] = lines
         order_id = super(POS,self)._process_order(order)
         order_id.sequence_number = order['sequence_number'] #FIX odoo bug
-        if order.get('orden_numero', False) and order.get('journal_document_class_id', False):
-            order_id.journal_document_class_id = order['journal_document_class_id'].get('id', False)
-            if order_id.journal_document_class_id and  order_id.journal_document_class_id.sii_document_class_id.sii_code == 39 and  order['orden_numero'] > order_id.session_id.numero_ordenes:
+        if order.get('orden_numero', False) and order.get('sequence_id', False):
+            order_id.sequence_id = order['sequence_id'].get('id', False)
+            if order_id.sequence_id and  order_id.sequence_id.sii_document_class_id.sii_code == 39 and  order['orden_numero'] > order_id.session_id.numero_ordenes:
                 order_id.session_id.numero_ordenes = order['orden_numero']
-            elif order_id.journal_document_class_id and order_id.journal_document_class_id.sii_document_class_id.sii_code == 41 and order['orden_numero'] > order_id.session_id.numero_ordenes_exentas:
+            elif order_id.sequence_id and order_id.sequence_id.sii_document_class_id.sii_code == 41 and order['orden_numero'] > order_id.session_id.numero_ordenes_exentas:
                 order_id.session_id.numero_ordenes_exentas = order['orden_numero']
             order_id.sii_document_number = order['sii_document_number']
             sign = self.get_digital_signature(self.env.user.company_id)
             if (order_id.session_id.caf_files or order_id.session_id.caf_files_exentas) and sign:
                 order_id.signature = order['signature']
                 order_id._timbrar()
-                order_id.journal_document_class_id.sequence_id.next_by_id()#consumo Folio
+                order_id.sequence_id.next_by_id()#consumo Folio
         return order_id
 
     def _prepare_invoice(self):
@@ -645,7 +645,7 @@ version="1.0">
         lines = self.lines
         sorted(lines, key=lambda e: e.pos_order_line_id)
         result['TED']['DD']['IT1'] = self._acortar_str(lines[0].product_id.with_context(display_default_code=False, lang='es_CL').name,40)
-        resultcaf = self.journal_document_class_id.sequence_id.get_caf_file(folio)
+        resultcaf = self.sequence_id.get_caf_file(folio)
         result['TED']['DD']['CAF'] = resultcaf['AUTORIZACION']['CAF']
         dte = result['TED']['DD']
         timestamp = date_order.replace(' ','T')
@@ -1159,9 +1159,9 @@ version="1.0">
     def action_pos_order_paid(self):
         if not self.test_paid():
             raise UserError(_("Order is not paid."))
-        if self.journal_document_class_id and not self.sii_xml_request:
+        if self.sequence_id and not self.sii_xml_request:
             if (not self.sii_document_number or self.sii_document_number == 0) and not self.signature:
-                self.sii_document_number = self.journal_document_class_id.sequence_id.next_by_id()
+                self.sii_document_number = self.sequence_id.next_by_id()
             self.do_validate()
         self.write({'state': 'paid'})
         return self.create_picking()

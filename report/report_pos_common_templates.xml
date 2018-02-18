@@ -20,9 +20,9 @@
 					<span t-esc="o.company_id.partner_id.city" />
 				</h5>
 			</div>
-			<div class="col-xs-12 text-center" t-if="o.journal_document_class_id">
+			<div class="col-xs-12 text-center" t-if="o.document_class_id">
 				<h5>
-					<span t-field="o.journal_document_class_id.sii_document_class_id.name" />
+					<span t-field="o.document_class_id.name" />
 					N°:
 					<span t-field="o.sii_document_number" />
 				</h5>

@@ -45,7 +45,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   });
 
   models.load_models({
-      model: 'account.journal.sii_document_class',
+      model: 'ir.sequence',
       fields: ['id', 'sii_document_class_id'],
       domain: function(self){ return [['id', '=', self.config.secuencia_boleta[0]]]; },
       loaded: function(self, doc){
@@ -56,7 +56,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   });
 
   models.load_models({
-      model: 'account.journal.sii_document_class',
+      model: 'ir.sequence',
       fields: ['id', 'sii_document_class_id'],
       domain: function(self){ return [['id', '=', self.config.secuencia_boleta_exenta[0]]]; },
       loaded: function(self, doc){
@@ -356,8 +356,8 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     		var document_number = self.$(this).val() || '';
     		document_number = document_number.replace(/[^1234567890Kk]/g, "");
     		document_number = _.str.lpad(document_number, 9, '0');
-    		document_number = _.str.sprintf('%s.%s.%s-%s',  
-    				document_number.slice(0, 2), 
+    		document_number = _.str.sprintf('%s.%s.%s-%s',
+    				document_number.slice(0, 2),
     				document_number.slice(2, 5),
     				document_number.slice(5, 8),
     				document_number.slice(-1))
@@ -489,9 +489,9 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
   models.PosModel.prototype.push_order = function(order, opts) {
         if(order && order.es_boleta()){
           var orden_numero = order.orden_numero -1;
-          var caf_files = JSON.parse(order.journal_document_class_id.caf_files);
+          var caf_files = JSON.parse(order.sequence_id.caf_files);
           var start_caf_file = false;
-          var start_number = order.journal_document_class_id.sii_document_class_id.sii_code == 41 ? this.pos_session.start_number_exentas : this.pos_session.start_number;
+          var start_number = order.sequence_id.sii_document_class_id.sii_code == 41 ? this.pos_session.start_number_exentas : this.pos_session.start_number;
           for (var x in caf_files){
             if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) <= parseInt(start_number)
                 && parseInt(start_number) <= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H)){
@@ -561,7 +561,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     },
     export_as_JSON: function() {
          var json = _super_order.export_as_JSON.apply(this,arguments);
-         json.journal_document_class_id = this.journal_document_class_id;
+         json.sequence_id = this.sequence_id;
          json.sii_document_number = this.sii_document_number;
          json.signature = this.signature;
          json.orden_numero = this.orden_numero;
@@ -569,7 +569,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     },
     init_from_JSON: function(json) {// carga pedido individual
           _super_order.init_from_JSON.apply(this,arguments);
-          this.journal_document_class_id = json.journal_document_class_id;
+          this.sequence_id = json.sequence_id;
           this.sii_document_number = json.sii_document_number;
           this.signature = json.signature;
           this.orden_numero = json.orden_numero;
@@ -582,8 +582,8 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           json.company.city = this.pos.company.city;
           json.sii_document_number = this.sii_document_number;
           json.orden_numero = this.orden_numero;
-          if(this.journal_document_class_id){
-            json.nombre_documento = this.journal_document_class_id.sii_document_class_id.name;
+          if(this.sequence_id){
+            json.nombre_documento = this.sequence_id.sii_document_class_id.name;
           }
           var d = this.creation_date;
            var curr_date = this.completa_cero(d.getDate());
@@ -622,7 +622,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     	}), 0), this.pos.currency.rounding);
     },
     set_tipo_boleta: function(tipo_boleta){
-    	this.journal_document_class_id = tipo_boleta;
+    	this.sequence_id = tipo_boleta;
     },
     set_boleta: function(boleta){
     	this.boleta = boleta;
@@ -643,7 +643,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     	if(!this.es_boleta()){
     		return false;
     	}
-    	if (this.journal_document_class_id.sii_document_class_id.sii_code === 41){
+    	if (this.sequence_id.sii_document_class_id.sii_code === 41){
     		return true;
     	}
     	return false;
@@ -653,7 +653,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
     	if(!this.es_boleta()){
     		return false;
     	}
-    	if (this.journal_document_class_id.sii_document_class_id.sii_code === 39){
+    	if (this.sequence_id.sii_document_class_id.sii_code === 39){
     		return true;
     	}
     	return false;
@@ -699,7 +699,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           if (order.signature){ // no firmar otra vez
             return order.signature;
           }
-          var caf_files = JSON.parse(order.journal_document_class_id.caf_files);
+          var caf_files = JSON.parse(order.sequence_id.caf_files);
           var caf_file = false;
           for (var x in caf_files){
             if(caf_files[x].AUTORIZACION.CAF.DA.RNG.D <= order.sii_document_number && order.sii_document_number <= caf_files[x].AUTORIZACION.CAF.DA.RNG.H){
@@ -751,7 +751,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           }
           var string='<DD>' +
                 '<RE>' + rut_emisor + '</RE>' +
-                '<TD>' + order.journal_document_class_id.sii_document_class_id.sii_code + '</TD>' +
+                '<TD>' + order.sequence_id.sii_document_class_id.sii_code + '</TD>' +
                 '<F>' + order.sii_document_number + '</F>' +
                 '<FE>' + curr_year + '-' + curr_month + '-' + curr_date + '</FE>' +
                 '<RR>' + partner_id.document_number.replace('.','').replace('.','') +'</RR>' +
@@ -776,7 +776,7 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       },
     barcode_pdf417: function(){
         var order = this.pos.get_order();
-        if (!order.journal_document_class_id || !order.sii_document_number){
+        if (!order.sequence_id || !order.sii_document_number){
           return false;
         }
         PDF417.ROWHEIGHT = 2;

@@ -14,11 +14,11 @@ class PosSession(models.Model):
     _inherit = "pos.session"
 
     secuencia_boleta = fields.Many2one(
-            'account.journal.sii_document_class',
+            'ir.sequence',
             string='Documents Type',
         )
     secuencia_boleta_exenta = fields.Many2one(
-            'account.journal.sii_document_class',
+            'ir.sequence',
             string='Documents Type',
         )
     start_number = fields.Integer(
@@ -28,11 +28,11 @@ class PosSession(models.Model):
             string='Folio Inicio Exentas',
         )
     numero_ordenes = fields.Integer(
-            string="Número de ordenes",
+            string="Número de órdenes",
             default=0,
         )
     numero_ordenes_exentas = fields.Integer(
-            string="Número de ordenes exentas",
+            string="Número de órdenes exentas",
             default=0,
         )
     caf_files = fields.Char(
@@ -49,7 +49,7 @@ class PosSession(models.Model):
         if not config_id:
             raise UserError(_("You should assign a Point of Sale to your session."))
         if config_id.secuencia_boleta:
-            sequence = config_id.secuencia_boleta.sequence_id
+            sequence = config_id.secuencia_boleta
             start_number = sequence.number_next_actual
             sequence.update_next_by_caf()
             start_number = start_number if sequence.number_next_actual == start_number else sequence.number_next_actual
@@ -59,7 +59,7 @@ class PosSession(models.Model):
                 'caf_files': self.get_caf_string(sequence),
             })
         if config_id.secuencia_boleta_exenta:
-            sequence = config_id.secuencia_boleta_exenta.sequence_id
+            sequence = config_id.secuencia_boleta_exenta
             start_number = sequence.number_next_actual
             sequence.update_next_by_caf()
             start_number = start_number if sequence.number_next_actual == start_number else sequence.number_next_actual
@@ -73,7 +73,7 @@ class PosSession(models.Model):
     @api.model
     def get_caf_string(self, sequence=None):
         if not sequence:
-            sequence = self.secuencia_boleta.sequence_id
+            sequence = self.secuencia_boleta
             if not sequence:
                 return
         folio = sequence.number_next_actual

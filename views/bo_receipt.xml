@@ -6,7 +6,7 @@
       <div class="page">
         <div style="text-align:center; color:red; border: 2px solid red;padding:5px;">
           <h4>R.U.T.:<t t-esc="company.partner_id.document_number"/></h4>
-          <h4 class="pos-center-align"><t t-esc="o.journal_document_class_id.sii_document_class_id.name"/><br />
+          <h4 class="pos-center-align"><t t-esc="o.document_class_id.name"/><br />
             N°:<t t-esc="o.sii_document_number"/></h4>
         </div>
         <div class="row" style="text-align: center; margin-top:0px !important; padding-top:0px!important;">
