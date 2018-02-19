@@ -580,6 +580,8 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
           json.company.activity_description = this.pos.company.activity_description[1];
           json.company.street = this.pos.company.street;
           json.company.city = this.pos.company.city;
+          json.company.dte_resolution_date = this.pos.company.dte_resolution_date;
+          json.company.dte_resolution_number = this.pos.company.dte_resolution_number;
           json.sii_document_number = this.sii_document_number;
           json.orden_numero = this.orden_numero;
           if(this.sequence_id){
