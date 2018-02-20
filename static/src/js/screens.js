@@ -1,0 +1,337 @@
+odoo.define('l10n_cl_dte_point_of_sale.screens', function (require) {
+"use strict";
+
+var screens = require('point_of_sale.screens');
+var core = require('web.core');
+var QWeb = core.qweb;
+var _t = core._t;
+var rpc = require('web.rpc');
+
+screens.PaymentScreenWidget.include({
+	renderElement: function(parent,options) {
+		var self = this;
+		this._super();
+		this.$('.js_boleta').click(function(){
+			self.click_boleta();
+		});
+		this.$('.js_boleta_exenta').click(function(){
+			self.click_boleta_exenta();
+		});
+	},
+	unset_boleta:function(order){
+		order.unset_boleta();
+		this.$('.js_boleta').removeClass('highlight');
+		this.$('.js_boleta_exenta').removeClass('highlight');
+	},
+	click_boleta: function(){
+		var order = this.pos.get_order();
+		order.set_to_invoice(false);
+		this.$('.js_invoice').removeClass('highlight');
+		var caf = false;
+		if (this.pos.pos_session.caf_files){
+			caf = true;
+		}
+		this.unset_boleta(order);
+		if (!order.es_boleta() && caf) {
+			order.set_boleta(true);
+			order.set_tipo_boleta(this.pos.config.secuencia_boleta);
+			if (this.pos.config.secuencia_boleta){
+				this.$('.js_boleta').addClass('highlight');
+			}
+		}
+	},
+	click_boleta_exenta: function(){
+		var order = this.pos.get_order();
+		order.set_to_invoice(false);
+		this.$('.js_invoice').removeClass('highlight');
+		var caf = false;
+		if (this.pos.pos_session.caf_files_exentas){
+			caf = true;
+        }
+		this.unset_boleta(order);
+		if (!order.es_boleta_exenta() || caf){
+			order.set_boleta(true);
+			order.set_tipo_boleta(this.pos.config.secuencia_boleta_exenta);
+			if (this.pos.config.secuencia_boleta_exenta){
+				this.$('.js_boleta_exenta').addClass('highlight');
+			}
+        }
+	},
+	click_invoice: function(){
+		var order = this.pos.get_order();
+		this.unset_boleta(order);
+		var res = this._super();
+	}
+});
+
+screens.ClientListScreenWidget.include({
+	//what happens when we save the changes on the client edit form -> we fetch
+	//the fields, sanitize them,
+	//send them to the backend for update, and call saved_client_details() when
+	//the server tells us the
+	//save was successfull.
+	save_client_details: function(partner) {
+		var self = this;
+		var fields = {};
+		this.$('.client-details-contents .detail').each(function(idx,el){
+			fields[el.name] = el.value;
+		});
+		if (!fields.name) {
+			this.gui.show_popup('error',_t('A Customer Name Is Required'));
+			return;
+		}
+		if (fields.document_number && !fields.document_type_id) {
+			this.gui.show_popup('error',_t('Seleccione el tipo de documento'));
+			return;
+		}
+		if (fields.document_number ) {
+			if (!this.validar_rut(fields.document_number)){
+				return;
+			}
+		}
+		if (!fields.country_id) {
+			this.gui.show_popup('error',_t('Seleccione el Pais'));
+			return;
+		}
+		if (!fields.state_id) {
+			this.gui.show_popup('error',_t('Seleccione la Provincia'));
+			return;
+		}
+		if (!fields.city_id) {
+			this.gui.show_popup('error',_t('Seleccione la comuna'));
+			return;
+		}
+		if (!fields.street) {
+			this.gui.show_popup('error',_t('Ingrese la direccion(calle)'));
+			return;
+		}
+		if (this.uploaded_picture) {
+			fields.image = this.uploaded_picture;
+		}
+		var country = _.filter(this.pos.countries, function(country){ return country.id == fields.country_id; });
+		fields.id           = partner.id || false;
+		fields.country_id   = fields.country_id || false;
+		fields.barcode      = fields.barcode || '';
+		if (country.length > 0){
+			fields.vat = country[0].code + fields.document_number.replace('-','').replace('.','').replace('.','');
+		}
+		if (fields.property_product_pricelist) {
+			fields.property_product_pricelist = parseInt(fields.property_product_pricelist, 10);
+        } else {
+        	fields.property_product_pricelist = false;
+        }
+		if (fields.activity_description && !parseInt(fields.activity_description)){
+			rpc.query({
+				model:'sii.activity.description',
+				method:'create_from_ui',
+				args: [fields]
+            }).then(function(description){
+            	fields.activity_description = description;
+                rpc.query({
+                	model:'res.partner',
+                	method: 'create_from_ui',
+                	args: [fields]
+                }).then(function(partner_id){
+                      	self.saved_client_details(partner_id);
+                }, function(err_type, err){
+                	if (err.data.message) {
+                		self.gui.show_popup('error',{
+                			'title': _t('Error: Could not Save Changes partner'),
+                			'body': err.data.message,
+                		});
+                	}else{
+                		self.gui.show_popup('error',{
+                			'title': _t('Error: Could not Save Changes'),
+                			'body': _t('Your Internet connection is probably down.'),
+                		});
+                	}
+                });
+            }, function(err_type, err){
+            	if (err.data.message) {
+            		self.gui.show_popup('error',{
+            			'title': _t('Error: Could not Save Changes'),
+            			'body': err.data.message,
+            		});
+            	}else{
+            		self.gui.show_popup('error',{
+            			'title': _t('Error: Could not Save Changes'),
+            			'body': _t('Your Internet connection is probably down.'),
+            		});
+            	}
+            });
+		}else{
+			rpc.query({
+				model: 'res.partner',
+				method: 'create_from_ui',
+				args: [fields]
+			}).then(function(partner_id){
+				self.saved_client_details(partner_id);
+			}, function(err_type, err){
+				if (err.data.message) {
+					self.gui.show_popup('error',{
+						'title': _t('Error: Could not Save Changes'),
+						'body': err.data.message,
+					});
+				}else{
+					self.gui.show_popup('error',{
+						'title': _t('Error: Could not Save Changes'),
+						'body': _t('Your Internet connection is probably down.'),
+					});
+				}
+			});
+		}
+	},
+	display_client_details: function(visibility, partner, clickpos){
+		var self = this;
+		this._super(visibility, partner, clickpos);
+		if (visibility === "edit"){
+			var state_options = self.$("select[name='state_id']:visible option:not(:first)");
+			var comuna_options = self.$("select[name='city_id']:visible option:not(:first)");
+			self.$("select[name='country_id']").on('change', function(){
+				var select = self.$("select[name='state_id']:visible");
+				var selected_state = select.val();
+				state_options.detach();
+				var displayed_state = state_options.filter("[data-country_id="+(self.$(this).val() || 0)+"]");
+				select.val(selected_state);
+				displayed_state.appendTo(select).show();
+			});
+			self.$("select[name='state_id']").on('change', function(){
+				var select = self.$("select[name='city_id']:visible");
+				var selected_comuna = select.val();
+				comuna_options.detach();
+				var displayed_comuna = comuna_options.filter("[data-state_id="+(self.$(this).val() || 0)+"]");
+				select.val(selected_comuna);
+				displayed_comuna.appendTo(select).show();
+			});
+			self.$(".client-document_number").on('change', function(){
+				var document_number = self.$(this).val() || '';
+				document_number = document_number.replace(/[^1234567890Kk]/g, "");
+				document_number = _.str.lpad(document_number, 9, '0');
+				document_number = _.str.sprintf('%s.%s.%s-%s',
+					document_number.slice(0, 2),
+    				document_number.slice(2, 5),
+    				document_number.slice(5, 8),
+    				document_number.slice(-1))
+    			self.$(this).val(document_number);
+			});
+			self.$("select[name='country_id']").change();
+			self.$("select[name='state_id']").change();
+		}
+	},
+	validar_rut: function(texto){
+		var tmpstr = "";
+		for ( i=0; i < texto.length ; i++ ){
+			if ( texto.charAt(i) != ' ' && texto.charAt(i) != '.' && texto.charAt(i) != '-' ){
+				tmpstr = tmpstr + texto.charAt(i);
+			}
+		}
+		texto = tmpstr;
+		var largo = texto.length;
+		if ( largo < 2 ){
+			this.gui.show_popup('error',_t('Debe ingresar el rut completo'));
+			return false;
+		}
+		for (i=0; i < largo ; i++ ){
+			if ( texto.charAt(i) !="0" && texto.charAt(i) != "1" && texto.charAt(i) !="2" && texto.charAt(i) != "3" && texto.charAt(i) != "4" && texto.charAt(i) !="5" && texto.charAt(i) != "6" && texto.charAt(i) != "7" && texto.charAt(i) !="8" && texto.charAt(i) != "9" && texto.charAt(i) !="k" && texto.charAt(i) != "K" ){
+				this.gui.show_popup('error',_t('El valor ingresado no corresponde a un R.U.T valido'));
+				return false;
+			}
+		}
+		var j =0;
+		var invertido = "";
+		for ( i=(largo-1),j=0; i>=0; i--,j++ ){
+			invertido = invertido + texto.charAt(i);
+		}
+		var dtexto = "";
+		dtexto = dtexto + invertido.charAt(0);
+		dtexto = dtexto + '-';
+		var cnt = 0;
+
+		for ( i=1, j=2; i<largo; i++,j++ ){
+			// alert("i=[" + i + "] j=[" + j +"]" );
+			if ( cnt == 3 ){
+				dtexto = dtexto + '.';
+				j++;
+				dtexto = dtexto + invertido.charAt(i);
+				cnt = 1;
+			}else{
+				dtexto = dtexto + invertido.charAt(i);
+				cnt++;
+			}
+		}
+
+		invertido = "";
+		for ( i=(dtexto.length-1),j=0; i>=0; i--,j++ ){
+			invertido = invertido + dtexto.charAt(i);
+		}
+		if ( this.revisarDigito2(texto) ){
+			return true;
+		}
+		return false;
+	},
+	revisarDigito: function( dvr ){
+		var dv = dvr + ""
+		if ( dv != '0' && dv != '1' && dv != '2' && dv != '3' && dv != '4' && dv != '5' && dv != '6' && dv != '7' && dv != '8' && dv != '9' && dv != 'k'  && dv != 'K'){
+			this.gui.show_popup('error',_t('Debe ingresar un digito verificador valido'));
+			return false;
+		}
+		return true;
+	},
+	revisarDigito2: function( crut ){
+		var largo = crut.length;
+		if ( largo < 2 ){
+			this.gui.show_popup('error',_t('Debe ingresar el rut completo'));
+			return false;
+		}
+		if ( largo > 2 ){
+			var rut = crut.substring(0, largo - 1);
+		}else{
+			var rut = crut.charAt(0);
+		}
+		var dv = crut.charAt(largo-1);
+		this.revisarDigito( dv );
+
+		if ( rut == null || dv == null ){
+			return 0
+		}
+
+		var dvr = '0';
+		var suma = 0;
+		var mul = 2;
+
+		for (i= rut.length -1 ; i >= 0; i--){
+			suma = suma + rut.charAt(i) * mul;
+			if (mul == 7){
+				mul = 2;
+			}else{
+				mul++;
+			}
+		}
+		var res = suma % 11;
+		if (res==1){
+			dvr = 'k';
+		} else if (res==0){
+			dvr = '0';
+		} else{
+			var dvi = 11-res;
+			dvr = dvi + "";
+		}
+		if ( dvr != dv.toLowerCase()){
+			this.gui.show_popup('error',_t('EL rut es incorrecto'));
+			return false;
+		}
+		return true;
+	},
+});
+  
+screens.ReceiptScreenWidget.include({
+	render_receipt: function() {
+		var order = this.pos.get_order();
+        if (order.to_invoice){
+        	this.$('.pos-receipt-container').html(QWeb.render('PosInvoice', this.get_receipt_render_env()));
+        }else{
+        	this._super();
+        }
+	}
+});
+});
