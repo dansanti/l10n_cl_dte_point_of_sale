@@ -35,7 +35,8 @@
               <script src="/l10n_cl_dte_point_of_sale/static/src/lib/forge/pki.js"></script>
               <script src="/l10n_cl_dte_point_of_sale/static/src/lib/bcmath-min.js"></script>
               <script src="/l10n_cl_dte_point_of_sale/static/src/lib/pdf417-min.js"></script>
-              <script type="text/javascript" src="/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js"></script>
+              <script type="text/javascript" src="/l10n_cl_dte_point_of_sale/static/src/js/models.js"></script>
+              <script type="text/javascript" src="/l10n_cl_dte_point_of_sale/static/src/js/screens.js"></script>
             </xpath>
         </template>
 
