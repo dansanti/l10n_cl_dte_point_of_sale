@@ -124,66 +124,66 @@ models.load_models({
       	},
 });
 
-models.PosModel.prototype.folios_boleta_exenta = function(){
-	return this.pos_session.caf_files_exentas;
-};
-
-models.PosModel.prototype.folios_boleta_afecta = function(){
-	return this.pos_session.caf_files;
-};
-
-var PosModelSuper = models.PosModel.prototype.push_order;
-models.PosModel.prototype.push_order = function(order, opts) {
-	if(order && order.es_boleta()){
-		var orden_numero = order.orden_numero -1;
-		var caf_files = JSON.parse(order.sequence_id.caf_files);
-		var start_caf_file = false;
-		var start_number = order.sequence_id.sii_document_class_id.sii_code == 41 ? this.pos_session.start_number_exentas : this.pos_session.start_number;
-		for (var x in caf_files){
-			if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) <= parseInt(start_number)
-					&& parseInt(start_number) <= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H)){
-				start_caf_file = caf_files[x];
-			}
-		}
-		var get_next_number = function(sii_document_number){
-			var caf_file = false;
-			var gived = 0;
+var PosModelSuper = models.PosModel.prototype;
+models.PosModel = models.PosModel.extend({
+	folios_boleta_exenta: function(){
+		return this.pos_session.caf_files_exentas;
+	},
+	folios_boleta_afecta: function(){
+		return this.pos_session.caf_files;
+	},
+	push_order: function(order, opts) {
+		if(order && order.es_boleta()){
+			var orden_numero = order.orden_numero -1;
+			var caf_files = JSON.parse(order.sequence_id.caf_files);
+			var start_caf_file = false;
+			var start_number = order.sequence_id.sii_document_class_id.sii_code == 41 ? this.pos_session.start_number_exentas : this.pos_session.start_number;
 			for (var x in caf_files){
-				if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) <= sii_document_number &&
-						sii_document_number >= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H)){
-					caf_file = caf_files[x];
-				}else if( !caf_file || ( sii_document_number < parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) &&
-						sii_document_number < parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) &&
-						parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) < parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D)
-				)){// menor de los superiores caf
-					caf_file = caf_files[x];
-				}
-				if (sii_document_number > parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H) && caf_files[x] != start_caf_file){
-					gived += (parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H) - parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D)) +1;
+				if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) <= parseInt(start_number)
+						&& parseInt(start_number) <= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H)){
+					start_caf_file = caf_files[x];
 				}
 			}
-			if (!caf_file){
+			var get_next_number = function(sii_document_number){
+				var caf_file = false;
+				var gived = 0;
+				for (var x in caf_files){
+					if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) <= sii_document_number &&
+							sii_document_number >= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H)){
+						caf_file = caf_files[x];
+					}else if( !caf_file || ( sii_document_number < parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) &&
+							sii_document_number < parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) &&
+							parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) < parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D)
+					)){// menor de los superiores caf
+						caf_file = caf_files[x];
+					}
+					if (sii_document_number > parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H) && caf_files[x] != start_caf_file){
+						gived += (parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H) - parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D)) +1;
+					}
+				}
+				if (!caf_file){
+					return sii_document_number;
+				}
+				if(sii_document_number < parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D)){
+					var dif = orden_numero - ((parseInt(start_caf_file.AUTORIZACION.CAF.DA.RNG.H) - start_number) + 1 + gived);
+					sii_document_number = parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) + dif;
+					if (sii_document_number >  parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.H)){
+						sii_document_number = get_next_number(sii_document_number);
+					}
+				}
 				return sii_document_number;
 			}
-			if(sii_document_number < parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D)){
-				var dif = orden_numero - ((parseInt(start_caf_file.AUTORIZACION.CAF.DA.RNG.H) - start_number) + 1 + gived);
-				sii_document_number = parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) + dif;
-				if (sii_document_number >  parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.H)){
-					sii_document_number = get_next_number(sii_document_number);
-				}
-			}
-			return sii_document_number;
-		}
-		var sii_document_number = get_next_number(parseInt(orden_numero) + parseInt(start_number));
+			var sii_document_number = get_next_number(parseInt(orden_numero) + parseInt(start_number));
 
-		order.sii_document_number = sii_document_number;
-		var amount = Math.round(order.get_total_with_tax());
-		if (amount > 0){
-			order.signature = order.timbrar(order);
-		}
-    }
-	return PosModelSuper.call(this, order, opts);
-};
+			order.sii_document_number = sii_document_number;
+			var amount = Math.round(order.get_total_with_tax());
+			if (amount > 0){
+				order.signature = order.timbrar(order);
+			}
+	    }
+		return PosModelSuper.push_order.call(this, order, opts);
+	}
+});
 
 var _super_order = models.Order.prototype;
 models.Order = models.Order.extend({
