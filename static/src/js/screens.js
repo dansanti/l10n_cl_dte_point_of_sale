@@ -18,6 +18,64 @@ screens.PaymentScreenWidget.include({
 			self.click_boleta_exenta();
 		});
 	},
+	order_is_valid: function(force_validation) {
+		var self = this;
+		var res = this._super(force_validation);
+		var order = self.pos.get_order();
+		if (order.is_to_invoice() && order.get_client()) {
+			var client = order.get_client();
+			if (!client.street){
+				this.gui.show_popup('error',{
+					'title': 'Datos de Cliente Incompletos',
+					'body':  'El Cliente seleccionado no tiene la direccion, por favor verifique',
+				});
+				return false;
+			}
+			if (!client.document_number){
+				this.gui.show_popup('error',{
+					'title': 'Datos de Cliente Incompletos',
+					'body':  'El Cliente seleccionado no tiene RUT, por favor verifique',
+				});
+				return false;
+			}
+			if (!client.activity_description){
+				this.gui.show_popup('error',{
+					'title': 'Datos de Cliente Incompletos',
+					'body':  'El Cliente seleccionado no tiene Giro, por favor verifique',
+				});
+				return false;
+			}
+		}
+		if (res && Math.abs(order.get_total_with_tax() <= 0)) {
+			this.gui.show_popup('error',{
+				'title': 'Orden con total 0',
+				'body':  'No puede emitir Pedidos con total 0, por favor asegurese que agrego lineas y que el precio es mayor a cero',
+			});
+			return false;
+		}
+		if (res && !order.is_to_invoice() && order.es_boleta()){
+			var next_number = self.pos.pos_session.start_number + self.pos.pos_session.numero_ordenes;
+			var caf_files = JSON.parse(order.sequence_id.caf_files);
+			var caf_file = false;
+			for (var x in caf_files){
+				if(next_number >= caf_files[x].AUTORIZACION.CAF.DA.RNG.D && next_number <= caf_files[x].AUTORIZACION.CAF.DA.RNG.H){
+					caf_file =caf_files[x]
+				}
+			}
+			//validar que el numero emitido no supere el maximo del folio
+			if (!caf_file){
+				self.pos.gui.show_popup('error',{
+	        		'title': "Sin Folios disponibles",
+	                'body':  _.str.sprintf("No hay CAF para el folio de este documento: %(document_number)s " + 
+	              		  "Solicite un nuevo CAF en el sitio www.sii.cl", {
+	                			document_number: next_number,
+	              		  })
+	            });
+				return false;
+	        }
+		}
+		return res;
+	},
 	unset_boleta:function(order){
 		order.unset_boleta();
 		this.$('.js_boleta').removeClass('highlight');
@@ -220,6 +278,7 @@ screens.ClientListScreenWidget.include({
 	},
 	validar_rut: function(texto){
 		var tmpstr = "";
+		var i = 0;
 		for ( i=0; i < texto.length ; i++ ){
 			if ( texto.charAt(i) != ' ' && texto.charAt(i) != '.' && texto.charAt(i) != '-' ){
 				tmpstr = tmpstr + texto.charAt(i);
@@ -298,7 +357,7 @@ screens.ClientListScreenWidget.include({
 		var dvr = '0';
 		var suma = 0;
 		var mul = 2;
-
+		var i = 0;
 		for (i= rut.length -1 ; i >= 0; i--){
 			suma = suma + rut.charAt(i) * mul;
 			if (mul == 7){
