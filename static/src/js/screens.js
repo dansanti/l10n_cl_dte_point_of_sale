@@ -54,8 +54,18 @@ screens.PaymentScreenWidget.include({
 			return false;
 		}
 		if (res && !order.is_to_invoice() && order.es_boleta()){
-			var next_number = self.pos.pos_session.start_number + self.pos.pos_session.numero_ordenes;
+			var start_number = 0;
+			var numero_ordenes = 0;
+			if (order.es_boleta_afecta()){
+				start_number = self.pos.pos_session.start_number;
+				numero_ordenes = self.pos.pos_session.numero_ordenes;
+			} else if (order.es_boleta_exenta()){
+				start_number = self.pos.pos_session.start_number_exentas;
+				numero_ordenes = self.pos.pos_session.numero_ordenes_exentas;
+			}
 			var caf_files = JSON.parse(order.sequence_id.caf_files);
+			var next_number = start_number + numero_ordenes;
+			next_number = self.pos.get_next_number(next_number, caf_files, start_number);
 			var caf_file = false;
 			for (var x in caf_files){
 				if(next_number >= caf_files[x].AUTORIZACION.CAF.DA.RNG.D && next_number <= caf_files[x].AUTORIZACION.CAF.DA.RNG.H){
