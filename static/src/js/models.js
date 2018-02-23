@@ -190,6 +190,12 @@ models.PosModel = models.PosModel.extend({
 	refresh_numero_ordenes: function(session_data) {
 		this.pos_session.numero_ordenes = session_data.numero_ordenes || 0;
 		this.pos_session.numero_ordenes_exentas = session_data.numero_ordenes_exentas || 0;
+		if (session_data.start_number){
+			this.pos_session.start_number = session_data.start_number;
+		}
+		if (session_data.start_number_exentas){
+			this.pos_session.start_number_exentas = session_data.start_number_exentas;
+		}
 	},
 	
 	/** 
@@ -219,7 +225,7 @@ models.PosModel = models.PosModel.extend({
 	    		var params = {
                     model: 'pos.session',
                     method: 'read',
-                    args: [[self.pos_session.id],['numero_ordenes', 'numero_ordenes_exentas']],
+                    args: [[self.pos_session.id],['numero_ordenes', 'numero_ordenes_exentas', 'start_number', 'start_number_exentas']],
                 };
 	    		return PosModelSuper.push_order.call(this, null, opts).done(function() {
 	    			rpc.query(params).then(function(result){
