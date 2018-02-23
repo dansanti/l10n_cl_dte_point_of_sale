@@ -65,7 +65,7 @@ screens.PaymentScreenWidget.include({
 			}
 			var caf_files = JSON.parse(order.sequence_id.caf_files);
 			var next_number = start_number + numero_ordenes;
-			next_number = self.pos.get_next_number(next_number, caf_files, start_number);
+			next_number = self.pos.get_next_number(order, next_number, caf_files);
 			var caf_file = false;
 			for (var x in caf_files){
 				if(next_number >= caf_files[x].AUTORIZACION.CAF.DA.RNG.D && next_number <= caf_files[x].AUTORIZACION.CAF.DA.RNG.H){

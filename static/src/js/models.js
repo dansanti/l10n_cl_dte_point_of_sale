@@ -135,38 +135,49 @@ models.PosModel = models.PosModel.extend({
 	folios_boleta_afecta: function(){
 		return this.pos_session.caf_files;
 	},
-	get_next_number: function(sii_document_number, caf_files, start_number){
-		var start_caf_file = false;
+	get_next_number: function(order, sii_document_number, caf_files){
+		var self = this;
+		var current_caf = false;
+		var next_caf = false;
+		//encontrar el CAF para el folio dado
 		for (var x in caf_files){
-			if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) <= parseInt(start_number)
-					&& parseInt(start_number) <= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H)){
-				start_caf_file = caf_files[x];
+			if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) <= parseInt(sii_document_number)
+					&& parseInt(sii_document_number) <= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H)){
+				current_caf = caf_files[x];
+				break;
 			}
 		}
-		var caf_file = false;
-		var gived = 0;
+		//encontrar el siguiente CAF para el folio dado
+		//esto solo se usara cuando hay multiples CAF
+		//para asegurarnos de dar el siguiente numero valido
 		for (var x in caf_files){
-			if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) <= sii_document_number &&
-					sii_document_number >= parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H)){
-				caf_file = caf_files[x];
-			}else if( !caf_file || ( sii_document_number < parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) &&
-					sii_document_number < parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) &&
-					parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) < parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D)
-			)){// menor de los superiores caf
-				caf_file = caf_files[x];
-			}
-			if (sii_document_number > parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H) && caf_files[x] != start_caf_file){
-				gived += (parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.H) - parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D)) +1;
+			if(parseInt(caf_files[x].AUTORIZACION.CAF.DA.RNG.D) > parseInt(sii_document_number)){
+				next_caf = caf_files[x];
+				break;
 			}
 		}
-		if (!caf_file){
-			return sii_document_number;
-		}
-		if(sii_document_number < parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D)){
-			var dif = orden_numero - ((parseInt(start_caf_file.AUTORIZACION.CAF.DA.RNG.H) - start_number) + 1 + gived);
-			sii_document_number = parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.D) + dif;
-			if (sii_document_number >  parseInt(caf_file.AUTORIZACION.CAF.DA.RNG.H)){
-				sii_document_number = get_next_number(sii_document_number);
+		//cuando tengo multiples folios, hacer la validacion del siguiente folio
+		if(next_caf){
+			//verificar que el folio este dentro del rango del CAF
+			if (current_caf){
+				if(parseInt(current_caf.AUTORIZACION.CAF.DA.RNG.D) <= parseInt(sii_document_number)
+						&& parseInt(sii_document_number) <= parseInt(current_caf.AUTORIZACION.CAF.DA.RNG.H)){
+					return sii_document_number;
+				}
+			//dar el primer numero del siguiente CAF y encerar las variables
+			}else{
+				sii_document_number = parseInt(next_caf.AUTORIZACION.CAF.DA.RNG.D);
+				//marcar que esa orden se uso otro folio, 
+				//para que al enviarla al server, refresque los datos de la sesion y la secuencia
+				order.force_sii_document_number = true;
+				if (parseInt(next_caf.AUTORIZACION.CAF.DA.TD) == 39){
+					self.pos_session.start_number = sii_document_number;
+					self.pos_session.numero_ordenes = 0;
+				}else{
+					self.pos_session.start_number_exentas = sii_document_number;
+					self.pos_session.numero_ordenes_exentas = 0;
+				}
+				return sii_document_number;
 			}
 		}
 		return sii_document_number;
@@ -194,7 +205,7 @@ models.PosModel = models.PosModel.extend({
 				var orden_numero = order.orden_numero -1;
 				var caf_files = JSON.parse(order.sequence_id.caf_files);
 				var start_number = order.sequence_id.sii_document_class_id.sii_code == 41 ? this.pos_session.start_number_exentas : this.pos_session.start_number;
-				var sii_document_number = this.get_next_number(parseInt(orden_numero) + parseInt(start_number), caf_files, start_number);
+				var sii_document_number = this.get_next_number(order, parseInt(orden_numero) + parseInt(start_number), caf_files);
 				order.sii_document_number = sii_document_number;
 				var amount = Math.round(order.get_total_with_tax());
 				if (amount > 0){
@@ -231,6 +242,7 @@ models.Order = models.Order.extend({
 	initialize: function(attr, options) {
 		_super_order.initialize.call(this,attr,options);
 		this.unset_boleta();
+		this.force_sii_document_number = false;
 		if (this.pos.config.marcar === 'boleta' && this.pos.config.secuencia_boleta){
 			this.set_boleta(true);
 			this.set_tipo_boleta(this.pos.config.secuencia_boleta);
@@ -252,6 +264,7 @@ models.Order = models.Order.extend({
 		json.sii_document_number = this.sii_document_number;
 		json.signature = this.signature;
 		json.orden_numero = this.orden_numero;
+		json.force_sii_document_number = this.force_sii_document_number || false;
 		return json;
 	},
     init_from_JSON: function(json) {// carga pedido individual
@@ -260,6 +273,7 @@ models.Order = models.Order.extend({
     	this.sii_document_number = json.sii_document_number;
     	this.signature = json.signature;
     	this.orden_numero = json.orden_numero;
+    	this.force_sii_document_number = json.force_sii_document_number || false;
 	},
 	export_for_printing: function() {
 		var json = _super_order.export_for_printing.apply(this,arguments);
@@ -271,6 +285,7 @@ models.Order = models.Order.extend({
 		json.company.dte_resolution_number = this.pos.company.dte_resolution_number;
 		json.sii_document_number = this.sii_document_number;
 		json.orden_numero = this.orden_numero;
+		json.force_sii_document_number = this.force_sii_document_number || false;
 		if(this.sequence_id){
 			json.nombre_documento = this.sequence_id.sii_document_class_id.name;
 		}
