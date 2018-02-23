@@ -176,7 +176,7 @@ models.PosModel = models.PosModel.extend({
 	 * Esto para calcular folios correctamente 
 	 * cuando se envian pedidos que se quedaron en cola
 	 */
-	refres_numero_ordenes: function(session_data) {
+	refresh_numero_ordenes: function(session_data) {
 		this.pos_session.numero_ordenes = session_data.numero_ordenes || 0;
 		this.pos_session.numero_ordenes_exentas = session_data.numero_ordenes_exentas || 0;
 	},
@@ -213,7 +213,7 @@ models.PosModel = models.PosModel.extend({
 	    		return PosModelSuper.push_order.call(this, null, opts).done(function() {
 	    			rpc.query(params).then(function(result){
     					if (result.length > 0){
-    						self.refres_numero_ordenes(result[0]);
+    						self.refresh_numero_ordenes(result[0]);
     					}
     					framework.unblockUI();
 	    			}, function(err){
