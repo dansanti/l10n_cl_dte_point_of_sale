@@ -5,6 +5,9 @@ odoo.define('l10n_cl_dte_point_of_sale.models', function (require) {
 var models = require('point_of_sale.models');
 var utils = require('web.utils');
 var core = require('web.core');
+var framework = require('web.framework');
+var rpc = require('web.rpc');
+
 var _t = core._t;
 
 var modules = models.PosModel.prototype.models;
@@ -168,19 +171,56 @@ models.PosModel = models.PosModel.extend({
 		}
 		return sii_document_number;
 	},
+	/**
+	 * Refrescar los valores de ordenes emitidas en la sesion
+	 * Esto para calcular folios correctamente 
+	 * cuando se envian pedidos que se quedaron en cola
+	 */
+	refres_numero_ordenes: function(session_data) {
+		this.pos_session.numero_ordenes = session_data.numero_ordenes || 0;
+		this.pos_session.numero_ordenes_exentas = session_data.numero_ordenes_exentas || 0;
+	},
+	
+	/** 
+	 * cuando se pasa una orden, generar folio y hacer venta normal
+	 * cuando no hay orden, posiblemente se esta iniciando la sesion
+	 * verificar si hay ordenes en cola pendientes de enviar al server
+	 * en caso de haber ordenes, enviarlas al server y luego de terminar, refrescar los campos de la sesion
+	*/
 	push_order: function(order, opts) {
-		if(order && order.es_boleta()){
-			var orden_numero = order.orden_numero -1;
-			var caf_files = JSON.parse(order.sequence_id.caf_files);
-			var start_number = order.sequence_id.sii_document_class_id.sii_code == 41 ? this.pos_session.start_number_exentas : this.pos_session.start_number;
-
-			var sii_document_number = this.get_next_number(parseInt(orden_numero) + parseInt(start_number), caf_files, start_number);
-
-			order.sii_document_number = sii_document_number;
-			var amount = Math.round(order.get_total_with_tax());
-			if (amount > 0){
-				order.signature = order.timbrar(order);
+		var self = this;
+		if(order){
+			if(order.es_boleta()){
+				var orden_numero = order.orden_numero -1;
+				var caf_files = JSON.parse(order.sequence_id.caf_files);
+				var start_number = order.sequence_id.sii_document_class_id.sii_code == 41 ? this.pos_session.start_number_exentas : this.pos_session.start_number;
+				var sii_document_number = this.get_next_number(parseInt(orden_numero) + parseInt(start_number), caf_files, start_number);
+				order.sii_document_number = sii_document_number;
+				var amount = Math.round(order.get_total_with_tax());
+				if (amount > 0){
+					order.signature = order.timbrar(order);
+				}
 			}
+	    }else{
+	    	var orders_pending = self.db.get_orders();
+	    	if (orders_pending.length > 0){
+	    		framework.blockUI();
+	    		var params = {
+                    model: 'pos.session',
+                    method: 'read',
+                    args: [[self.pos_session.id],['numero_ordenes', 'numero_ordenes_exentas']],
+                };
+	    		return PosModelSuper.push_order.call(this, null, opts).done(function() {
+	    			rpc.query(params).then(function(result){
+    					if (result.length > 0){
+    						self.refres_numero_ordenes(result[0]);
+    					}
+    					framework.unblockUI();
+	    			}, function(err){
+	    				framework.unblockUI();
+	    			});
+	    		});
+	    	}
 	    }
 		return PosModelSuper.push_order.call(this, order, opts);
 	}
