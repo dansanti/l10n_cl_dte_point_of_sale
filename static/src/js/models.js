@@ -221,25 +221,60 @@ models.PosModel = models.PosModel.extend({
 	    }else{
 	    	var orders_pending = self.db.get_orders();
 	    	if (orders_pending.length > 0){
-	    		framework.blockUI();
-	    		var params = {
-                    model: 'pos.session',
-                    method: 'read',
-                    args: [[self.pos_session.id],['numero_ordenes', 'numero_ordenes_exentas', 'start_number', 'start_number_exentas']],
-                };
-	    		return PosModelSuper.push_order.call(this, null, opts).done(function() {
-	    			rpc.query(params).then(function(result){
-    					if (result.length > 0){
-    						self.refresh_numero_ordenes(result[0]);
-    					}
-    					framework.unblockUI();
-	    			}, function(err){
-	    				framework.unblockUI();
-	    			});
-	    		});
+	    		return self.send_order_pending_and_refresh_session(orders_pending, opts);
 	    	}
 	    }
 		return PosModelSuper.push_order.call(this, order, opts);
+	},
+	send_order_pending_and_refresh_session: function(orders_pending, opts) {
+		var self = this;
+		var orden_numero = -1;
+		var orden_numero_exento = -1;
+		var start_number = -1;
+		var start_number_exentas = -1;
+		var session_data = {}
+		//recorrer cada pedido pendiente y tomar el folio mayor
+		//para calcular el siguiente folio
+		_(orders_pending).each(function(order_data){
+			var order = order_data.data;
+			if (order.sequence_id){
+				if (order.sequence_id.sii_document_class_id.sii_code === 41){
+					//cuando es una orden que cambio de CAF 
+					//encerar datos para que se generen bien los folios del nuevo CAF
+					if (order.force_sii_document_number){
+						orden_numero_exento = 0;
+						start_number_exentas = order.sii_document_number;
+					} else if (order.orden_numero > orden_numero_exento){
+						orden_numero_exento = order.orden_numero;
+					}	
+				}else{
+					//cuando es una orden que cambio de CAF 
+					//encerar datos para que se generen bien los folios del nuevo CAF
+					if (order.force_sii_document_number){
+						orden_numero = 0;
+						start_number = order.sii_document_number;
+					} else if (order.orden_numero > orden_numero){
+						orden_numero = order.orden_numero;
+					}
+				}	
+			}
+		});
+		if (orden_numero_exento >= 0){
+			session_data.numero_ordenes_exentas = orden_numero_exento;
+		}
+		if (orden_numero >= 0){
+			session_data.numero_ordenes = orden_numero;
+		}
+		if (start_number_exentas > 0){
+			session_data.start_number_exentas = start_number_exentas;
+		}
+		if (start_number > 0){
+			session_data.start_number = start_number;
+		}
+		if (session_data){
+			self.refresh_numero_ordenes(session_data);
+		}
+		return PosModelSuper.push_order.call(this, null, opts);
 	}
 });
 
