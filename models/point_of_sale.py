@@ -765,7 +765,7 @@ version="1.0">
                 ref_line['RazonRef'] = ref.motivo
                 if self._es_boleta():
                     ref_line['CodVndor'] = self.user_id.id
-                    ref_lines['CodCaja'] = self.location_id.name
+                    ref_line['CodCaja'] = self.location_id.name
                 ref_lines.extend([{'Referencia':ref_line}])
                 lin_ref += 1
         dte['item'] = invoice_lines['invoice_lines']
