@@ -2,7 +2,7 @@
 {
     "name": """Chile - Web Services de Documentos Tributarios Electrónicos Para Punto de Ventas\
     """,
-    'version': '9.0.6.0.2',
+    'version': '9.0.6.0.3',
     'category': 'Localization/Chile',
     'sequence': 12,
     'author':  'Daniel Santibáñez Polanco',
@@ -60,5 +60,5 @@ Chile: API and GUI to access Electronic Invoicing webservices for Point of Sale.
     ],
     'installable': True,
     'auto_install': False,
-    'application': False,
+    'application': True,
 }
