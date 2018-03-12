@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 {
-    "name": """Chile - Web Services de Documentos Tributarios Electrónicos Para Punto de Ventas\
+    "name": """Boleta / Factura Electrónica Chilena para punto de ventas \
     """,
-    'version': '9.0.6.0.3',
-    'category': 'Localization/Chile',
+    'version': '1.0.0',
+    'category': 'Point of Sale/Chile',
     'sequence': 12,
     'author':  'Daniel Santibáñez Polanco',
     'website': 'https://globalresponse.cl',
@@ -29,7 +29,6 @@ Chile: API and GUI to access Electronic Invoicing webservices for Point of Sale.
             'xmltodict',
             'dicttoxml',
             'pdf417gen',# v0.6 <=
-            'M2Crypto',
             'base64',
             'hashlib',
             'cchardet',

@@ -3,9 +3,9 @@
 import pytz
 from datetime import datetime
 
-from openerp import models, api, fields
-import openerp.addons.decimal_precision as dp
-from openerp.tools.translate import _
+from odoo import models, api, fields
+import odoo.addons.decimal_precision as dp
+from odoo.tools.translate import _
 
 class ClUtils(models.AbstractModel):
 

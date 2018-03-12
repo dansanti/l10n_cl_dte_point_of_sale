@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
 <data>
-<template id="bo_receipt" inherit_id="point_of_sale.report_receipt">
-  <t position="replace">
+<template id="bo_receipt">
       <t t-call="report.html_container">
           <t t-foreach="docs" t-as="o">
             <t t-if="o.journal_document_class_id.sii_document_class_id.sii_code in [61]">
@@ -129,7 +128,6 @@
           </t>
         </t>
     </t>
-  </t>
 </template>
 
   <template id="bo_invoice">
@@ -272,5 +270,16 @@
       </div>
     </div>
   </template>
+
+  <report
+            string="Imprimir NC"
+            id="action_print_nc"
+            model="pos.order"
+            report_type="qweb-pdf"
+            name="l10n_cl_dte_point_of_sale.bo_receipt"
+            file="l10n_cl_dte_point_of_sale.bo_receipt"
+            attachment_use="True"
+            attachment="(object.state in ('paid')) and ( object.document_class_id.name +' '+(object.sii_document_number or '').replace('/','')+'.pdf')"
+  />
 </data>
-</openerp>
+</odoo>

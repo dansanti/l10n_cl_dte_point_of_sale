@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from openerp import fields, models, api, _, SUPERUSER_ID
-from openerp.exceptions import UserError
+from odoo import fields, models, api, _, SUPERUSER_ID
+from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 import logging
 import json
@@ -42,13 +42,12 @@ class PosSession(models.Model):
             invisible=True,
         )
 
-    def create(self, cr, uid, values, context=None):
-        context = dict(context or {})
-        pos_config = values.get('config_id', False) or context.get('default_config_id', False)
-        jobj = self.pool.get('pos.config')
-        config_id = jobj.browse(cr, uid, pos_config, context=context)
-        context.update({'company_id': config_id.company_id.id})
-        is_pos_user = self.pool['res.users'].has_group(cr, uid, 'point_of_sale.group_pos_user')
+    @api.model
+    def create(self, values):
+        pos_config = values.get('config_id') or self.env.context.get('default_config_id')
+        config_id = self.env['pos.config'].browse(pos_config)
+        if not config_id:
+            raise UserError(_("You should assign a Point of Sale to your session."))
         if config_id.secuencia_boleta:
             sequence = config_id.secuencia_boleta.sequence_id
             start_number = sequence.number_next_actual
@@ -57,19 +56,19 @@ class PosSession(models.Model):
             values.update({
                 'start_number': start_number,
                 'secuencia_boleta': config_id.secuencia_boleta.id,
-                'caf_files': self.get_caf_string(cr, uid, sequence, context=context),
+                'caf_files': self.get_caf_string(sequence),
             })
         if config_id.secuencia_boleta_exenta:
             sequence = config_id.secuencia_boleta_exenta.sequence_id
             start_number = sequence.number_next_actual
-            sequence.update_next_by_caf(cr, uid, context=context)
+            sequence.update_next_by_caf()
             start_number = start_number if sequence.number_next_actual == start_number else sequence.number_next_actual
             values.update({
                 'start_number_exentas': start_number,
                 'secuencia_boleta_exenta': config_id.secuencia_boleta_exenta.id,
-                'caf_files_exentas': self.get_caf_string(cr, uid, sequence, context=context),
+                'caf_files_exentas': self.get_caf_string(sequence),
             })
-        return super(PosSession, self).create(cr, is_pos_user and SUPERUSER_ID or uid, values, context=context)
+        return super(PosSession, self).create(values)
 
     @api.model
     def get_caf_string(self, sequence=None):

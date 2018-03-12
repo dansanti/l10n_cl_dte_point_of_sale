@@ -18,7 +18,7 @@ msgstr ""
 "X-Generator: Poedit 2.0.4\n"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:48
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:319
 #, python-format
@@ -223,7 +223,7 @@ msgid "<strong>MONTO TOTAL</strong>"
 msgstr "<strong>MONTO TOTAL</strong>"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:137
 #, python-format
 msgid "A Customer Name Is Required"
@@ -267,7 +267,7 @@ msgid "Batch number for processing multiple invoices together"
 msgstr "Batch number for processing multiple invoices together"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/payment.xml:7
 #, python-format
 msgid "Boleta"
@@ -311,7 +311,7 @@ msgid "Casa Matriz:"
 msgstr "Casa Matriz:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:81
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:82
 #, python-format
@@ -319,7 +319,7 @@ msgid "City"
 msgstr "Ciudad"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:23
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:155
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:266
@@ -331,7 +331,7 @@ msgid "Cliente:"
 msgstr "Cliente:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:70
 #, python-format
 msgid "Comuna"
@@ -366,7 +366,7 @@ msgid "Corrige texto Documento Referencia"
 msgstr "Corrige texto Documento Referencia"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:48
 #, python-format
 msgid "Country"
@@ -378,7 +378,7 @@ msgid "Crear Nota"
 msgstr "Crear Nota"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:34
 #, python-format
 msgid "Crear nueva Descripción del giro"
@@ -415,14 +415,14 @@ msgid "Código"
 msgstr "Código"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:287
 #, python-format
 msgid "Código Referencia"
 msgstr "Código Referencia"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:92
 #, python-format
 msgid "DTE Email"
@@ -434,7 +434,7 @@ msgid "DTes a enviar"
 msgstr "DTes a enviar"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:287
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:348
 #, python-format
@@ -442,7 +442,7 @@ msgid "Debe ingresar el rut completo"
 msgstr "Debe ingresar el rut completo"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:338
 #, python-format
 msgid "Debe ingresar un digito verificador valido"
@@ -456,7 +456,7 @@ msgid "Descripción"
 msgstr "Descripción"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:75
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:178
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:346
@@ -465,7 +465,7 @@ msgid "Descuento:"
 msgstr "Descuento:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:25
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:157
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:269
@@ -510,14 +510,14 @@ msgid "Download XML"
 msgstr "Descargar XML de envío"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:385
 #, python-format
 msgid "EL rut es incorrecto"
 msgstr "EL rut es incorrecto"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:295
 #, python-format
 msgid "El valor ingresado no corresponde a un R.U.T valido"
@@ -556,7 +556,7 @@ msgid "Error code: 2"
 msgstr "Error code: 2"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:212
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:221
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:226
@@ -567,7 +567,7 @@ msgid "Error: Could not Save Changes"
 msgstr "Error: Could not Save Changes"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:207
 #, python-format
 msgid "Error: Could not Save Changes partner"
@@ -593,14 +593,14 @@ msgid "Estado -11: error 1Algo a salido mal, revisar carátula"
 msgstr "Estado -11: error 1Algo a salido mal, revisar carátula"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:203
 #, python-format
 msgid "Exento"
 msgstr "Exento"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:69
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:340
 #: model:ir.ui.view,arch_db:l10n_cl_dte_point_of_sale.bo_invoice
@@ -623,7 +623,7 @@ msgid "Facturas"
 msgstr "Facturas"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:286
 #: model:ir.model.fields,field_description:l10n_cl_dte_point_of_sale.field_pos_order_referencias_fecha_documento
 #: model:ir.ui.view,arch_db:l10n_cl_dte_point_of_sale.bo_invoice
@@ -637,14 +637,14 @@ msgid "Fecha de Documento"
 msgstr "Fecha de Documento"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:299
 #, python-format
 msgid "Fecha de Emisión:"
 msgstr "Fecha de Emisión:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:18
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:153
 #, python-format
@@ -652,7 +652,7 @@ msgid "Fecha:"
 msgstr "Fecha:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:284
 #: model:ir.ui.view,arch_db:l10n_cl_dte_point_of_sale.bo_invoice
 #, python-format
@@ -670,7 +670,7 @@ msgid "Folio de documento"
 msgstr "Folio de documento"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:22
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:33
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:110
@@ -679,7 +679,7 @@ msgid "Giro"
 msgstr "Giro"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:268
 #, python-format
 msgid "Giro:"
@@ -700,7 +700,7 @@ msgid "Ingrese Folio de Boleta a consultar"
 msgstr "Ingrese Folio de Boleta a consultar"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:182
 #, python-format
 msgid "Ingrese la direccion(calle)"
@@ -794,14 +794,14 @@ msgid "No Point Of sale as active_id on context"
 msgstr "No Point Of sale as active_id on context"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:576
 #, python-format
 msgid "No quedan más Folios Disponibles"
 msgstr "No quedan más Folios Disponibles"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:9
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:24
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:39
@@ -824,7 +824,7 @@ msgid "Nota de Crédito / Débito"
 msgstr "Nota de Crédito / Débito"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:26
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:158
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:270
@@ -889,14 +889,14 @@ msgid "Proceso"
 msgstr "Proceso"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:59
 #, python-format
 msgid "Provincia"
 msgstr "Provincia"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:247
 #: model:ir.ui.view,arch_db:l10n_cl_dte_point_of_sale.bo_invoice
 #, python-format
@@ -904,7 +904,7 @@ msgid "R.U.T.:"
 msgstr "R.U.T.:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:18
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:19
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:104
@@ -914,7 +914,7 @@ msgid "RUT"
 msgstr "RUT"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:288
 #: model:ir.ui.view,arch_db:l10n_cl_dte_point_of_sale.bo_invoice
 #, python-format
@@ -922,7 +922,7 @@ msgid "Razón Referencia"
 msgstr "Razón Referencia"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:264
 #, python-format
 msgid "Razón Social del Receptor"
@@ -964,21 +964,21 @@ msgid "Reparo"
 msgstr "Reparo"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:114
 #, python-format
 msgid "Resolución 393/2016 Verifique documento en:"
 msgstr "Resolución 393/2016 Verifique documento en:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:386
 #, python-format
 msgid "Resolución 393/2016 Verifique documento: www.sii.cl"
 msgstr "Resolución 393/2016 Verifique documento: www.sii.cl"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:37
 #, python-format
 msgid "Responsabilidad"
@@ -1001,7 +1001,7 @@ msgid "Return Products"
 msgstr "Devolver Productos"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:24
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:156
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:267
@@ -1101,28 +1101,28 @@ msgid "SII:RESPUESTASII:RESP_HDRGLOSA"
 msgstr "SII:RESPUESTASII:RESP_HDRGLOSA"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:167
 #, python-format
 msgid "Seleccione el Pais"
 msgstr "Seleccione el Pais"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:141
 #, python-format
 msgid "Seleccione el tipo de documento"
 msgstr "Seleccione el tipo de documento"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:172
 #, python-format
 msgid "Seleccione la Provincia"
 msgstr "Seleccione la Provincia"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:177
 #, python-format
 msgid "Seleccione la comuna"
@@ -1150,7 +1150,7 @@ msgid "Signature"
 msgstr "Firma"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:85
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:86
 #, python-format
@@ -1158,7 +1158,7 @@ msgid "Street"
 msgstr "Calle"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:63
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:334
 #, python-format
@@ -1166,7 +1166,7 @@ msgid "Subtotal:"
 msgstr "Subtotal:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:209
 #, python-format
 msgid "TOTAL"
@@ -1179,7 +1179,7 @@ msgid "Tax"
 msgstr "Impuesto"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:14
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:150
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:259
@@ -1208,7 +1208,7 @@ msgid "There is no Signer Person with an         authorized signature for you in
 msgstr "There is no Signer Person with an         authorized signature for you in the system. Please make sure that         'user_signature_key' module has been installed and enable a digital         signature, for you or make the signer to authorize you to use his         signature."
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:17
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:152
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:258
@@ -1217,7 +1217,7 @@ msgid "Tienda:"
 msgstr "Tienda:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:112
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:225
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:384
@@ -1264,7 +1264,7 @@ msgid "Tipo De nota"
 msgstr "Tipo De nota"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:7
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:285
 #: model:ir.ui.view,arch_db:l10n_cl_dte_point_of_sale.bo_invoice
@@ -1286,7 +1286,7 @@ msgid "Total"
 msgstr "Total"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:81
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:352
 #, python-format
@@ -1329,7 +1329,7 @@ msgid "Utilidades Varias"
 msgstr "Utilidades Varias"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:97
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/client.xml:115
 #, python-format
@@ -1337,7 +1337,7 @@ msgid "VAT"
 msgstr "RUT"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:16
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:151
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:259
@@ -1346,14 +1346,14 @@ msgid "Vendedor:"
 msgstr "Vendedor:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:227
 #, python-format
 msgid "Verifique documento en:"
 msgstr "Verifique documento en:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:102
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:219
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:373
@@ -1362,7 +1362,7 @@ msgid "Vuelto:"
 msgstr "Vuelto:"
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:47
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/xml/layout.xml:318
 #, python-format
@@ -1389,7 +1389,7 @@ msgstr ""
 "                            your supplier/customer."
 
 #. module: l10n_cl_dte_point_of_sale
-#. openerp-web
+#. odoo-web
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:213
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:227
 #: code:addons/l10n_cl_dte_point_of_sale/static/src/js/pos_dte.js:244
