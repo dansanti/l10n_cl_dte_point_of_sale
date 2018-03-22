@@ -76,7 +76,7 @@ screens.PaymentScreenWidget.include({
 			if (!caf_file){
 				self.pos.gui.show_popup('error',{
 	        		'title': "Sin Folios disponibles",
-	                'body':  _.str.sprintf("No hay CAF para el folio de este documento: %(document_number)s " + 
+	                'body':  _.str.sprintf("No hay CAF para el folio de este documento: %(document_number)s " +
 	              		  "Solicite un nuevo CAF en el sitio www.sii.cl", {
 	                			document_number: next_number,
 	              		  })
@@ -95,41 +95,42 @@ screens.PaymentScreenWidget.include({
 		var order = this.pos.get_order();
 		order.set_to_invoice(false);
 		this.$('.js_invoice').removeClass('highlight');
-		var caf = false;
 		if (this.pos.pos_session.caf_files){
-			caf = true;
+			return ;
 		}
-		this.unset_boleta(order);
-		if (!order.es_boleta() && caf) {
+		if (order.es_boleta_exenta() || !order.es_boleta()) {
+			this.unset_boleta(order);
 			order.set_boleta(true);
 			order.set_tipo_boleta(this.pos.config.secuencia_boleta);
 			if (this.pos.config.secuencia_boleta){
 				this.$('.js_boleta').addClass('highlight');
 			}
+			return;
 		}
+		this.unset_boleta(order);
 	},
 	click_boleta_exenta: function(){
 		var order = this.pos.get_order();
 		order.set_to_invoice(false);
 		this.$('.js_invoice').removeClass('highlight');
-		var caf = false;
 		if (this.pos.pos_session.caf_files_exentas){
-			caf = true;
+			return;
         }
-		this.unset_boleta(order);
-		if (!order.es_boleta_exenta() || caf){
+		if (!order.es_boleta_exenta()){
+			this.unset_boleta(order);
 			order.set_boleta(true);
 			order.set_tipo_boleta(this.pos.config.secuencia_boleta_exenta);
 			if (this.pos.config.secuencia_boleta_exenta){
 				this.$('.js_boleta_exenta').addClass('highlight');
 			}
-        }
+		}
+		this.unset_boleta(order);
 	},
 	click_invoice: function(){
 		var order = this.pos.get_order();
 		this.unset_boleta(order);
 		var res = this._super();
-	}
+	},
 });
 
 screens.ClientListScreenWidget.include({
@@ -392,7 +393,7 @@ screens.ClientListScreenWidget.include({
 		return true;
 	},
 });
-  
+
 screens.ReceiptScreenWidget.include({
 	render_receipt: function() {
 		var order = this.pos.get_order();
