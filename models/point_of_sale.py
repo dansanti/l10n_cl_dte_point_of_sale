@@ -18,15 +18,6 @@ import logging
 _logger = logging.getLogger(__name__)
 
 try:
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives.serialization import load_pem_private_key
-    import OpenSSL
-    from OpenSSL import crypto
-    type_ = crypto.FILETYPE_PEM
-except:
-    _logger.warning('Cannot import OpenSSL library')
-
-try:
     from io import BytesIO
 except:
     _logger.warning("no se ha cargado io")
