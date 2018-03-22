@@ -179,31 +179,40 @@ odoo.define('l10n_cl_dte_point_of_sale.pos_dte', function (require) {
       this.$('.js_boleta_exenta').removeClass('highlight');
     },
     click_boleta: function(){
-          var order = this.pos.get_order();
-          var caf = false;
-          if (this.pos.pos_session.caf_files){
-            caf = true;
+  		var order = this.pos.get_order();
+  		order.set_to_invoice(false);
+  		this.$('.js_invoice').removeClass('highlight');
+  		if (this.pos.pos_session.caf_files){
+  			return ;
+  		}
+  		if (order.es_boleta_exenta() || !order.es_boleta()) {
+  			this.unset_boleta(order);
+  			order.set_boleta(true);
+  			order.set_tipo_boleta(this.pos.config.secuencia_boleta);
+  			if (this.pos.config.secuencia_boleta){
+  				this.$('.js_boleta').addClass('highlight');
+  			}
+  			return;
+  		}
+  		this.unset_boleta(order);
+  	},
+  	click_boleta_exenta: function(){
+  		var order = this.pos.get_order();
+  		order.set_to_invoice(false);
+  		this.$('.js_invoice').removeClass('highlight');
+  		if (this.pos.pos_session.caf_files_exentas){
+  			return;
           }
-          this.unset_boleta(order);
-          if (!order.es_boleta() && caf) {
-            order.set_boleta(true);
-            order.set_tipo_boleta(this.pos.config.secuencia_boleta);
-            this.$('.js_boleta').addClass('highlight');
-          }
-      },
-      click_boleta_exenta: function(){
-            var order = this.pos.get_order();
-            var caf = false;
-            if (this.pos.pos_session.caf_files_exentas){
-              caf = true;
-            }
-            this.unset_boleta(order);
-            if (!order.es_boleta_exenta() || caf){
-              order.set_boleta(true);
-              order.set_tipo_boleta(this.pos.config.secuencia_boleta_exenta);
-              this.$('.js_boleta_exenta').addClass('highlight');
-            }
-      },
+  		if (!order.es_boleta_exenta()){
+  			this.unset_boleta(order);
+  			order.set_boleta(true);
+  			order.set_tipo_boleta(this.pos.config.secuencia_boleta_exenta);
+  			if (this.pos.config.secuencia_boleta_exenta){
+  				this.$('.js_boleta_exenta').addClass('highlight');
+  			}
+  		}
+  		this.unset_boleta(order);
+  	},
       click_invoice: function(){
     	  var order = this.pos.get_order();
         this.unset_boleta(order);
