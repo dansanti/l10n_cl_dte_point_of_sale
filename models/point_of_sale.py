@@ -125,10 +125,11 @@ class POSL(models.Model):
 class POS(models.Model):
     _inherit = 'pos.order'
 
-    def _get_document_class_id(self):
-        if self.sequence_id:
-            return self.sequence_id.sii_document_class_id.id
-        return self.env['sii.document_class']
+    def _get_available_sequence(self):
+        ids = [39, 41]
+        if self.sequence_id and self.sequence_id.sii_code == 61:
+            ids = [61]
+        return [ ('sii_document_class_id.sii_code', 'in', ids) ]
 
     signature = fields.Char(
             string="Signature",
@@ -137,6 +138,7 @@ class POS(models.Model):
             'ir.sequence',
             string='Sequencia de Boleta',
             states={'draft': [('readonly', False)]},
+            domain=lambda self: self._get_available_sequence(),
         )
     document_class_id = fields.Many2one(
             'sii.document_class',
@@ -144,7 +146,6 @@ class POS(models.Model):
             string='Document Type',
             copy=False,
             readonly=True,
-            states={'draft': [('readonly', False)]},
         )
     sii_batch_number = fields.Integer(
             copy=False,
@@ -434,7 +435,7 @@ version="1.0">
         journal_document_class_id = self.env['account.journal.sii_document_class'].search(
                 [
                     ('journal_id','=', self.sale_journal.id),
-                    ('sii_document_class_id.sii_code', 'in', ['33']),
+                    ('sii_document_class_id.sii_code', 'in', [ 33 ]),
                 ],
             )
         if not journal_document_class_id:
@@ -1187,6 +1188,10 @@ version="1.0">
         self.ensure_one()
         report_string = "%s %s" % (self.document_class_id.name, self.sii_document_number)
         return report_string
+
+    @api.multi
+    def get_invoice(self):
+        return self.invoice_id
 
 class Referencias(models.Model):
     _name = 'pos.order.referencias'

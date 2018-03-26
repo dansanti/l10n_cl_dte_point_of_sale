@@ -13,15 +13,22 @@ class AccountInvoiceRefund(models.TransientModel):
 
     _name = "pos.order.refund"
 
-    tipo_nota = fields.Many2one('sii.document_class', string="Tipo De nota", required=True, domain=[('document_type','in',['debit_note','credit_note']), ('dte','=',True)])
-    filter_refund = fields.Selection([
+    tipo_nota = fields.Many2one(
+            'sii.document_class',
+            string="Tipo De nota",
+            required=True,
+            domain=[('document_type','in',['debit_note','credit_note']), ('dte','=',True)],
+        )
+    filter_refund = fields.Selection(
+            [
                 ('1','Anula Documento de Referencia'),
                 ('2','Corrige texto Documento Referencia'),
-                ('3','Corrige montos')
-                ],
-                default='1',
-                string='Refund Method',
-                required=True, help='Refund base on this type. You can not Modify and Cancel if the invoice is already reconciled')
+                ('3','Corrige montos'),
+            ],
+            default='1',
+            string='Refund Method',
+            required=True, help='Refund base on this type. You can not Modify and Cancel if the invoice is already reconciled',
+        )
     motivo = fields.Char("Motivo")
     date_order = fields.Date(string="Fecha de Documento")
 
@@ -34,25 +41,28 @@ class AccountInvoiceRefund(models.TransientModel):
         active_ids = context.get('active_ids', []) or []
 
         for order in self.env['pos.order'].browse(active_ids):
-            current_session_ids = self.env['pos.session'].search( [
-                ('state', '!=', 'closed'),
-                ('user_id', '=', self.env.user.id)])
+            current_session_ids = self.env['pos.session'].search(
+                    [
+                        ('state', '!=', 'closed'),
+                        ('user_id', '=', self.env.user.id),
+                    ]
+                )
             if not current_session_ids:
                 raise UserError(_('To return product(s), you need to open a session that will be used to register the refund.'))
-
             jdc_ob = self.env['account.journal.sii_document_class']
             journal_document_class_id = jdc_ob.search(
                     [
                         ('journal_id','=', order.sale_journal.id),
-                        ('sii_document_class_id.sii_code', 'in', ['61']),
-                    ])
+                        ('sii_document_class_id.sii_code', 'in', [ 61 ]),
+                    ],
+                )
             if not journal_document_class_id:
                 raise UserError("Por favor defina Secuencia de Notas de Crédito para el Journal del POS")
             clone_id = order.copy( {
                 'name': order.name + ' REFUND', # not used, name forced by create
                 'session_id': current_session_ids[0].id,
                 'date_order': time.strftime('%Y-%m-%d %H:%M:%S'),
-                'journal_document_class_id': journal_document_class_id.id,
+                'sequence_id': journal_document_class_id.sequence_id.id,
                 'document_class_id': journal_document_class_id.sii_document_class_id.id,
                 'sii_document_number': 0,
                 'signature': False,
