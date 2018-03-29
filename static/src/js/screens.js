@@ -95,16 +95,11 @@ screens.PaymentScreenWidget.include({
 		var order = this.pos.get_order();
 		order.set_to_invoice(false);
 		this.$('.js_invoice').removeClass('highlight');
-		if (this.pos.pos_session.caf_files){
-			return ;
-		}
-		if (order.es_boleta_exenta() || !order.es_boleta()) {
+		if (this.pos.pos_session.caf_files && (order.es_boleta_exenta() || !order.es_boleta())) {
 			this.unset_boleta(order);
 			order.set_boleta(true);
 			order.set_tipo_boleta(this.pos.config.secuencia_boleta);
-			if (this.pos.config.secuencia_boleta){
-				this.$('.js_boleta').addClass('highlight');
-			}
+			this.$('.js_boleta').addClass('highlight');
 			return;
 		}
 		this.unset_boleta(order);
@@ -113,16 +108,12 @@ screens.PaymentScreenWidget.include({
 		var order = this.pos.get_order();
 		order.set_to_invoice(false);
 		this.$('.js_invoice').removeClass('highlight');
-		if (this.pos.pos_session.caf_files_exentas){
-			return;
-        }
-		if (!order.es_boleta_exenta()){
+		if (this.pos.pos_session.caf_files_exentas && !order.es_boleta_exenta()){
 			this.unset_boleta(order);
 			order.set_boleta(true);
 			order.set_tipo_boleta(this.pos.config.secuencia_boleta_exenta);
-			if (this.pos.config.secuencia_boleta_exenta){
-				this.$('.js_boleta_exenta').addClass('highlight');
-			}
+			this.$('.js_boleta_exenta').addClass('highlight');
+			return;
 		}
 		this.unset_boleta(order);
 	},
