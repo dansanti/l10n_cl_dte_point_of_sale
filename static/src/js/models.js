@@ -109,7 +109,7 @@ models.load_models({
 });
 
 models.load_models({
-	model: 'res.country.state.city',
+	model: 'res.city',
 	fields: ['id', 'name', 'state_id'],
 		loaded: function(self, ct){
 			self.cities = ct;
