@@ -4,7 +4,6 @@ from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 from lxml import etree
 from lxml.etree import Element, SubElement
-from odoo import SUPERUSER_ID
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT as DTF
 import time
 import math
@@ -813,9 +812,8 @@ version="1.0">
         clases = {}
         company_id = False
         for inv in self.with_context(lang='es_CL'):
-            try:
-                signature_d = self.get_digital_signature(inv.company_id)
-            except:
+            signature_d = self.env.user.get_digital_signature(inv.company_id)
+            if not signature_d:
                 raise UserError(_('''There is no Signer Person with an \
             authorized signature for you in the system. Please make sure that \
             'user_signature_key' module has been installed and enable a digital \
@@ -838,12 +836,12 @@ version="1.0">
                 raise UserError("Está combinando compañías, no está permitido hacer eso en un envío")
             company_id = inv.company_id
 
-        file_name = ""
+        file_name = {}
         dtes={}
         SubTotDTE = {}
         documentos = {}
         resol_data = self.get_resolution_data(company_id)
-        signature_d = self.get_digital_signature(company_id)
+        signature_d = self.env.user.get_digital_signature(company_id)
         RUTEmisor = self.format_vat(company_id.vat)
 
         for id_class_doc, classes in clases.items():
@@ -852,7 +850,9 @@ version="1.0">
             for documento in classes:
                 documentos[id_class_doc] += '\n' + documento['envio']
                 NroDte += 1
-                file_name += 'F' + str(int(documento['sii_document_number'])) + 'T' + str(id_class_doc)
+                if not str(id_class_doc) in file_name:
+                    file_name[str(id_class_doc)]
+                file_name[str(id_class_doc)] += 'F' + str(int(documento['sii_document_number'])) + 'T' + str(id_class_doc)
             SubTotDTE[id_class_doc] = '<SubTotDTE>\n<TpoDTE>' + str(id_class_doc) + '</TpoDTE>\n<NroDTE>'+str(NroDte)+'</NroDTE>\n</SubTotDTE>\n'
         file_name += ".xml"
         # firma del sobre
@@ -880,93 +880,65 @@ version="1.0">
                     'SetDoc',
                     env,
                 )
-            for inv in self:
-                if inv.document_class_id.sii_code == id_class_doc:
-                    inv.sii_xml_request = envio_dte
-                    inv.sii_send_file_name = file_name
+            envio_id = self.env['sii.xml.envio'].create(
+                    {
+                        'sii_xml_request': '<?xml version="1.0" encoding="ISO-8859-1"?>\n' + envio_dte,
+                        'name': file_name[str(id_class_doc)],
+                        'company_id': company_id.id,
+                        'user_id': self.env.uid,
+                    }
+                )
+            for order in self:
+                if order.document_class_id.sii_code == id_class_doc:
+                    order.sii_xml_request = envio_dte.id
 
-    def _get_send_status(self, track_id, signature_d,token):
-        url = server_url[self.company_id.dte_service_provider] + 'QueryEstUp.jws?WSDL'
-        _server = Client(url)
-        rut = self.format_vat(self.company_id.vat)
-        respuesta = _server.service.getEstUp(rut[:8], str(rut[-1]),track_id,token)
-        self.sii_message = respuesta
-        resp = xmltodict.parse(respuesta)
-        status = False
-        if resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "-11":
-            if resp['SII:RESPUESTA']['SII:RESP_HDR']['ERR_CODE'] == "2":
-                status =  {'warning':{'title':_('Estado -11'), 'message': _("Estado -11: Espere a que sea aceptado por el SII, intente en 5s más")}}
-            else:
-                status =  {'warning':{'title':_('Estado -11'), 'message': _("Estado -11: error 1Algo a salido mal, revisar carátula")}}
-        if resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "EPR":
-            self.sii_result = "Proceso"
-            if resp['SII:RESPUESTA']['SII:RESP_BODY']['RECHAZADOS'] == "1":
-                self.sii_result = "Rechazado"
-        elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "RCH":
-            self.sii_result = "Rechazado"
-            _logger.warning(resp)
-            status = {'warning':{'title':_('Error RCT'), 'message': _(resp['SII:RESPUESTA']['GLOSA'])}}
-        return status
+    @api.onchange('sii_message')
+    def get_sii_result(self):
+        for r in self:
+            if r.sii_message:
+                r.sii_result = self.env['account_invoice'].process_response_xml(xmltodict.parse(r.sii_message))
+                continue
+            if r.sii_xml_request.state == 'NoEnviado':
+                r.sii_result = 'EnCola'
+                continue
+            r.sii_result = r.sii_xml_request.state
 
-    def _get_dte_status(self, signature_d, token):
-        url = server_url[self.company_id.dte_service_provider] + 'QueryEstDte.jws?WSDL'
-        _server = Client(url)
-        receptor = self.format_vat(self.partner_id.vat)
+    def _get_dte_status(self):
         util_model = self.env['cl.utils']
         from_zone = pytz.UTC
         to_zone = pytz.timezone('America/Santiago')
-        date_order = util_model._change_time_zone(datetime.strptime(self.date_order, DTF), from_zone, to_zone).strftime(DTF)[:10]
-        date_invoice = datetime.strptime(date_order, "%Y-%m-%d").strftime("%d-%m-%Y")
-        rut = signature_d['subject_serial_number']
-        amount = int(self.amount_total)
-        if amount < 0:
-            amount *= -1
-        respuesta = _server.service.getEstDte(rut[:8],
-                                      str(rut[-1]),
-                                      self.company_id.vat[2:-1],
-                                      self.company_id.vat[-1],
-                                      receptor[:8],
-                                      receptor[-1],
-                                      str(self.document_class_id.sii_code),
-                                      str(self.sii_document_number),
-                                      date_invoice,
-                                      str(amount),
-                                      token)
-        self.sii_message = respuesta
-        resp = xmltodict.parse(respuesta)
-        if resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == '2':
-            status = {'warning':{'title':_("Error code: 2"), 'message': _(resp['SII:RESPUESTA']['SII:RESP_HDR']['GLOSA'])}}
-            return status
-        if resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "EPR":
-            self.sii_result = "Proceso"
-            if resp['SII:RESPUESTA']['SII:RESP_BODY']['RECHAZADOS'] == "1":
-                self.sii_result = "Rechazado"
-            if resp['SII:RESPUESTA']['SII:RESP_BODY']['REPARO'] == "1":
-                self.sii_result = "Reparo"
-        elif resp['SII:RESPUESTA']['SII:RESP_HDR']['ESTADO'] == "RCT":
-            self.sii_result = "Rechazado"
+        for r in self:
+            url = server_url[r.company_id.dte_service_provider] + 'QueryEstDte.jws?WSDL'
+            _server = Client(url)
+            receptor = r.format_vat(r.partner_id.vat)
+            date_order = util_model._change_time_zone(datetime.strptime(r.date_order, DTF), from_zone, to_zone).strftime(DTF)[:10]
+            date_invoice = datetime.strptime(date_order, "%Y-%m-%d").strftime("%d-%m-%Y")
+            rut = signature_d['subject_serial_number']
+            amount = int(r.amount_total)
+            if amount < 0:
+                amount *= -1
+            respuesta = _server.service.getEstDte(rut[:8],
+                                          str(rut[-1]),
+                                          r.company_id.vat[2:-1],
+                                          r.company_id.vat[-1],
+                                          receptor[:8],
+                                          receptor[-1],
+                                          str(r.document_class_id.sii_code),
+                                          str(r.sii_document_number),
+                                          date_invoice,
+                                          str(amount),
+                                          token)
+            r.sii_message = respuesta
 
     @api.multi
     def ask_for_dte_status(self):
-        try:
-            signature_d = self.get_digital_signature_pem(
-                self.company_id)
-            seed = self.get_seed(self.company_id)
-            template_string = self.create_template_seed(seed)
-            seed_firmado = self.sign_seed(
-                template_string, signature_d['priv_key'],
-                signature_d['cert'])
-            token = self.get_token(seed_firmado,self.company_id)
-        except:
-            _logger.warning(connection_status)
-            raise UserError(connection_status)
-        if not self.sii_send_ident:
-            raise UserError('No se ha enviado aún el documento, aún está en cola de envío interna en odoo')
-        if self.sii_result == 'Enviado':
-            status = self._get_send_status(self.sii_send_ident, signature_d, token)
-            if self.sii_result != 'Proceso':
-                return status
-        return self._get_dte_status(signature_d, token)
+        for r in self:
+            if not r.sii_xml_request and not r.sii_xml_request.sii_send_ident:
+                raise UserError('No se ha enviado aún el documento, aún está en cola de envío interna en odoo')
+            if r.sii_xml_request.state not in [ 'Aceptado', 'Rechazado']:
+                r.sii_xml_request.get_send_status(r.env.user)
+        self._get_dte_status()
+        self.get_sii_result()
 
     def _create_account_move_line(self, session=None, move=None):
         # Tricky, via the workflow, we only have one id in the ids variable
