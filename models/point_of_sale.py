@@ -175,10 +175,6 @@ class POS(models.Model):
             string='SII XML Response',
             copy=False,
         )
-    sii_send_ident = fields.Text(
-            string='SII Send Identification',
-            copy=False,
-        )
     sii_result = fields.Selection(
             [
                     ('', 'n/a'),
@@ -929,16 +925,6 @@ version="1.0">
                                           str(amount),
                                           token)
             r.sii_message = respuesta
-
-    @api.multi
-    def ask_for_dte_status(self):
-        for r in self:
-            if not r.sii_xml_request and not r.sii_xml_request.sii_send_ident:
-                raise UserError('No se ha enviado aún el documento, aún está en cola de envío interna en odoo')
-            if r.sii_xml_request.state not in [ 'Aceptado', 'Rechazado']:
-                r.sii_xml_request.get_send_status(r.env.user)
-        self._get_dte_status()
-        self.get_sii_result()
 
     def _create_account_move_line(self, session=None, move=None):
         # Tricky, via the workflow, we only have one id in the ids variable
