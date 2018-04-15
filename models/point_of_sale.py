@@ -163,17 +163,9 @@ class POS(models.Model):
             string=_('SII Barcode Image'),
             help='SII Barcode Image in PDF417 format',
         )
-    sii_message = fields.Text(
-            string='SII Message',
-            copy=False,
-        )
     sii_xml_request = fields.Many2one(
             'sii.xml.envio',
             string='SII XML Request',
-            copy=False,
-        )
-    sii_xml_response = fields.Text(
-            string='SII XML Response',
             copy=False,
         )
     sii_result = fields.Selection(
@@ -895,43 +887,13 @@ version="1.0">
                 if order.document_class_id.sii_code == id_class_doc:
                     order.sii_xml_request = envio_dte.id
 
-    @api.onchange('sii_message')
+    @api.onchange('sii_xml_request')
     def get_sii_result(self):
         for r in self:
-            if r.sii_message:
-                r.sii_result = self.env['account_invoice'].process_response_xml(xmltodict.parse(r.sii_message))
-                continue
             if r.sii_xml_request.state == 'NoEnviado':
                 r.sii_result = 'EnCola'
                 continue
             r.sii_result = r.sii_xml_request.state
-
-    def _get_dte_status(self):
-        util_model = self.env['cl.utils']
-        from_zone = pytz.UTC
-        to_zone = pytz.timezone('America/Santiago')
-        for r in self:
-            url = server_url[r.company_id.dte_service_provider] + 'QueryEstDte.jws?WSDL'
-            _server = Client(url)
-            receptor = r.format_vat(r.partner_id.vat)
-            date_order = util_model._change_time_zone(datetime.strptime(r.date_order, DTF), from_zone, to_zone).strftime(DTF)[:10]
-            date_invoice = datetime.strptime(date_order, "%Y-%m-%d").strftime("%d-%m-%Y")
-            rut = signature_d['subject_serial_number']
-            amount = int(r.amount_total)
-            if amount < 0:
-                amount *= -1
-            respuesta = _server.service.getEstDte(rut[:8],
-                                          str(rut[-1]),
-                                          r.company_id.vat[2:-1],
-                                          r.company_id.vat[-1],
-                                          receptor[:8],
-                                          receptor[-1],
-                                          str(r.document_class_id.sii_code),
-                                          str(r.sii_document_number),
-                                          date_invoice,
-                                          str(amount),
-                                          token)
-            r.sii_message = respuesta
 
     def _create_account_move_line(self, session=None, move=None):
         # Tricky, via the workflow, we only have one id in the ids variable

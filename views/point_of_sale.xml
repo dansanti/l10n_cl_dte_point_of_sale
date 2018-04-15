@@ -36,8 +36,6 @@
                           <field name="responsable_envio" invisible="True" readonly="True"/>
                           <field name='sii_batch_number' readonly="1"/>
                           <field name='sii_barcode_img' widget="image" attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
-                          <field name='sii_message' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
-                          <field name='sii_xml_response' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
                           <field name='sii_send_file_name' attrs="{'invisible':[('sii_result', 'in', ['','NoEnviado'])]}" readonly="1"/>
                           <field name="signature" readonly="1"/>
                           <field name='sii_xml_dte' attrs="{'invisible':[('sii_result', '=', '')]}" readonly="1"/>
