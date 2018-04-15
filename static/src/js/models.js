@@ -198,7 +198,7 @@ models.Order = models.Order.extend({
 			this.set_boleta(true);
 			this.set_tipo_boleta(this.pos.config.secuencia_boleta_exenta);
 		}else if (this.pos.config.marcar === 'factura'){
-			this.is_to_invoice(true);
+			this.set_to_invoice(true);
 		}
 		if(this.es_boleta()){
 			this.signature = this.signature || false;
@@ -253,6 +253,14 @@ models.Order = models.Order.extend({
 		return json;
 	},
 	initialize_validation_date: function(){
+		if (this.is_to_invoice() || this.es_boleta()){
+			var total_tax = this.get_total_tax();
+			if (this.es_boleta_exenta() && total_tax > 0){// @TODO agrregar facturas exentas
+				this.pos.gui.show_popup('error',_t("No pueden haber productos afectos en boleta/factura exenta"));
+			}else if(total_tax <= 0 && this.get_total_exento() > 0){
+				this.pos.gui.show_popup('error',_t("Debe haber almenos un producto afecto"));
+			}
+		}
 		_super_order.initialize_validation_date.apply(this,arguments);
 		if (!this.is_to_invoice() && this.es_boleta()){
 			if(this.es_boleta_exenta()){
@@ -264,11 +272,11 @@ models.Order = models.Order.extend({
 			}
 		}
 	},
-    get_total_with_tax: function() {
-    	_super_order.get_total_with_tax.apply(this,arguments);
-    	return round_pr(this.orderlines.reduce((function(sum, orderLine) {
-    		return sum + orderLine.get_price_with_tax();
-    	}), 0), this.pos.currency.rounding);
+  get_total_with_tax: function() {
+  	_super_order.get_total_with_tax.apply(this,arguments);
+  	return round_pr(this.orderlines.reduce((function(sum, orderLine) {
+  		return sum + orderLine.get_price_with_tax();
+  	}), 0), this.pos.currency.rounding);
 	},
 	set_tipo_boleta: function(tipo_boleta){
 		this.sequence_id = tipo_boleta;

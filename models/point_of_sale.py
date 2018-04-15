@@ -551,16 +551,20 @@ version="1.0">
         amount_total = amount_total = int(round(self.amount_total, 0))
         if amount_total < 0:
             amount_total *= -1
-        if self.document_class_id.sii_code == 34 :#@TODO Boletas exentas
+        if self.document_class_id.sii_code in [ 34, 41]:
+            if self.amount_tax > 0:
+                raise UserError("NO pueden ir productos afectos en documentos exentos")
             Totales['MntExe'] = amount_total
             if  no_product:
                 Totales['MntExe'] = 0
-        else :
+        elif not no_product:
             amount_untaxed =  self.amount_total - self.amount_tax
             if amount_untaxed < 0:
                 amount_untaxed *= -1
             if MntExe < 0:
                 MntExe *=-1
+            if self.amount_tax == 0 and MntExe > 0:
+                raise UserError("Debe ir almenos un Producto Afecto")
             Neto = amount_untaxed - MntExe
             if not taxInclude and not self._es_boleta():
                 IVA = False
@@ -589,7 +593,7 @@ version="1.0">
             #    Totales['ImptoReten']['TpoImp'] = IVA.tax_id.sii_code
             #    Totales['ImptoReten']['TasaImp'] = round(IVA.tax_id.amount,2)
             #    Totales['ImptoReten']['MontoImp'] = int(round(IVA.amount))
-        if no_product:
+        else:
             amount_total = 0
         Totales['MntTotal'] = amount_total
 
