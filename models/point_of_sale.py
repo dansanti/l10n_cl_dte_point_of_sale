@@ -167,7 +167,8 @@ class POS(models.Model):
             string='SII Message',
             copy=False,
         )
-    sii_xml_request = fields.Text(
+    sii_xml_request = fields.Many2one(
+            'sii.xml.envio',
             string='SII XML Request',
             copy=False,
         )
@@ -212,6 +213,12 @@ class POS(models.Model):
             'pos.order.referencias',
             'order_id',
             string="References",
+            readonly=True,
+            states={'draft': [('readonly', False)]},
+        )
+    sii_xml_dte = fields.Text(
+            string='SII XML DTE',
+            copy=False,
             readonly=True,
             states={'draft': [('readonly', False)]},
         )
@@ -799,7 +806,7 @@ version="1.0">
                 doc_id_number,
                 type,
             )
-        self.sii_xml_request = einvoice
+        self.sii_xml_dte = einvoice
 
     @api.multi
     def do_dte_send(self, n_atencion=None):
@@ -822,7 +829,7 @@ version="1.0">
                 clases[inv.document_class_id.sii_code] = []
             clases[inv.document_class_id.sii_code].extend([{
                                                 'id':inv.id,
-                                                'envio': inv.sii_xml_request,
+                                                'envio': inv.sii_xml_dte,
                                                 'sii_document_number':inv.sii_document_number
                                             }])
             DTEs.update(clases)
