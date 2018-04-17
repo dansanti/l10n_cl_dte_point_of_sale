@@ -169,7 +169,7 @@ models.PosModel = models.PosModel.extend({
 		return sii_document_number;
 	},
 	push_order: function(order, opts) {
-		if(order && order.es_boleta()){
+		if(order && order.es_boleta() && !this.finalized){
 			var orden_numero = order.orden_numero -1;
 			var caf_files = JSON.parse(order.sequence_id.caf_files);
 			var start_number = order.sequence_id.sii_document_class_id.sii_code == 41 ? this.pos_session.start_number_exentas : this.pos_session.start_number;
@@ -212,6 +212,7 @@ models.Order = models.Order.extend({
 		json.sii_document_number = this.sii_document_number;
 		json.signature = this.signature;
 		json.orden_numero = this.orden_numero;
+		json.finalized = this.finalized;
 		return json;
 	},
     init_from_JSON: function(json) {// carga pedido individual
@@ -220,6 +221,8 @@ models.Order = models.Order.extend({
     	this.sii_document_number = json.sii_document_number;
     	this.signature = json.signature;
     	this.orden_numero = json.orden_numero;
+			this.finalized = json.finalized;
+			console.log(json);
 	},
 	export_for_printing: function() {
 		var json = _super_order.export_for_printing.apply(this,arguments);
@@ -253,7 +256,7 @@ models.Order = models.Order.extend({
 		return json;
 	},
 	initialize_validation_date: function(){
-		if (this.is_to_invoice() || this.es_boleta()){
+		if (!this.finalized && (this.is_to_invoice() || this.es_boleta())){
 			var total_tax = this.get_total_tax();
 			if (this.es_boleta_exenta() && total_tax > 0){// @TODO agrregar facturas exentas
 				this.pos.gui.show_popup('error',_t("No pueden haber productos afectos en boleta/factura exenta"));
@@ -262,7 +265,7 @@ models.Order = models.Order.extend({
 			}
 		}
 		_super_order.initialize_validation_date.apply(this,arguments);
-		if (!this.is_to_invoice() && this.es_boleta()){
+		if (!this.is_to_invoice() && this.es_boleta() && this.finalized){
 			if(this.es_boleta_exenta()){
 				this.pos.pos_session.numero_ordenes_exentas ++;
 				this.orden_numero = this.pos.pos_session.numero_ordenes_exentas;
@@ -270,6 +273,7 @@ models.Order = models.Order.extend({
 				this.pos.pos_session.numero_ordenes ++;
 				this.orden_numero = this.pos.pos_session.numero_ordenes;
 			}
+			this.finalized = true;
 		}
 	},
   get_total_with_tax: function() {
