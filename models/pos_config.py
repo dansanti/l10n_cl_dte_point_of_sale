@@ -50,7 +50,6 @@ class PosConfig(models.Model):
             ('boleta_exenta', 'Boletas Exentas'),
         ],
         string="Marcar por defecto",
-        default='boleta',
     )
 
     @api.one
