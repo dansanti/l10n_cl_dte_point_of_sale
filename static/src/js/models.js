@@ -256,14 +256,6 @@ models.Order = models.Order.extend({
 		return json;
 	},
 	initialize_validation_date: function(){
-		if (!this.finalized && (this.is_to_invoice() || this.es_boleta())){
-			var total_tax = this.get_total_tax();
-			if (this.es_boleta_exenta() && total_tax > 0){// @TODO agrregar facturas exentas
-				this.pos.gui.show_popup('error',_t("No pueden haber productos afectos en boleta/factura exenta"));
-			}else if(total_tax <= 0 && this.get_total_exento() > 0){
-				this.pos.gui.show_popup('error',_t("Debe haber almenos un producto afecto"));
-			}
-		}
 		_super_order.initialize_validation_date.apply(this,arguments);
 		if (!this.is_to_invoice() && this.es_boleta() && this.finalized){
 			if(this.es_boleta_exenta()){

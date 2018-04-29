@@ -22,16 +22,23 @@ screens.PaymentScreenWidget.include({
 		var self = this;
 		var res = this._super(force_validation);
 		var order = self.pos.get_order();
-		if (order.is_to_invoice() && order.get_client()) {
-			var client = order.get_client();
-			if (!client.street){
-				this.gui.show_popup('error',{
-					'title': 'Datos de Cliente Incompletos',
-					'body':  'El Cliente seleccionado no tiene la direccion, por favor verifique',
-				});
+		if (order.is_to_invoice() || order.es_boleta()){
+		      var total_tax = order.get_total_tax();
+		      if (order.es_boleta_exenta() && total_tax > 0){// @TODO agrregar facturas exentas
+		        this.gui.show_popup('error',{
+		        	'title': "Error de integridad",
+		        	'body': "No pueden haber productos afectos en boleta/factura exenta",
+		        });
 				return false;
-			}
-			if (!client.document_number){
+		      }else if(!order.es_boleta_exenta() && total_tax <= 0 && order.get_total_exento() > 0){
+		        this.gui.show_popup('error',{
+		        	'title': "Error de integridad",
+		        	'body': "Debe haber almenos un producto afecto",
+		      	});
+				return false;
+		    };
+		};
+		if (!client.document_number){
 				this.gui.show_popup('error',{
 					'title': 'Datos de Cliente Incompletos',
 					'body':  'El Cliente seleccionado no tiene RUT, por favor verifique',
