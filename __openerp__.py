@@ -2,7 +2,7 @@
 {
     "name": """Chile - Web Services de Documentos Tributarios Electrónicos Para Punto de Ventas\
     """,
-    'version': '9.0.6.0.5',
+    'version': '9.0.6.0.6',
     'category': 'Localization/Chile',
     'sequence': 12,
     'author':  'Daniel Santibáñez Polanco',
