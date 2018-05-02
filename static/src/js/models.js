@@ -368,8 +368,10 @@ models.Order = models.Order.extend({
 		var partner_id = this.get_client();
 		if(!partner_id){
 			partner_id = {};
-			partner_id.document_number = "66666666-6";
 			partner_id.name = "Usuario Anonimo";
+		}
+		if(!partner_id.document_number){
+			partner_id.document_number = "66666666-6";
 		}
 		var product_name = false;
 		var ols = order.orderlines.models;
