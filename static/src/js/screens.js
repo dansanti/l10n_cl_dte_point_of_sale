@@ -38,7 +38,16 @@ screens.PaymentScreenWidget.include({
 				return false;
 		    };
 		};
-		if (!client.document_number){
+		if (order.is_to_invoice() && order.get_client()) {
+			var client = order.get_client();
+			if (!client.street){
+				this.gui.show_popup('error',{
+					'title': 'Datos de Cliente Incompletos',
+					'body':  'El Cliente seleccionado no tiene la direccion, por favor verifique',
+				});
+				return false;
+			}
+			if (!client.document_number){
 				this.gui.show_popup('error',{
 					'title': 'Datos de Cliente Incompletos',
 					'body':  'El Cliente seleccionado no tiene RUT, por favor verifique',
