@@ -797,8 +797,6 @@ version="1.0">
         type = 'bol'
         einvoice = self.env['account.invoice'].sign_full_xml(
                 envelope_efact,
-                signature_d['priv_key'],
-                self.split_cert(certp),
                 doc_id_number,
                 type,
             )
