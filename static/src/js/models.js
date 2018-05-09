@@ -204,6 +204,9 @@ models.Order = models.Order.extend({
 			this.signature = this.signature || false;
 			this.sii_document_number = this.sii_document_number || false;
 			this.orden_numero = this.orden_numero || this.pos.pos_session.numero_ordenes;
+			if (this.orden_numero <= 0){
+				this.orden_numero = 1;
+			}
 		}
 	},
 	export_as_JSON: function() {
