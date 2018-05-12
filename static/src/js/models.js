@@ -204,6 +204,9 @@ models.Order = models.Order.extend({
 			this.signature = this.signature || false;
 			this.sii_document_number = this.sii_document_number || false;
 			this.orden_numero = this.orden_numero || this.pos.pos_session.numero_ordenes;
+			if (this.orden_numero <= 0){
+				this.orden_numero = 1;
+			}
 		}
 	},
 	export_as_JSON: function() {
@@ -257,7 +260,7 @@ models.Order = models.Order.extend({
 	},
 	initialize_validation_date: function(){
 		_super_order.initialize_validation_date.apply(this,arguments);
-		if (!this.is_to_invoice() && this.es_boleta() && this.finalized){
+		if (!this.is_to_invoice() && this.es_boleta() && !this.finalized){
 			if(this.es_boleta_exenta()){
 				this.pos.pos_session.numero_ordenes_exentas ++;
 				this.orden_numero = this.pos.pos_session.numero_ordenes_exentas;
