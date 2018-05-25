@@ -1078,14 +1078,12 @@ version="1.0">
 
     @api.multi
     def action_pos_order_paid(self):
-        if not self.test_paid():
-            raise UserError(_("Order is not paid."))
-        if self.sequence_id and not self.sii_xml_request:
-            if (not self.sii_document_number or self.sii_document_number == 0) and not self.signature:
-                self.sii_document_number = self.sequence_id.next_by_id()
-            self.do_validate()
-        self.write({'state': 'paid'})
-        return self.create_picking()
+        if self.test_paid():
+            if self.sequence_id and not self.sii_xml_request:
+                if (not self.sii_document_number or self.sii_document_number == 0) and not self.signature:
+                    self.sii_document_number = self.sequence_id.next_by_id()
+                self.do_validate()
+        return super(POS, self).action_pos_order_paid()
 
     @api.depends('statement_ids', 'lines.price_subtotal_incl', 'lines.discount')
     def _compute_amount_all(self):
