@@ -110,9 +110,13 @@ models.load_models({
 
 models.load_models({
 	model: 'res.city',
-	fields: ['id', 'name', 'state_id'],
+	fields: ['id', 'name', 'state_id', 'country_id'],
 		loaded: function(self, ct){
 			self.cities = ct;
+			self.cities_by_id = {};
+            _.each(ct, function(city){
+                self.cities_by_id[city.id] = city;
+            });
 		},
 });
 
