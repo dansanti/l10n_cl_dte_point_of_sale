@@ -16,7 +16,7 @@ for(var i=0; i<modules.length; i++){
 		model.fields.push('activity_description','street','city', 'dte_resolution_date', 'dte_resolution_number');
 	}
 	if(model.model === 'res.partner'){
-		model.fields.push('document_number','activity_description','document_type_id', 'state_id', 'city_id');
+		model.fields.push('document_number','activity_description','document_type_id', 'state_id', 'city_id', 'dte_email');
 	}
 	if(model.model === 'pos.session'){
 		model.fields.push('caf_files', 'caf_files_exentas', 'start_number', 'start_number_exentas', 'numero_ordenes', 'numero_ordenes_exentas');
@@ -110,9 +110,13 @@ models.load_models({
 
 models.load_models({
 	model: 'res.city',
-	fields: ['id', 'name', 'state_id'],
+	fields: ['id', 'name', 'state_id', 'country_id'],
 		loaded: function(self, ct){
 			self.cities = ct;
+			self.cities_by_id = {};
+            _.each(ct, function(city){
+                self.cities_by_id[city.id] = city;
+            });
 		},
 });
 

@@ -1,130 +1,162 @@
 <?xml version="1.0" encoding="utf-8"?>
-<templates id="template_client" inherit_id="point_of_sale.template" name="Template_client">
-    <t t-extend="ClientDetailsEdit">
-        <t t-jquery="div.client-details-left" t-operation="replace">
-        	<div class='client-details-left'>
-	       	<div class='client-detail'>
+<templates id="template_client" inherit_id="point_of_sale.template"
+	name="Template_client">
+	<t t-extend="ClientDetailsEdit">
+		<t t-jquery="div.client-details-left" t-operation="replace">
+			<div class='client-details-left'>
+				<div class='client-detail'>
 					<span class='label'>Tipo Documento</span>
-	               <select class='detail client-address-document_type_id' name='document_type_id'>
-	                   <option value=''>None</option>
-	                   <t t-foreach='widget.pos.sii_document_types' t-as='sii_document_type'>
-	                       <option t-att-value='sii_document_type.id' t-att-selected="partner.document_type_id ? ((sii_document_type.id === partner.document_type_id[0]) ? true : undefined) : (sii_document_type.sii_code ===  81 ? true: undefined)">
-	                           <t t-esc='sii_document_type.name'/>
-	                       </option>
-	                   </t>
-	               </select>
+					<select class='detail client-address-document_type_id' name='document_type_id'>
+						<option value=''>None</option>
+						<t t-foreach='widget.pos.sii_document_types' t-as='sii_document_type'>
+							<option t-att-value='sii_document_type.id'
+								t-att-selected="partner.document_type_id ? ((sii_document_type.id === partner.document_type_id[0]) ? true : undefined) : (sii_document_type.sii_code ===  81 ? true: undefined)">
+								<t t-esc='sii_document_type.name' />
+							</option>
+						</t>
+					</select>
 				</div>
-	       	<div class='client-detail'>
+				<div class='client-detail'>
 					<span class='label'>RUT</span>
-					<input class='detail client-document_number' name='document_number' t-att-value='partner.document_number' placeholder='RUT'></input>
+					<input class='detail client-document_number' name='document_number'
+						t-att-value='partner.document_number' placeholder='RUT'></input>
 				</div>
-       	<div class='client-detail' t-if="partner.activity_description">
+				<div class='client-detail' t-if="partner.activity_description">
 					<span class='label'>Giro</span>
-	               <select class='detail client-address-activity_description' name='activity_description'>
-	                   <option value=''>None</option>
-	                   <t t-foreach='widget.pos.sii_activities' t-as='sii_activity'>
-	                       <option t-att-value='sii_activity.id' t-att-selected="partner.activity_description ? ((sii_activity.id === partner.activity_description[0]) ? true : undefined) : undefined">
-	                           <t t-esc='sii_activity.name'/>
-	                       </option>
-	                   </t>
-	               </select>
+					<select class='detail client-address-activity_description'
+						name='activity_description'>
+						<option value=''>None</option>
+						<t t-foreach='widget.pos.sii_activities' t-as='sii_activity'>
+							<option t-att-value='sii_activity.id'
+								t-att-selected="partner.activity_description ? ((sii_activity.id === partner.activity_description[0]) ? true : undefined) : undefined">
+								<t t-esc='sii_activity.name' />
+							</option>
+						</t>
+					</select>
 				</div>
-        <div class='client-detail' t-if="!partner.activity_description">
+				<div class='client-detail' t-if="!partner.activity_description">
 					<span class='label'>Giro</span>
-	               <input class='detail client-address-activity_description' name='activity_description' placeholder="Crear nueva Descripción del giro" ></input>
-         </div>
-        <div class='client-detail'>
+					<input class='detail client-address-activity_description'
+						name='activity_description' placeholder="Crear nueva Descripción del giro"></input>
+				</div>
+				<div class='client-detail'>
 					<span class='label'>Responsabilidad</span>
-	               <select class='detail client-responsability' name='responsability_id'>
-	                   <option value=''>None</option>
-	                   <t t-foreach='widget.pos.responsabilities' t-as='resp'>
-	                       <option t-att-value='resp.id' t-att-selected="partner.responsability_id ? ((resp.id === partner.responsability_id[0]) ? true : undefined) : (resp.tp_sii_code === 1 ? true: undefined)">
-	                           <t t-esc='resp.name'/>
-	                       </option>
-	                   </t>
-	               </select>
+					<select class='detail client-responsability' name='responsability_id'>
+						<option value=''>None</option>
+						<t t-foreach='widget.pos.responsabilities' t-as='resp'>
+							<option t-att-value='resp.id'
+								t-att-selected="partner.responsability_id ? ((resp.id === partner.responsability_id[0]) ? true : undefined) : (resp.tp_sii_code === 1 ? true: undefined)">
+								<t t-esc='resp.name' />
+							</option>
+						</t>
+					</select>
 				</div>
-	       	<div class='client-detail'>
-	               <span class='label'>Country</span>
-	               <select class='detail client-address-country' name='country_id'>
-	                   <option value=''>None</option>
-	                   <t t-foreach='widget.pos.countries' t-as='country'>
-	                       <option t-att-value='country.id' t-att-selected="partner.country_id ? ((country.id === partner.country_id[0]) ? true : undefined) : undefined">
-	                           <t t-esc='country.name'/>
-	                       </option>
-	                   </t>
-	               </select>
-	           </div>
-	           <div class='client-detail'>
-	              <span class='label'>Provincia</span>
-	              <select class='detail client-address-state_id' name='state_id'>
-	                  <option value=''>None</option>
-	                  <t t-foreach='widget.pos.states' t-as='state'>
-	                      <option t-att-value='state.id' t-att-data-country_id="state.country_id[0]" t-att-selected="partner.state_id ? ((state.id === partner.state_id[0]) ? true : undefined) : undefined">
-	                          <t t-esc='state.name'/>
-	                      </option>
-	                  </t>
-	              </select>
-	          </div>
-	           <div class='client-detail'>
-	              <span class='label'>Comuna</span>
-	              <select class='detail client-address-city_id' name='city_id'>
-	                  <option value=''>None</option>
-	                  <t t-foreach='widget.pos.cities' t-as='city'>
-	                      <option t-att-value='city.id' t-att-data-state_id="city.state_id[0]" t-att-selected="partner.city_id ? ((city.id === partner.city_id[0]) ? true : undefined) : undefined">
-	                          <t t-esc='city.name'/>
-	                      </option>
-	                  </t>
-	              </select>
-	          </div>
-            <div class='client-detail'>
-                <span class='label'>City</span>
-                <input class='detail client-address-city'   name='city'         t-att-value='partner.city' placeholder='City'></input>
-            </div>
-	          <div class='client-detail'>
-	               <span class='label'>Street</span>
-	               <input class='detail client-address-street' name='street'       t-att-value='partner.street' placeholder='Street'></input>
-	           </div>
-           </div>
-        </t>
-        <t t-jquery="div.client-details-right div:first-child" t-operation="after">
-        	<div class='client-detail'>
-                <span class='label'>DTE Email</span>
-                <input class='detail client-dte_email'  name='dte_email'    type='email'    t-att-value='partner.dte_email || ""'></input>
-            </div>
-        </t>
-        <t t-jquery="span:contains('Tax ID')" t-operation="replace" >
-        	<span class='label'>VAT</span>
-        </t>
-    </t>
+				<div class='client-detail'>
+					<span class='label'>Comuna</span>
+					<select class='detail client-address-city_id' name='city_id'>
+						<option value=''>None</option>
+						<t t-foreach='widget.pos.cities' t-as='city'>
+							<option t-att-value='city.id' t-att-data-state_id="city.state_id[0]"
+								t-att-selected="partner.city_id ? ((city.id === partner.city_id[0]) ? true : undefined) : undefined">
+								<t t-esc='city.name' />
+							</option>
+						</t>
+					</select>
+				</div>
+				<div class='client-detail'>
+					<span class='label'>City</span>
+					<input class='detail client-address-city' name='city'
+						t-att-value='partner.city' placeholder='City'></input>
+				</div>
+				<div class='client-detail'>
+					<span class='label'>Street</span>
+					<input class='detail client-address-street' name='street'
+						t-att-value='partner.street' placeholder='Street'></input>
+				</div>
 
-    <t t-extend="ClientDetails">
-        <t t-jquery="div.client-details-left div:first-child" t-operation="before">
-            <div class='client-detail'>
+				<div class='client-detail'>
+					<span class='label'>Country</span>
+					<select class='detail client-address-country' name='country_id'>
+						<option value=''>None</option>
+						<t t-foreach='widget.pos.countries' t-as='country'>
+							<option t-att-value='country.id'
+								t-att-selected="partner.country_id ? ((country.id === partner.country_id[0]) ? true : undefined) : undefined">
+								<t t-esc='country.name' />
+							</option>
+						</t>
+					</select>
+				</div>
+				<div class='client-detail'>
+					<span class='label'>Provincia</span>
+					<select class='detail client-address-state_id' name='state_id'>
+						<option value=''>None</option>
+						<t t-foreach='widget.pos.states' t-as='state'>
+							<option t-att-value='state.id' t-att-data-country_id="state.country_id[0]"
+								t-att-selected="partner.state_id ? ((state.id === partner.state_id[0]) ? true : undefined) : undefined">
+								<t t-esc='state.name' />
+							</option>
+						</t>
+					</select>
+				</div>
+			</div>
+		</t>
+		<t t-jquery="div.client-details-right div:first-child" t-operation="after">
+			<div class='client-detail'>
+				<span class='label'>DTE Email</span>
+				<input class='detail client-dte_email' name='dte_email' type='email'
+					t-att-value='partner.dte_email || ""'></input>
+			</div>
+		</t>
+		<t t-jquery="span:contains('Tax ID')" t-operation="replace">
+			<span class='label'>VAT</span>
+		</t>
+	</t>
+
+	<t t-extend="ClientDetails">
+		<t t-jquery="div.client-details-left div:first-child" t-operation="before">
+			<div class='client-detail'>
 				<span class='label'>RUT</span>
-				<span class='detail client-document_number'><t t-esc='partner.document_number || ""' /></span>
+				<span class='detail client-document_number'>
+					<t t-esc='partner.document_number || ""' />
+				</span>
 			</div>
-        </t>
-        <t t-jquery="div.client-details-left div:first-child" t-operation="after">
-            <div class='client-detail'>
+		</t>
+		<t t-jquery="div.client-details-left div:first-child" t-operation="after">
+			<div class='client-detail'>
 				<span class='label'>Giro</span>
-				<span class='detail client-activity_description'><t t-esc='partner.activity_description ? partner.activity_description[1] : ""' /></span>
+				<span class='detail client-activity_description'>
+					<t
+						t-esc='partner.activity_description ? partner.activity_description[1] : ""' />
+				</span>
 			</div>
-        </t>
-        <t t-jquery="span:contains('Tax ID')" t-operation="replace" >
-        	<span class='label'>VAT</span>
-        </t>
-    </t>
+		</t>
+		<t t-jquery="t[t-if='!partner.email']" t-operation="after">
+			<div class='client-detail'>
+				<span class='label'>DTE Email</span>
+				<t t-if='partner.email'>
+					<span class='detail client-dte_email'><t t-esc='partner.dte_email || ""' /></span>
+				</t>
+				<t t-if='!partner.email'>
+					<span class='detail client-dte_email empty'>N/A</span>
+				</t>
+			</div>
+		</t>
+		<t t-jquery="span:contains('Tax ID')" t-operation="replace">
+			<span class='label'>VAT</span>
+		</t>
+	</t>
 
-	   <t t-extend="ClientListScreenWidget">
-        <t t-jquery="table.client-list thead tr th:first-child" t-operation="before">
-            <th style="width: 120px;">RUT</th>
-        </t>
-    </t>
-    <t t-extend="ClientLine">
-        <t t-jquery="tr td:first-child" t-operation="before">
-            <td><t t-esc='partner.document_number or "Sin Rut"' /></td>
-        </t>
-    </t>
+	<t t-extend="ClientListScreenWidget">
+		<t t-jquery="table.client-list thead tr th:first-child" t-operation="before">
+			<th style="width: 120px;">RUT</th>
+		</t>
+	</t>
+	<t t-extend="ClientLine">
+		<t t-jquery="tr td:first-child" t-operation="before">
+			<td>
+				<t t-esc='partner.document_number or "Sin Rut"' />
+			</td>
+		</t>
+	</t>
 
 </templates>

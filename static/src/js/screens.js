@@ -271,14 +271,17 @@ screens.ClientListScreenWidget.include({
 				select.val(selected_state);
 				displayed_state.appendTo(select).show();
 			});
-			self.$("select[name='state_id']").on('change', function(){
-				var select = self.$("select[name='city_id']:visible");
-				var selected_comuna = select.val();
-				comuna_options.detach();
-				var displayed_comuna = comuna_options.filter("[data-state_id="+(self.$(this).val() || 0)+"]");
-				select.val(selected_comuna);
-				displayed_comuna.appendTo(select).show();
-			});
+			self.$("select[name='city_id']").on('change', function(){
+        		var city_id = self.$(this).val() || 0;
+        		if (city_id > 0){
+        			var city = self.pos.cities_by_id[city_id];
+        			var select_country = self.$("select[name='country_id']:visible");
+        			select_country.val(city.country_id ? city.country_id[0] : 0);
+        			select_country.change();
+        			var select_state = self.$("select[name='state_id']:visible");
+        			select_state.val(city.state_id ? city.state_id[0] : 0);
+        		}
+        	});
 			self.$(".client-document_number").on('change', function(){
 				var document_number = self.$(this).val() || '';
 				document_number = document_number.replace(/[^1234567890Kk]/g, "");
@@ -291,7 +294,6 @@ screens.ClientListScreenWidget.include({
     			self.$(this).val(document_number);
 			});
 			self.$("select[name='country_id']").change();
-			self.$("select[name='state_id']").change();
 		}
 	},
 	validar_rut: function(texto){
