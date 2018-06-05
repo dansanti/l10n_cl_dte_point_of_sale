@@ -130,6 +130,17 @@
 				</span>
 			</div>
 		</t>
+		<t t-jquery="t[t-if='!partner.email']" t-operation="after">
+			<div class='client-detail'>
+				<span class='label'>DTE Email</span>
+				<t t-if='partner.email'>
+					<span class='detail client-dte_email'><t t-esc='partner.dte_email || ""' /></span>
+				</t>
+				<t t-if='!partner.email'>
+					<span class='detail client-dte_email empty'>N/A</span>
+				</t>
+			</div>
+		</t>
 		<t t-jquery="span:contains('Tax ID')" t-operation="replace">
 			<span class='label'>VAT</span>
 		</t>
