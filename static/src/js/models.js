@@ -16,7 +16,7 @@ for(var i=0; i<modules.length; i++){
 		model.fields.push('activity_description','street','city', 'dte_resolution_date', 'dte_resolution_number');
 	}
 	if(model.model === 'res.partner'){
-		model.fields.push('document_number','activity_description','document_type_id', 'state_id', 'city_id');
+		model.fields.push('document_number','activity_description','document_type_id', 'state_id', 'city_id', 'dte_email');
 	}
 	if(model.model === 'pos.session'){
 		model.fields.push('caf_files', 'caf_files_exentas', 'start_number', 'start_number_exentas', 'numero_ordenes', 'numero_ordenes_exentas');
